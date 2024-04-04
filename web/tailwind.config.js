@@ -2,7 +2,13 @@
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        default: 'Pretendard',
+        title: 'Kumbh Sans',
+        phase: 'Big Shoulders Text',
+      },
+    },
   },
   plugins: [],
 };
