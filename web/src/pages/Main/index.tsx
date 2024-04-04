@@ -1,12 +1,11 @@
-import React from 'react';
-import { Button } from './../../components/Button';
+import { Button } from '~/components/Button';
 
-export function Home() {
+export function MainPage() {
   return (
     <main className="flex h-full flex-col items-center justify-center gap-12">
       <div className="flex flex-col items-center gap-2">
-        <h1 className="font-title text-4xl">Nine Men&apos;s Morris</h1>
-        <h2 className="text-xl font-light tracking-[0.8rem] text-gray-500">
+        <h1 className="font-title text-5xl">Nine Men&apos;s Morris</h1>
+        <h2 className="text-2xl font-light tracking-[0.8rem] text-gray-500">
           나인 멘스 모리스
         </h2>
       </div>
