@@ -19,7 +19,7 @@ export function Status({
   return (
     <div className="flex">
       <div>{<Play className={`${isTurn ? '' : 'opacity-0'}`} />}</div>
-      <div className="flex w-64 flex-col gap-4">
+      <div className="flex w-64 flex-col gap-3">
         <div className="flex items-center justify-between">
           <span className="text-2xl font-semibold">
             {isCurrentUser ? '나' : '상대'}
