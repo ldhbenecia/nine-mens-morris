@@ -9,10 +9,10 @@ export function CreateRoomModal({ closeModal }: CreateRoomProps) {
   return (
     <Modal>
       <>
-        <div className="text-lg font-semibold">방 제목을 입력해 주세요.</div>
+        <div className="font-semibold">방 제목을 입력해 주세요.</div>
         <input
           type="text"
-          className="flex w-full rounded-md border border-gray-400 p-4"
+          className="flex w-full rounded-md border border-gray-400 p-3"
         />
         <div className="flex w-full gap-4">
           <Button
