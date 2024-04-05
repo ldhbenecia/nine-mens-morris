@@ -8,6 +8,10 @@ export default {
         title: 'Kumbh Sans',
         phase: 'Big Shoulders Text',
       },
+      backgroundImage: {
+        'white-stone': 'radial-gradient(circle, #ffffff 0%, #f3f4f6 100%)',
+        'black-stone': 'radial-gradient(circle, #374151 0%, #1f2937 100%)',
+      },
       keyframes: {
         'fade-in': {
           '0%': { opacity: 0 },
