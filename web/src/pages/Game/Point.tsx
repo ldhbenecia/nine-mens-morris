@@ -19,8 +19,9 @@ export function Point({
         </div>
       ) : (
         <div
-          className={`flex h-[60px] w-[60px] items-center justify-center rounded-full ${selected ? 'border-2 border-dashed border-red-600' : ''}`}
+          className={`animate-stone-set flex h-[60px] w-[60px] items-center justify-center rounded-full ${selected ? 'border-2 border-dashed border-red-600' : ''}`}
         >
+          <div className="animate-stone-set-effect pointer-events-none absolute z-20 h-[60px] w-[60px] rounded-full border border-gray-400" />
           <div
             className={`shadow-stone h-full w-full rounded-full ${stone === 'WHITE' ? 'bg-white-stone' : 'bg-black-stone'} ${selected ? 'opacity-50' : ''}`}
           />

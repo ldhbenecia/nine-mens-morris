@@ -24,10 +24,20 @@ export default {
           '0%': { transform: 'translateY(5%)' },
           '100%': { transform: 'translateY(0%)' },
         },
+        'stone-set': {
+          '0%': { transform: 'scale(105%)' },
+          '100%': { transform: 'scale(100%)' },
+        },
+        'stone-set-effect': {
+          '0%': { transform: 'scale(100%)', opacity: 0.1 },
+          '100%': { transform: 'scale(800%)', opacity: 0 },
+        },
       },
       animation: {
         'modal-background': 'fade-in 0.25s ease forwards',
         modal: 'move-up 0.25s ease forwards',
+        'stone-set': 'stone-set 0.25s ease-out forwards',
+        'stone-set-effect': 'stone-set-effect 0.75s ease-out forwards',
       },
     },
   },
