@@ -32,13 +32,13 @@ export function Status({
         </div>
         <div className="flex justify-between gap-2">
           <div className="flex items-center gap-0.5 font-semibold">
-            {[...Array(remaining)].map((idx) => (
+            {[...Array(remaining)].map((_, idx) => (
               <div
                 key={idx}
                 className={`h-5 w-5 rounded-full border ${color === 'WHITE' ? 'border-gray-500 bg-gray-50' : 'border-gray-800 bg-gray-800'}`}
               />
             ))}
-            {[...Array(9 - remaining)].map((idx) => (
+            {[...Array(9 - remaining)].map((_, idx) => (
               <div key={idx} className={`h-5 w-5 rounded-full bg-gray-200`} />
             ))}
           </div>
