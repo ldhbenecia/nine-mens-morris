@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '~/components/Button';
 import { LoginModal } from './LoginModal';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { UserInfo } from './UserInfo';
 import { User } from '~/types';
 
@@ -12,6 +12,9 @@ export function MainPage() {
     rank: 123,
     profileImageSrc: 'https://avatars.githubusercontent.com/u/50646827?v=4',
   });
+  const navigate = useNavigate();
+
+  const onClickStart = () => (user ? navigate('/rooms') : setShowModal(true));
 
   return (
     <main className="flex h-full flex-col items-center justify-center gap-12">
@@ -24,7 +27,7 @@ export function MainPage() {
         </h2>
       </div>
       <div className="flex w-60 flex-col gap-4">
-        <Button text="게임 시작" onClick={() => setShowModal(true)} />
+        <Button text="게임 시작" onClick={onClickStart} />
         <Link to="/ranking" className="flex w-full flex-col">
           <Button theme="secondary" text="랭킹 보기" onClick={() => {}} />
         </Link>

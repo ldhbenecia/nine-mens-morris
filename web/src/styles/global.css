@@ -5,6 +5,10 @@ html {
 body {
   height: 100%;
   font-family: 'Pretendard';
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-use-select: none;
+  user-select: none;
 }
 
 #root {
