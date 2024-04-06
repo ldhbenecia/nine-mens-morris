@@ -9,8 +9,11 @@ export default {
         phase: 'Big Shoulders Text',
       },
       backgroundImage: {
-        'white-stone': 'radial-gradient(circle, #ffffff 0%, #f3f4f6 100%)',
-        'black-stone': 'radial-gradient(circle, #374151 0%, #1f2937 100%)',
+        'white-stone': 'radial-gradient(circle, #ffffff 25%, #e5e7eb 100%)',
+        'black-stone': 'radial-gradient(circle, #4b5563 25%, #1f2937 100%)',
+      },
+      boxShadow: {
+        stone: '0 4px 4px rgba(0,0,0,0.25)',
       },
       keyframes: {
         'fade-in': {

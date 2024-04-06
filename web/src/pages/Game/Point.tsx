@@ -22,7 +22,7 @@ export function Point({
           className={`flex h-[60px] w-[60px] items-center justify-center rounded-full ${selected ? 'border-2 border-dashed border-red-600' : ''}`}
         >
           <div
-            className={`h-full w-full rounded-full shadow-md ${stone === 'WHITE' ? 'bg-white-stone' : 'bg-black-stone'} ${selected ? 'opacity-50' : ''}`}
+            className={`shadow-stone h-full w-full rounded-full ${stone === 'WHITE' ? 'bg-white-stone' : 'bg-black-stone'} ${selected ? 'opacity-50' : ''}`}
           />
         </div>
       )}
