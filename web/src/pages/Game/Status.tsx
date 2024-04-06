@@ -8,6 +8,7 @@ type StatusProps = {
   isTurn: boolean;
   color: 'WHITE' | 'BLACK';
   remaining: number;
+  onWithdraw?: () => void;
 };
 
 export function Status({
@@ -15,6 +16,7 @@ export function Status({
   isTurn,
   color,
   remaining,
+  onWithdraw,
 }: StatusProps) {
   return (
     <div className="flex">
@@ -46,7 +48,12 @@ export function Status({
         </div>
         {isCurrentUser && (
           <div className="flex gap-2">
-            <Button text="기권하기" icon={<Flag />} fullWidth />
+            <Button
+              text="기권하기"
+              icon={<Flag />}
+              fullWidth
+              onClick={onWithdraw}
+            />
             <Button theme="secondary" text="도움말" icon={<Help />} fullWidth />
           </div>
         )}
