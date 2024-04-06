@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Point } from './Point';
-import { PointType } from '~/types';
+import { PointType, StoneType } from '~/types';
 
 export function Board() {
   const [points, setPoints] = useState<PointType[]>([
@@ -36,17 +36,31 @@ export function Board() {
     { top: 480, left: 480, stone: 'EMPTY', selected: false },
   ]);
 
+  const onSetStone = (idx: number, stone: StoneType) => {
+    setPoints([
+      ...points.slice(0, idx),
+      { ...points[idx], stone },
+      ...points.slice(idx + 1),
+    ]);
+  };
+
   return (
     <div>
       <div className="absolute z-10 h-[480px] w-[480px]">
-        {points.map(({ top, left, stone, selected }, idx) => (
-          <Point
+        {points.map((point, idx) => (
+          <div
             key={idx}
-            top={top}
-            left={left}
-            stone={stone}
-            selected={selected}
-          />
+            onClick={() =>
+              onSetStone(idx, Math.random() > 0.5 ? 'BLACK' : 'WHITE')
+            }
+          >
+            <Point
+              top={point.top}
+              left={point.left}
+              stone={point.stone}
+              selected={point.selected}
+            />
+          </div>
         ))}
       </div>
       <div className="relative h-[480px] w-[480px]">
