@@ -1,8 +1,9 @@
 import Medal from '~/assets/icons/medal.svg?react';
 import Person from '~/assets/icons/person.svg?react';
+import { User } from '~/types';
 
 type RankingItemProps = {
-  user: { username: string; rank: number; profileImageSrc: string };
+  user: User;
   score: number;
   wins: number;
   losses: number;

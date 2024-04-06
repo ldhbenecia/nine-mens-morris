@@ -1,7 +1,9 @@
+import { User } from '~/types';
+
 type RoomItemProps = {
   title: string;
   ongoing?: boolean;
-  host: { username: string; rank: number; profileImageSrc: string };
+  host: User;
 };
 
 export function RoomItem({

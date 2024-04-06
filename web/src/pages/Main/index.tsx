@@ -2,13 +2,21 @@ import { useState } from 'react';
 import { Button } from '~/components/Button';
 import { LoginModal } from './LoginModal';
 import { Link } from 'react-router-dom';
+import { UserInfo } from './UserInfo';
+import { User } from '~/types';
 
 export function MainPage() {
   const [showModal, setShowModal] = useState(false);
+  const [user, setUser] = useState<User | null>({
+    username: 'js43og',
+    rank: 123,
+    profileImageSrc: 'https://avatars.githubusercontent.com/u/50646827?v=4',
+  });
 
   return (
     <main className="flex h-full flex-col items-center justify-center gap-12">
       {showModal && <LoginModal closeModal={() => setShowModal(false)} />}
+      <UserInfo user={user} />
       <div className="flex flex-col items-center gap-2">
         <h1 className="font-title text-4xl">Nine Men&apos;s Morris</h1>
         <h2 className="text-xl font-light tracking-[0.75rem] text-gray-500">
