@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '~/components/Button';
 import { LoginModal } from './LoginModal';
+import { Link } from 'react-router-dom';
 
 export function MainPage() {
   const [showModal, setShowModal] = useState(false);
@@ -16,7 +17,9 @@ export function MainPage() {
       </div>
       <div className="flex w-60 flex-col gap-4">
         <Button text="게임 시작" onClick={() => setShowModal(true)} />
-        <Button theme="secondary" text="랭킹 보기" onClick={() => {}} />
+        <Link to="/ranking" className="flex w-full flex-col">
+          <Button theme="secondary" text="랭킹 보기" onClick={() => {}} />
+        </Link>
       </div>
     </main>
   );

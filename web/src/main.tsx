@@ -5,6 +5,7 @@ import '~/styles/index.css';
 import { MainPage } from '~/pages/Main';
 import { RoomListPage } from './pages/RoomList';
 import { GamePage } from './pages/Game';
+import { RankingPage } from './pages/Ranking';
 
 const router = createBrowserRouter([
   {
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
   {
     path: 'game',
     element: <GamePage />,
+  },
+  {
+    path: 'ranking',
+    element: <RankingPage />,
   },
 ]);
 
