@@ -15,11 +15,12 @@ export function MainPage() {
   const navigate = useNavigate();
 
   const onClickStart = () => (user ? navigate('/rooms') : setShowModal(true));
+  const onLogout = () => setUser(null);
 
   return (
     <main className="flex h-full flex-col items-center justify-center gap-12">
       {showModal && <LoginModal closeModal={() => setShowModal(false)} />}
-      <UserInfo user={user} />
+      <UserInfo user={user} onLogout={onLogout} />
       <div className="flex flex-col items-center gap-2">
         <h1 className="font-title text-4xl">Nine Men&apos;s Morris</h1>
         <h2 className="text-xl font-light tracking-[0.75rem] text-gray-500">
