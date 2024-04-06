@@ -15,10 +15,9 @@ export function RankingPage() {
         </div>
         <div className="flex w-full flex-col">
           <RankingItem
-            rank={123}
             user={{
               username: 'js43og',
-              ranking: 12,
+              rank: 123,
               profileImageSrc:
                 'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
             }}
@@ -30,10 +29,31 @@ export function RankingPage() {
         </div>
         <div className="flex max-h-96 w-full flex-col gap-4 overflow-auto">
           <RankingItem
-            rank={1}
             user={{
               username: 'js43og',
-              ranking: 12,
+              rank: 1,
+              profileImageSrc:
+                'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
+            }}
+            score={12400}
+            wins={240}
+            losses={20}
+          />
+          <RankingItem
+            user={{
+              username: 'js43og',
+              rank: 2,
+              profileImageSrc:
+                'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
+            }}
+            score={7280}
+            wins={10}
+            losses={5}
+          />
+          <RankingItem
+            user={{
+              username: 'js43og',
+              rank: 3,
               profileImageSrc:
                 'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
             }}
@@ -42,10 +62,9 @@ export function RankingPage() {
             losses={5}
           />
           <RankingItem
-            rank={2}
             user={{
               username: 'js43og',
-              ranking: 12,
+              rank: 4,
               profileImageSrc:
                 'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
             }}
@@ -54,34 +73,9 @@ export function RankingPage() {
             losses={5}
           />
           <RankingItem
-            rank={3}
             user={{
               username: 'js43og',
-              ranking: 12,
-              profileImageSrc:
-                'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
-            }}
-            score={1000}
-            wins={10}
-            losses={5}
-          />
-          <RankingItem
-            rank={4}
-            user={{
-              username: 'js43og',
-              ranking: 12,
-              profileImageSrc:
-                'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
-            }}
-            score={1000}
-            wins={10}
-            losses={5}
-          />
-          <RankingItem
-            rank={5}
-            user={{
-              username: 'js43og',
-              ranking: 12,
+              rank: 5,
               profileImageSrc:
                 'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
             }}

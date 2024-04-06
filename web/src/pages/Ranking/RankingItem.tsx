@@ -2,8 +2,7 @@ import Medal from '~/assets/icons/medal.svg?react';
 import Person from '~/assets/icons/person.svg?react';
 
 type RankingItemProps = {
-  rank: number;
-  user: { username: string; ranking: number; profileImageSrc: string };
+  user: { username: string; rank: number; profileImageSrc: string };
   score: number;
   wins: number;
   losses: number;
@@ -11,8 +10,7 @@ type RankingItemProps = {
 };
 
 export function RankingItem({
-  rank,
-  user: { username, ranking, profileImageSrc },
+  user: { username, rank, profileImageSrc },
   score,
   wins,
   losses,
@@ -47,7 +45,7 @@ export function RankingItem({
         {username}
         {isCurrentUser && <span className="text-sm text-gray-500">나</span>}
       </div>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col items-end gap-1">
         <span className="font-semibold">{score.toLocaleString()}점</span>
         <span className="flex text-sm text-gray-500">
           {wins}승 {losses}패

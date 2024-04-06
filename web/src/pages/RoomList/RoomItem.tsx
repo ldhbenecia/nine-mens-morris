@@ -1,13 +1,13 @@
 type RoomItemProps = {
   title: string;
   ongoing?: boolean;
-  host: { username: string; ranking: number; profileImageSrc: string };
+  host: { username: string; rank: number; profileImageSrc: string };
 };
 
 export function RoomItem({
   title,
   ongoing = false,
-  host: { username, ranking, profileImageSrc },
+  host: { username, rank, profileImageSrc },
 }: RoomItemProps) {
   return (
     <div
@@ -22,7 +22,7 @@ export function RoomItem({
         <span className="font-semibold">{title}</span>
         <div className="flex gap-2 text-sm">
           {username}
-          <span className="text-gray-500">랭킹 {ranking}위</span>
+          <span className="text-gray-500">랭킹 {rank}위</span>
         </div>
       </div>
       <span className="font-semibold">{ongoing ? '진행 중' : '대기 중'}</span>

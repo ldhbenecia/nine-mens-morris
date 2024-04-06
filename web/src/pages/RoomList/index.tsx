@@ -28,7 +28,7 @@ export function RoomListPage() {
             ongoing
             host={{
               username: 'js43og',
-              ranking: 12,
+              rank: 12,
               profileImageSrc:
                 'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
             }}
@@ -37,7 +37,7 @@ export function RoomListPage() {
             title="초보만 오세요"
             host={{
               username: 'js43o',
-              ranking: 12,
+              rank: 12,
               profileImageSrc:
                 'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
             }}
@@ -46,7 +46,7 @@ export function RoomListPage() {
             title="초보만 오세요"
             host={{
               username: 'js43o',
-              ranking: 12,
+              rank: 12,
               profileImageSrc:
                 'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
             }}
@@ -55,7 +55,7 @@ export function RoomListPage() {
             title="초보만 오세요"
             host={{
               username: 'js43o',
-              ranking: 12,
+              rank: 12,
               profileImageSrc:
                 'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
             }}
@@ -64,7 +64,7 @@ export function RoomListPage() {
             title="초보만 오세요"
             host={{
               username: 'js43o',
-              ranking: 12,
+              rank: 12,
               profileImageSrc:
                 'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
             }}
