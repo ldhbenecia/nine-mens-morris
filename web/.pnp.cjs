@@ -26,6 +26,7 @@ const RAW_RUNTIME_STATE =
       [null, {\
         "packageLocation": "./",\
         "packageDependencies": [\
+          ["@tanstack/react-query", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:5.29.0"],\
           ["@types/react", "npm:18.2.74"],\
           ["@types/react-dom", "npm:18.2.24"],\
           ["@typescript-eslint/eslint-plugin", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:7.5.0"],\
@@ -1264,6 +1265,38 @@ const RAW_RUNTIME_STATE =
         "packagePeers": [\
           "@svgr/core",\
           "@types/svgr__core"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@tanstack/query-core", [\
+      ["npm:5.29.0", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/@tanstack-query-core-npm-5.29.0-908241c55d-10c0.zip/node_modules/@tanstack/query-core/",\
+        "packageDependencies": [\
+          ["@tanstack/query-core", "npm:5.29.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@tanstack/react-query", [\
+      ["npm:5.29.0", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/@tanstack-react-query-npm-5.29.0-e40fab264f-10c0.zip/node_modules/@tanstack/react-query/",\
+        "packageDependencies": [\
+          ["@tanstack/react-query", "npm:5.29.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:5.29.0", {\
+        "packageLocation": "./.yarn/__virtual__/@tanstack-react-query-virtual-2ab612f23f/4/AppData/Local/Yarn/Berry/cache/@tanstack-react-query-npm-5.29.0-e40fab264f-10c0.zip/node_modules/@tanstack/react-query/",\
+        "packageDependencies": [\
+          ["@tanstack/react-query", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:5.29.0"],\
+          ["@tanstack/query-core", "npm:5.29.0"],\
+          ["@types/react", "npm:18.2.74"],\
+          ["react", "npm:18.2.0"]\
+        ],\
+        "packagePeers": [\
+          "@types/react",\
+          "react"\
         ],\
         "linkType": "HARD"\
       }]\
@@ -4263,6 +4296,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./",\
         "packageDependencies": [\
           ["nine-mens-morris", "workspace:."],\
+          ["@tanstack/react-query", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:5.29.0"],\
           ["@types/react", "npm:18.2.74"],\
           ["@types/react-dom", "npm:18.2.24"],\
           ["@typescript-eslint/eslint-plugin", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:7.5.0"],\
