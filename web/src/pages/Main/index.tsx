@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Button } from '~/components/Button';
-import { LoginModal } from './LoginModal';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserInfo } from './UserInfo';
+import { Button } from '~/components/Button';
 import { User } from '~/types';
+import { UserInfo } from './UserInfo';
+import { LoginModal } from './LoginModal';
+import { LogoutModal } from './LogoutModal';
 
 export function MainPage() {
-  const [showModal, setShowModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [user, setUser] = useState<User | null>({
     username: 'js43og',
     rank: 123,
@@ -14,13 +16,29 @@ export function MainPage() {
   });
   const navigate = useNavigate();
 
-  const onClickStart = () => (user ? navigate('/rooms') : setShowModal(true));
-  const onLogout = () => setUser(null);
+  const onClickStart = () =>
+    user ? navigate('/rooms') : setShowLoginModal(true);
+
+  const onLogout = () => {
+    setUser(null);
+    setShowLogoutModal(false);
+  };
 
   return (
     <main className="flex grow flex-col items-center justify-center gap-12">
-      {showModal && <LoginModal closeModal={() => setShowModal(false)} />}
-      <UserInfo user={user} onLogout={onLogout} />
+      {showLoginModal && (
+        <LoginModal closeModal={() => setShowLoginModal(false)} />
+      )}
+      {showLogoutModal && (
+        <LogoutModal
+          onLogout={onLogout}
+          closeModal={() => setShowLogoutModal(false)}
+        />
+      )}
+      <UserInfo
+        user={user}
+        onShowLogoutModal={() => setShowLogoutModal(true)}
+      />
       <div className="flex flex-col items-center gap-2">
         <h1 className="font-title text-4xl">Nine Men&apos;s Morris</h1>
         <h2 className="text-xl font-light tracking-[0.75rem] text-gray-500">
