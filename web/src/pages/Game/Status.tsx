@@ -1,4 +1,4 @@
-import Play from '~/assets/icons/play_arrow.svg?react';
+import Play from '~/assets/icons/play.svg?react';
 import Flag from '~/assets/icons/flag.svg?react';
 import Help from '~/assets/icons/help.svg?react';
 import { Button } from '~/components/Button';
@@ -20,14 +20,16 @@ export function Status({
 }: StatusProps) {
   return (
     <div className="flex">
-      <div>{<Play className={`${isTurn ? '' : 'opacity-0'}`} />}</div>
+      <div className="pt-0.5">
+        {isTurn && <Play className="animate-pulse" />}
+      </div>
       <div className="flex w-64 flex-col gap-3">
         <div className="flex items-center justify-between">
-          <span className="text-2xl font-semibold">
+          <span className="text-xl font-semibold">
             {isCurrentUser ? '나' : '상대'}
           </span>
           <div
-            className={`rounded-2xl border px-2.5 py-0.5 font-semibold ${isCurrentUser ? 'border-gray-300 bg-gray-50' : 'border-gray-800 bg-gray-800 text-white'}`}
+            className={`rounded-2xl border px-2.5 py-0.5 text-sm ${isCurrentUser ? 'border-gray-300 bg-gray-50' : 'border-gray-800 bg-gray-800 text-white'}`}
           >
             {color === 'WHITE' ? '백돌' : '흑돌'}
           </div>
@@ -51,10 +53,17 @@ export function Status({
             <Button
               text="기권하기"
               icon={<Flag />}
+              slim
               fullWidth
               onClick={onWithdraw}
             />
-            <Button theme="secondary" text="도움말" icon={<Help />} fullWidth />
+            <Button
+              theme="secondary"
+              text="도움말"
+              icon={<Help />}
+              slim
+              fullWidth
+            />
           </div>
         )}
       </div>

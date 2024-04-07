@@ -18,7 +18,7 @@ export function MainPage() {
   const onLogout = () => setUser(null);
 
   return (
-    <main className="flex h-full flex-col items-center justify-center gap-12">
+    <main className="flex grow flex-col items-center justify-center gap-12">
       {showModal && <LoginModal closeModal={() => setShowModal(false)} />}
       <UserInfo user={user} onLogout={onLogout} />
       <div className="flex flex-col items-center gap-2">

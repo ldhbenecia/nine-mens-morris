@@ -45,7 +45,7 @@ export function Board() {
   };
 
   return (
-    <div>
+    <div className="flex h-full grow flex-col items-center justify-center gap-8">
       <div className="absolute z-10 h-[480px] w-[480px]">
         {points.map((point, idx) => (
           <div

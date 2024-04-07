@@ -12,7 +12,7 @@ export function RoomListPage() {
   const onClickAdd = () => setShowModal(true);
 
   return (
-    <main className="flex h-full items-center justify-center leading-tight">
+    <main className="flex grow items-center justify-center p-4 leading-tight">
       {showModal && <CreateRoomModal closeModal={() => setShowModal(false)} />}
       <div className="flex max-w-[40rem] grow flex-col items-center gap-6">
         <h1 className="text-2xl font-semibold">방 목록</h1>
