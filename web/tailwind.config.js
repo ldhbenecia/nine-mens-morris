@@ -11,6 +11,8 @@ export default {
       backgroundImage: {
         'white-stone': 'radial-gradient(circle, #ffffff 25%, #e5e7eb 100%)',
         'black-stone': 'radial-gradient(circle, #4b5563 25%, #1f2937 100%)',
+        phase:
+          'linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(31,41,55,1) 20%, rgba(31,41,55,1) 80%, rgba(255,255,255,1) 100%)',
       },
       boxShadow: {
         stone: '0 4px 4px rgba(0,0,0,0.25)',
@@ -38,6 +40,9 @@ export default {
         modal: 'move-up 0.25s ease forwards',
         'stone-set': 'stone-set 0.25s ease-out forwards',
         'stone-set-effect': 'stone-set-effect 0.75s ease-out forwards',
+      },
+      screens: {
+        xs: '430px',
       },
     },
   },
