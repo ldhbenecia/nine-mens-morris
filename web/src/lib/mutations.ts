@@ -1,4 +1,4 @@
-import { createRoom, joinRoom } from '~/api';
+import { createRoom, joinRoom } from './api';
 
 export const MUTATIONS = {
   CREATE_ROOM: {

@@ -1,5 +1,15 @@
+import axios from 'axios';
 import { Room } from '~/types';
-import { client } from './client';
+
+export const client = axios.create({
+  baseURL: 'http://localhost:8080/api/',
+});
+
+export const getCurrentUser = async () => {
+  const response = await client.get('user');
+
+  return response.data;
+};
 
 export const getRooms = async () => {
   const response = await client.get<Room[]>('games');
@@ -20,4 +30,10 @@ export const createRoom = async (roomTitle: string) => {
 
 export const joinRoom = async (roomId: number) => {
   await client.post<null>('createGame', { roomId });
+};
+
+export const getRanks = async () => {
+  const response = await client.get('ranks');
+
+  return response.data;
 };
