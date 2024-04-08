@@ -5,9 +5,12 @@ import Undo from '~/assets/icons/undo.svg?react';
 import Add from '~/assets/icons/add.svg?react';
 import { RoomItem } from './RoomItem';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { QUERY } from '~/lib/queries';
 
 export function RoomListPage() {
   const [showModal, setShowModal] = useState(false);
+  const { data: rooms } = useQuery(QUERY.ROOMS);
 
   const onClickAdd = () => setShowModal(true);
 
@@ -23,52 +26,16 @@ export function RoomListPage() {
           <Button slim text="방 만들기" icon={<Add />} onClick={onClickAdd} />
         </div>
         <div className="flex max-h-96 w-full flex-col gap-4 overflow-auto">
-          <RoomItem
-            title="초보만 오세요"
-            ongoing
-            host={{
-              username: 'js43og',
-              rank: 12,
-              profileImageSrc:
-                'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
-            }}
-          />
-          <RoomItem
-            title="초보만 오세요"
-            host={{
-              username: 'js43o',
-              rank: 12,
-              profileImageSrc:
-                'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
-            }}
-          />
-          <RoomItem
-            title="초보만 오세요"
-            host={{
-              username: 'js43o',
-              rank: 12,
-              profileImageSrc:
-                'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
-            }}
-          />
-          <RoomItem
-            title="초보만 오세요"
-            host={{
-              username: 'js43o',
-              rank: 12,
-              profileImageSrc:
-                'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
-            }}
-          />
-          <RoomItem
-            title="초보만 오세요"
-            host={{
-              username: 'js43o',
-              rank: 12,
-              profileImageSrc:
-                'https://avatars.githubusercontent.com/u/50646827?s=96&v=4',
-            }}
-          />
+          {rooms &&
+            rooms.map(({ roomId, roomTitle, host }) => (
+              <RoomItem
+                key={roomId}
+                roomId={roomId}
+                roomTitle={roomTitle}
+                hostNickname={host}
+                ongoing
+              />
+            ))}
         </div>
       </div>
     </main>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Point } from './Point';
-import { PointType, StoneType } from '~/types';
+import { PointType, StoneType } from '~/lib/types';
 
 export function Board() {
   const [points, setPoints] = useState<PointType[]>([

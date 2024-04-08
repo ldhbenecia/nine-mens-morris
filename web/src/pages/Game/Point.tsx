@@ -1,4 +1,4 @@
-import { PointType } from '~/types';
+import { PointType } from '~/lib/types';
 
 export function Point({
   stone = 'EMPTY',

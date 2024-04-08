@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '~/components/Button';
-import { User } from '~/types';
+import { User } from '~/lib/types';
 import { UserInfo } from './UserInfo';
 import { LoginModal } from './LoginModal';
 import { LogoutModal } from './LogoutModal';
@@ -10,9 +10,12 @@ export function MainPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [user, setUser] = useState<User | null>({
-    username: 'js43og',
-    rank: 123,
-    profileImageSrc: 'https://avatars.githubusercontent.com/u/50646827?v=4',
+    userId: 1,
+    nickname: 'js43og',
+    email: 'js43og@gmail.com',
+    imageUrl: 'https://avatars.githubusercontent.com/u/50646827?v=4',
+    role: 'USER',
+    score: 100,
   });
   const navigate = useNavigate();
 

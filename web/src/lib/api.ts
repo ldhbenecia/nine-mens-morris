@@ -1,12 +1,12 @@
 import axios from 'axios';
-import { Room } from '~/types';
+import { Rank, Room, User } from '~/lib/types';
 
 export const client = axios.create({
   baseURL: 'http://localhost:8080/api/',
 });
 
 export const getCurrentUser = async () => {
-  const response = await client.get('user');
+  const response = await client.get<User>('user');
 
   return response.data;
 };
@@ -29,11 +29,11 @@ export const createRoom = async (roomTitle: string) => {
 };
 
 export const joinRoom = async (roomId: number) => {
-  await client.post<null>('createGame', { roomId });
+  await client.post<null>(`games/${roomId}`);
 };
 
 export const getRanks = async () => {
-  const response = await client.get('ranks');
+  const response = await client.get<Rank[]>('ranks');
 
   return response.data;
 };
