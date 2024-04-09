@@ -11,12 +11,12 @@ export function GamePage() {
   };
 
   return (
-    <main className="flex grow flex-col overflow-x-hidden p-8 md:gap-4">
+    <main className="flex grow flex-col overflow-x-hidden p-4 md:gap-4">
       {showModal && <WithdrawModal closeModal={() => setShowModal(false)} />}
       <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
         <div className="z-20 flex w-full justify-center gap-4 bg-phase text-white md:flex-col md:gap-0 md:bg-none md:text-black">
-          <h1 className="font-phase text-xl md:text-7xl">Phase 1</h1>
-          <span className="text-lg font-semibold">돌 배치 단계</span>
+          <h1 className="font-phase text-xl md:text-5xl">Phase 1</h1>
+          <span className="font-semibold">돌 배치 단계</span>
         </div>
         <Status
           isCurrentUser={false}
@@ -26,10 +26,10 @@ export function GamePage() {
         />
       </div>
       <Board />
-      <div className="flex justify-center py-2 md:mt-8">
-        빈 지점에 돌을 배치하세요.
-      </div>
-      <div className="flex -translate-x-3 justify-center md:translate-x-0 md:justify-start">
+      <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
+        <div className="flex animate-pulse py-2">
+          빈 지점에 돌을 배치하세요.
+        </div>
         <Status
           isCurrentUser={true}
           isTurn={true}
