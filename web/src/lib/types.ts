@@ -14,7 +14,7 @@ export type User = {
 };
 
 export type Rank = {
-  nickname: 'string';
+  nickname: string;
   score: number;
 };
 
