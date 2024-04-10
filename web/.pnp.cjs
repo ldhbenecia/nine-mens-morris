@@ -26,9 +26,11 @@ const RAW_RUNTIME_STATE =
       [null, {\
         "packageLocation": "./",\
         "packageDependencies": [\
+          ["@stomp/stompjs", "npm:7.0.0"],\
           ["@tanstack/react-query", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:5.29.0"],\
           ["@types/react", "npm:18.2.74"],\
           ["@types/react-dom", "npm:18.2.24"],\
+          ["@types/sockjs-client", "npm:1.5.4"],\
           ["@typescript-eslint/eslint-plugin", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:7.5.0"],\
           ["@typescript-eslint/parser", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:7.5.0"],\
           ["@vitejs/plugin-react", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:4.2.1"],\
@@ -46,6 +48,7 @@ const RAW_RUNTIME_STATE =
           ["react", "npm:18.2.0"],\
           ["react-dom", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:18.2.0"],\
           ["react-router-dom", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:6.22.3"],\
+          ["sockjs-client", "npm:1.6.1"],\
           ["tailwindcss", "npm:3.4.3"],\
           ["typescript", "patch:typescript@npm%3A5.4.3#optional!builtin<compat/typescript>::version=5.4.3&hash=5adc0c"],\
           ["vite", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:5.2.8"],\
@@ -1013,6 +1016,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@stomp/stompjs", [\
+      ["npm:7.0.0", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/@stomp-stompjs-npm-7.0.0-c66e011389-10c0.zip/node_modules/@stomp/stompjs/",\
+        "packageDependencies": [\
+          ["@stomp/stompjs", "npm:7.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@svgr/babel-plugin-add-jsx-attribute", [\
       ["npm:8.0.0", {\
         "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/@svgr-babel-plugin-add-jsx-attribute-npm-8.0.0-026be9c2be-10c0.zip/node_modules/@svgr/babel-plugin-add-jsx-attribute/",\
@@ -1400,6 +1412,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/@types-semver-npm-7.5.8-26073743d7-10c0.zip/node_modules/@types/semver/",\
         "packageDependencies": [\
           ["@types/semver", "npm:7.5.8"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@types/sockjs-client", [\
+      ["npm:1.5.4", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/@types-sockjs-client-npm-1.5.4-5a72c42b35-10c0.zip/node_modules/@types/sockjs-client/",\
+        "packageDependencies": [\
+          ["@types/sockjs-client", "npm:1.5.4"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -2336,6 +2357,13 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["debug", [\
+      ["npm:3.2.7", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/debug-npm-3.2.7-754e818c7a-10c0.zip/node_modules/debug/",\
+        "packageDependencies": [\
+          ["debug", "npm:3.2.7"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
       ["npm:4.3.4", {\
         "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/debug-npm-4.3.4-4513954577-10c0.zip/node_modules/debug/",\
         "packageDependencies": [\
@@ -2349,6 +2377,20 @@ const RAW_RUNTIME_STATE =
           ["debug", "virtual:1ff4b5f90832ba0a9c93ba1223af226e44ba70c1126a3740d93562b97bc36544e896a5e95908196f7458713e6a6089a34bfc67362fc6df7fa093bd06c878be47#npm:4.3.4"],\
           ["@types/supports-color", null],\
           ["ms", "npm:2.1.2"],\
+          ["supports-color", null]\
+        ],\
+        "packagePeers": [\
+          "@types/supports-color",\
+          "supports-color"\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["virtual:e9cbd57be6a0f1080b604f307b4ce4b92db9ca933385fbcff36e7c1bd7282e1c4a40615b81d72613148b94cb029089722e186eb65b04f19a59eddc3431447cab#npm:3.2.7", {\
+        "packageLocation": "./.yarn/__virtual__/debug-virtual-54c423ece7/4/AppData/Local/Yarn/Berry/cache/debug-npm-3.2.7-754e818c7a-10c0.zip/node_modules/debug/",\
+        "packageDependencies": [\
+          ["debug", "virtual:e9cbd57be6a0f1080b604f307b4ce4b92db9ca933385fbcff36e7c1bd7282e1c4a40615b81d72613148b94cb029089722e186eb65b04f19a59eddc3431447cab#npm:3.2.7"],\
+          ["@types/supports-color", null],\
+          ["ms", "npm:2.1.3"],\
           ["supports-color", null]\
         ],\
         "packagePeers": [\
@@ -3000,6 +3042,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["eventsource", [\
+      ["npm:2.0.2", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/eventsource-npm-2.0.2-e94c48aca3-10c0.zip/node_modules/eventsource/",\
+        "packageDependencies": [\
+          ["eventsource", "npm:2.0.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["exponential-backoff", [\
       ["npm:3.1.1", {\
         "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/exponential-backoff-npm-3.1.1-04df458b30-10c0.zip/node_modules/exponential-backoff/",\
@@ -3065,6 +3116,16 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["fastq", "npm:1.17.1"],\
           ["reusify", "npm:1.0.4"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["faye-websocket", [\
+      ["npm:0.11.4", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/faye-websocket-npm-0.11.4-1f0de76de9-10c0.zip/node_modules/faye-websocket/",\
+        "packageDependencies": [\
+          ["faye-websocket", "npm:0.11.4"],\
+          ["websocket-driver", "npm:0.7.4"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -3481,6 +3542,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/http-cache-semantics-npm-4.1.1-1120131375-10c0.zip/node_modules/http-cache-semantics/",\
         "packageDependencies": [\
           ["http-cache-semantics", "npm:4.1.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["http-parser-js", [\
+      ["npm:0.5.8", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/http-parser-js-npm-0.5.8-f80208ea99-10c0.zip/node_modules/http-parser-js/",\
+        "packageDependencies": [\
+          ["http-parser-js", "npm:0.5.8"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -4344,6 +4414,13 @@ const RAW_RUNTIME_STATE =
           ["ms", "npm:2.1.2"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:2.1.3", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/ms-npm-2.1.3-81ff3cfac1-10c0.zip/node_modules/ms/",\
+        "packageDependencies": [\
+          ["ms", "npm:2.1.3"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["mz", [\
@@ -4390,9 +4467,11 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./",\
         "packageDependencies": [\
           ["nine-mens-morris", "workspace:."],\
+          ["@stomp/stompjs", "npm:7.0.0"],\
           ["@tanstack/react-query", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:5.29.0"],\
           ["@types/react", "npm:18.2.74"],\
           ["@types/react-dom", "npm:18.2.24"],\
+          ["@types/sockjs-client", "npm:1.5.4"],\
           ["@typescript-eslint/eslint-plugin", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:7.5.0"],\
           ["@typescript-eslint/parser", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:7.5.0"],\
           ["@vitejs/plugin-react", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:4.2.1"],\
@@ -4410,6 +4489,7 @@ const RAW_RUNTIME_STATE =
           ["react", "npm:18.2.0"],\
           ["react-dom", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:18.2.0"],\
           ["react-router-dom", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:6.22.3"],\
+          ["sockjs-client", "npm:1.6.1"],\
           ["tailwindcss", "npm:3.4.3"],\
           ["typescript", "patch:typescript@npm%3A5.4.3#optional!builtin<compat/typescript>::version=5.4.3&hash=5adc0c"],\
           ["vite", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:5.2.8"],\
@@ -5053,6 +5133,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["querystringify", [\
+      ["npm:2.2.0", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/querystringify-npm-2.2.0-4e77c9f606-10c0.zip/node_modules/querystringify/",\
+        "packageDependencies": [\
+          ["querystringify", "npm:2.2.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["queue-microtask", [\
       ["npm:1.2.3", {\
         "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/queue-microtask-npm-1.2.3-fcc98e4e2d-10c0.zip/node_modules/queue-microtask/",\
@@ -5214,6 +5303,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["requires-port", [\
+      ["npm:1.0.0", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/requires-port-npm-1.0.0-fd036b488a-10c0.zip/node_modules/requires-port/",\
+        "packageDependencies": [\
+          ["requires-port", "npm:1.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["resolve", [\
       ["patch:resolve@npm%3A1.22.8#optional!builtin<compat/resolve>::version=1.22.8&hash=c3c19d", {\
         "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/resolve-patch-4254c24959-10c0.zip/node_modules/resolve/",\
@@ -5318,6 +5416,15 @@ const RAW_RUNTIME_STATE =
           ["get-intrinsic", "npm:1.2.4"],\
           ["has-symbols", "npm:1.0.3"],\
           ["isarray", "npm:2.0.5"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["safe-buffer", [\
+      ["npm:5.2.1", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/safe-buffer-npm-5.2.1-3481c8aa9b-10c0.zip/node_modules/safe-buffer/",\
+        "packageDependencies": [\
+          ["safe-buffer", "npm:5.2.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -5464,6 +5571,20 @@ const RAW_RUNTIME_STATE =
           ["snake-case", "npm:3.0.4"],\
           ["dot-case", "npm:3.0.4"],\
           ["tslib", "npm:2.6.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["sockjs-client", [\
+      ["npm:1.6.1", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/sockjs-client-npm-1.6.1-e9cbd57be6-10c0.zip/node_modules/sockjs-client/",\
+        "packageDependencies": [\
+          ["sockjs-client", "npm:1.6.1"],\
+          ["debug", "virtual:e9cbd57be6a0f1080b604f307b4ce4b92db9ca933385fbcff36e7c1bd7282e1c4a40615b81d72613148b94cb029089722e186eb65b04f19a59eddc3431447cab#npm:3.2.7"],\
+          ["eventsource", "npm:2.0.2"],\
+          ["faye-websocket", "npm:0.11.4"],\
+          ["inherits", "npm:2.0.4"],\
+          ["url-parse", "npm:1.5.10"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -5987,6 +6108,17 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["url-parse", [\
+      ["npm:1.5.10", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/url-parse-npm-1.5.10-64fa2bcd6d-10c0.zip/node_modules/url-parse/",\
+        "packageDependencies": [\
+          ["url-parse", "npm:1.5.10"],\
+          ["querystringify", "npm:2.2.0"],\
+          ["requires-port", "npm:1.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["util-deprecate", [\
       ["npm:1.0.2", {\
         "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/util-deprecate-npm-1.0.2-e3fe1a219c-10c0.zip/node_modules/util-deprecate/",\
@@ -6065,6 +6197,27 @@ const RAW_RUNTIME_STATE =
         "packagePeers": [\
           "@types/vite",\
           "vite"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["websocket-driver", [\
+      ["npm:0.7.4", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/websocket-driver-npm-0.7.4-a72739da70-10c0.zip/node_modules/websocket-driver/",\
+        "packageDependencies": [\
+          ["websocket-driver", "npm:0.7.4"],\
+          ["http-parser-js", "npm:0.5.8"],\
+          ["safe-buffer", "npm:5.2.1"],\
+          ["websocket-extensions", "npm:0.1.4"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["websocket-extensions", [\
+      ["npm:0.1.4", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/websocket-extensions-npm-0.1.4-be839a9e56-10c0.zip/node_modules/websocket-extensions/",\
+        "packageDependencies": [\
+          ["websocket-extensions", "npm:0.1.4"]\
         ],\
         "linkType": "HARD"\
       }]\
