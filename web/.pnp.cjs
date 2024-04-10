@@ -42,6 +42,7 @@ const RAW_RUNTIME_STATE =
           ["eslint-plugin-react", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:7.34.1"],\
           ["eslint-plugin-react-hooks", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:4.6.0"],\
           ["eslint-plugin-react-refresh", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:0.4.6"],\
+          ["jotai", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:2.8.0"],\
           ["postcss", "npm:8.4.38"],\
           ["prettier", "npm:3.2.5"],\
           ["prettier-plugin-tailwindcss", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:0.5.13"],\
@@ -4020,6 +4021,28 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["jotai", [\
+      ["npm:2.8.0", {\
+        "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/jotai-npm-2.8.0-6ad70014ec-10c0.zip/node_modules/jotai/",\
+        "packageDependencies": [\
+          ["jotai", "npm:2.8.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:2.8.0", {\
+        "packageLocation": "./.yarn/__virtual__/jotai-virtual-527fc1cb06/4/AppData/Local/Yarn/Berry/cache/jotai-npm-2.8.0-6ad70014ec-10c0.zip/node_modules/jotai/",\
+        "packageDependencies": [\
+          ["jotai", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:2.8.0"],\
+          ["@types/react", "npm:18.2.74"],\
+          ["react", "npm:18.2.0"]\
+        ],\
+        "packagePeers": [\
+          "@types/react",\
+          "react"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["js-tokens", [\
       ["npm:4.0.0", {\
         "packageLocation": "../../../AppData/Local/Yarn/Berry/cache/js-tokens-npm-4.0.0-0ac852e9e2-10c0.zip/node_modules/js-tokens/",\
@@ -4483,6 +4506,7 @@ const RAW_RUNTIME_STATE =
           ["eslint-plugin-react", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:7.34.1"],\
           ["eslint-plugin-react-hooks", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:4.6.0"],\
           ["eslint-plugin-react-refresh", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:0.4.6"],\
+          ["jotai", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:2.8.0"],\
           ["postcss", "npm:8.4.38"],\
           ["prettier", "npm:3.2.5"],\
           ["prettier-plugin-tailwindcss", "virtual:98c7483a7028a27db123c0206685061905b6509c95cd6efbc4ec38662d95b3729cf4c46103c9a6a5cc7f74b0805d149ae4b785da8bcbefdd8e074bf3602f7902#npm:0.5.13"],\
