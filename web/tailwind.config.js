@@ -31,8 +31,8 @@ export default {
           '100%': { transform: 'scale(100%)' },
         },
         'stone-set-effect': {
-          '0%': { transform: 'scale(100%)', opacity: 0.1 },
-          '100%': { transform: 'scale(800%)', opacity: 0 },
+          '0%': { transform: 'scale(100%)', opacity: 0.2 },
+          '100%': { transform: 'scale(400%)', opacity: 0 },
         },
       },
       animation: {
