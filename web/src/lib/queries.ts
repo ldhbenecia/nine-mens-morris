@@ -1,3 +1,4 @@
+import { queryOptions } from '@tanstack/react-query';
 import { getCurrentUser, getRanks, getRooms } from './api';
 
 export const QUERY = {
@@ -8,6 +9,7 @@ export const QUERY = {
   CURRENT_USER: {
     queryKey: ['currentUser'],
     queryFn: getCurrentUser,
+    retry: false,
   },
   RANKS: {
     queryKey: ['ranks'],

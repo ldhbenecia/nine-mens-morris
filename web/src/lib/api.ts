@@ -3,6 +3,7 @@ import { Rank, Room, User } from '~/lib/types';
 
 export const client = axios.create({
   baseURL: 'http://localhost:8080/api/',
+  withCredentials: true,
 });
 
 export const getCurrentUser = async () => {
