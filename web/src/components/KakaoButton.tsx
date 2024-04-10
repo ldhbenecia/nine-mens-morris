@@ -6,7 +6,7 @@ export function KakaoButton() {
       className="flex w-full cursor-default justify-center gap-2 rounded-lg bg-[#FEE500] p-3 font-semibold"
       onClick={() =>
         (window.location.href =
-          'https://localhost:8080/oauth2/authorization/kakao')
+          'http://localhost:8080/oauth2/authorization/kakao')
       }
     >
       <Kakao />

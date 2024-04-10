@@ -1,29 +1,23 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '~/components/Button';
-import { User } from '~/lib/types';
 import { UserInfo } from './UserInfo';
 import { LoginModal } from './LoginModal';
 import { LogoutModal } from './LogoutModal';
+import { useQuery } from '@tanstack/react-query';
+import { QUERY } from '~/lib/queries';
 
 export function MainPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [user, setUser] = useState<User | null>({
-    userId: 1,
-    nickname: 'js43og',
-    email: 'js43og@gmail.com',
-    imageUrl: 'https://avatars.githubusercontent.com/u/50646827?v=4',
-    role: 'USER',
-    score: 100,
-  });
+  const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
   const navigate = useNavigate();
 
   const onClickStart = () =>
-    user ? navigate('/rooms') : setShowLoginModal(true);
+    currentUser ? navigate('/rooms') : setShowLoginModal(true);
 
   const onLogout = () => {
-    setUser(null);
+    // 로그아웃 로직
     setShowLogoutModal(false);
   };
 
@@ -38,10 +32,12 @@ export function MainPage() {
           closeModal={() => setShowLogoutModal(false)}
         />
       )}
-      <UserInfo
-        user={user}
-        onShowLogoutModal={() => setShowLogoutModal(true)}
-      />
+      {currentUser && (
+        <UserInfo
+          user={currentUser}
+          onShowLogoutModal={() => setShowLogoutModal(true)}
+        />
+      )}
       <div className="flex flex-col items-center gap-2">
         <h1 className="font-title text-4xl">Nine Men&apos;s Morris</h1>
         <h2 className="text-xl font-light tracking-[0.75rem] text-gray-500">

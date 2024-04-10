@@ -2,7 +2,7 @@ import Close from '~/assets/icons/close.svg?react';
 import { User } from '~/lib/types';
 
 type UserInfoProps = {
-  user: User | null;
+  user: User;
   onShowLogoutModal: () => void;
 };
 

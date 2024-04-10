@@ -33,7 +33,7 @@ export const joinRoom = async (roomId: number) => {
 };
 
 export const getRanks = async () => {
-  const response = await client.get<Rank[]>('ranks');
+  const response = await client.get<Rank[]>('rank');
 
   return response.data;
 };
