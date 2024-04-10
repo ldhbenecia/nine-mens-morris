@@ -33,7 +33,6 @@ export function RoomListPage() {
                 roomId={roomId}
                 roomTitle={roomTitle}
                 hostNickname={host}
-                ongoing
               />
             ))}
         </div>
