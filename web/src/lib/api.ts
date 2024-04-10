@@ -19,17 +19,21 @@ export const getRooms = async () => {
 };
 
 export const createRoom = async (roomTitle: string) => {
-  const response = await client.post<{ id: number }>('createGame', {
+  const response = await client.post<{
+    roomId: number;
+    roomTitle: number;
+    host: string;
+  }>('createGame', {
     roomTitle,
   });
 
-  return response.data;
+  return { roomId: response.status === 201 ? response.data.roomId : -1 };
 };
 
 export const joinRoom = async (roomId: number) => {
-  const response = await client.post<null>(`joinGame/${roomId}`);
+  const response = await client.post<{ roomId: number }>(`joinGame/${roomId}`);
 
-  return response.status === 201 ? roomId : 0;
+  return { roomId: response.status === 200 ? roomId : -1 };
 };
 
 export const getRanks = async () => {

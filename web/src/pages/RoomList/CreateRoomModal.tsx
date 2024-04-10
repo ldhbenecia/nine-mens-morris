@@ -1,8 +1,7 @@
-import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Button } from '~/components/Button';
 import { Modal } from '~/components/Modal';
-import { MUTATIONS } from '~/lib/mutations';
+import { useJoinRoom, useCreateRoom } from '~/hooks/useMutations';
 
 type CreateRoomProps = {
   closeModal: () => void;
@@ -10,7 +9,7 @@ type CreateRoomProps = {
 
 export function CreateRoomModal({ closeModal }: CreateRoomProps) {
   const [roomTitle, setRoomTitle] = useState('');
-  const { mutate } = useMutation(MUTATIONS.CREATE_ROOM);
+  const { mutate } = useCreateRoom();
 
   const onChangeInput = (e: React.ChangeEvent<HTMLInputElement>) =>
     setRoomTitle(e.target.value);

@@ -1,5 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
-import { MUTATIONS } from '~/lib/mutations';
+import { useJoinRoom } from '~/hooks/useMutations';
 
 type RoomItemProps = {
   roomId: number;
@@ -14,7 +13,7 @@ export function RoomItem({
   hostNickname,
   ongoing = false,
 }: RoomItemProps) {
-  const { mutate } = useMutation(MUTATIONS.JOIN_ROOM);
+  const { mutate } = useJoinRoom();
 
   const onJoinRoom = () => mutate(roomId);
 
