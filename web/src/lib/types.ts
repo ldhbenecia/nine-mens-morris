@@ -1,7 +1,10 @@
 export type Room = {
   roomId: number;
   roomTitle: string;
+  playerCount: number;
   host: string;
+  hostImageUrl: string;
+  hostScore: number;
 };
 
 export type User = {
@@ -15,6 +18,7 @@ export type User = {
 
 export type Rank = {
   nickname: string;
+  imageUrl: string;
   score: number;
 };
 

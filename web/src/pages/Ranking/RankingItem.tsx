@@ -5,11 +5,17 @@ import { QUERY } from '~/lib/queries';
 
 type RankingItemProps = {
   nickname: string;
+  imageUrl: string;
   score: number;
   rank: number;
 };
 
-export function RankingItem({ nickname, score, rank }: RankingItemProps) {
+export function RankingItem({
+  nickname,
+  imageUrl,
+  score,
+  rank,
+}: RankingItemProps) {
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
 
   return (
@@ -33,7 +39,7 @@ export function RankingItem({ nickname, score, rank }: RankingItemProps) {
         <span className="font-semibold">{rank}위</span>
       </div>
       <div className="flex grow items-center gap-2">
-        <img src="" alt={nickname} className="h-12 w-12 rounded-full" />
+        <img src={imageUrl} alt={nickname} className="h-12 w-12 rounded-full" />
         {nickname}
         {currentUser && currentUser.nickname === nickname && (
           <span className="text-sm text-gray-500">나</span>

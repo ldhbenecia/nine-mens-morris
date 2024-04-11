@@ -27,14 +27,26 @@ export function RoomListPage() {
         </div>
         <div className="flex max-h-96 w-full flex-col gap-4 overflow-auto">
           {rooms &&
-            rooms.map(({ roomId, roomTitle, host }) => (
-              <RoomItem
-                key={roomId}
-                roomId={roomId}
-                roomTitle={roomTitle}
-                hostNickname={host}
-              />
-            ))}
+            rooms.map(
+              ({
+                roomId,
+                roomTitle,
+                playerCount,
+                host,
+                hostImageUrl,
+                hostScore,
+              }) => (
+                <RoomItem
+                  key={roomId}
+                  roomId={roomId}
+                  roomTitle={roomTitle}
+                  ongoing={playerCount >= 2}
+                  hostNickname={host}
+                  hostImageUrl={hostImageUrl}
+                  hostScore={hostScore}
+                />
+              )
+            )}
         </div>
       </div>
     </main>
