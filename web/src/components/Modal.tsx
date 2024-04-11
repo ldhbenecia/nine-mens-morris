@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Transition } from 'react-transition-group';
 
 type ModalProps = {
@@ -6,10 +7,13 @@ type ModalProps = {
 };
 
 export function Modal({ isShowing, children }: ModalProps) {
+  const nodeRef = useRef(null);
+
   return (
-    <Transition in={isShowing} timeout={150} unmountOnExit>
+    <Transition in={isShowing} timeout={150} unmountOnExit nodeRef={nodeRef}>
       {(state) => (
         <div
+          ref={nodeRef}
           className="fixed left-0 top-0 z-50 flex h-full w-full items-center justify-center bg-[rgba(0,0,0,0.2)] transition-opacity"
           style={{
             opacity: state === 'exited' || state === 'exiting' ? 0 : 1,
