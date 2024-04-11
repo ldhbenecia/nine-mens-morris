@@ -23,7 +23,7 @@ export function RoomItem({
 
   return (
     <div
-      className={`flex items-center gap-2 rounded-xl border px-4 py-3 ${ongoing ? 'border-gray-300 bg-gray-300' : 'border-gray-300 bg-gray-50 hover:bg-white active:bg-gray-100'}`}
+      className={`flex items-center gap-2 rounded-xl border px-4 py-3 ${ongoing ? 'border-gray-300 bg-gray-300' : 'cursor-pointer border-gray-300 bg-gray-50 hover:bg-white active:bg-gray-100'}`}
       onClick={ongoing ? undefined : onJoinRoom}
     >
       <img

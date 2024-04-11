@@ -11,7 +11,7 @@ export function UserInfo({ user, onShowLogoutModal }: UserInfoProps) {
     user && (
       <>
         <div
-          className="fixed right-2 top-2 z-10 flex items-center gap-2 rounded-full bg-white p-1 pl-4 font-semibold opacity-0 transition-opacity hover:opacity-100"
+          className="fixed right-2 top-2 z-10 flex cursor-pointer items-center gap-2 rounded-full bg-white p-1 pl-4 font-semibold opacity-0 transition-opacity hover:opacity-100"
           onClick={onShowLogoutModal}
         >
           로그아웃

@@ -8,7 +8,7 @@ export function Point({
 }: PointType) {
   return (
     <div
-      className="absolute flex h-[80px] w-[80px] items-center justify-center"
+      className="absolute flex h-[80px] w-[80px] cursor-pointer items-center justify-center"
       style={{ transform: `translate(${-40 + left}px, ${-40 + top}px)` }}
     >
       {stone === 'EMPTY' ? (

@@ -20,7 +20,7 @@ export function RankingItem({
 
   return (
     <div
-      className={`flex items-center gap-4 rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 hover:bg-white active:bg-gray-100`}
+      className={`flex cursor-pointer items-center gap-4 rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 hover:bg-white active:bg-gray-100`}
     >
       <div className="flex min-w-20 items-center gap-1">
         {rank <= 3 ? (
