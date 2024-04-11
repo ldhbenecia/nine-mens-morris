@@ -7,6 +7,7 @@ import { RoomListPage } from './pages/RoomList';
 import { GamePage } from './pages/Game';
 import { RankingPage } from './pages/Ranking';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthGate } from './components/AuthGate';
 
 const router = createBrowserRouter([
   {
@@ -15,11 +16,19 @@ const router = createBrowserRouter([
   },
   {
     path: 'rooms',
-    element: <RoomListPage />,
+    element: (
+      <AuthGate>
+        <RoomListPage />
+      </AuthGate>
+    ),
   },
   {
     path: 'game/:roomId',
-    element: <GamePage />,
+    element: (
+      <AuthGate>
+        <GamePage />
+      </AuthGate>
+    ),
   },
   {
     path: 'ranking',
