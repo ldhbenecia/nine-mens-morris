@@ -1,13 +1,18 @@
 import { Button, Modal } from '~/components';
 
 type LogoutModalProps = {
+  isShowing: boolean;
   onLogout: () => void;
   closeModal: () => void;
 };
 
-export function LogoutModal({ onLogout, closeModal }: LogoutModalProps) {
+export function LogoutModal({
+  isShowing,
+  onLogout,
+  closeModal,
+}: LogoutModalProps) {
   return (
-    <Modal>
+    <Modal isShowing={isShowing}>
       <>
         <div className="font-semibold">로그아웃할까요?</div>
         <div className="flex w-full gap-4">

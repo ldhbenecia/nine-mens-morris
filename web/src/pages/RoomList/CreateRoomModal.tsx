@@ -3,10 +3,11 @@ import { Button, Modal } from '~/components';
 import { useCreateRoom } from '~/hooks';
 
 type CreateRoomProps = {
+  isShowing: boolean;
   closeModal: () => void;
 };
 
-export function CreateRoomModal({ closeModal }: CreateRoomProps) {
+export function CreateRoomModal({ isShowing, closeModal }: CreateRoomProps) {
   const [roomTitle, setRoomTitle] = useState('');
   const { mutate } = useCreateRoom();
 
@@ -20,7 +21,7 @@ export function CreateRoomModal({ closeModal }: CreateRoomProps) {
   };
 
   return (
-    <Modal>
+    <Modal isShowing={isShowing}>
       <>
         <div className="font-semibold">방 제목을 입력해 주세요.</div>
         <input

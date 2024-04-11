@@ -1,12 +1,13 @@
 import { Button, Modal } from '~/components';
 
 type WithdrawModalProps = {
+  isShowing: boolean;
   closeModal: () => void;
 };
 
-export function WithdrawModal({ closeModal }: WithdrawModalProps) {
+export function WithdrawModal({ isShowing, closeModal }: WithdrawModalProps) {
   return (
-    <Modal>
+    <Modal isShowing={isShowing}>
       <>
         <div className="text-2xl font-semibold">기권하시겠습니까?</div>
         <div>패배 처리되며 점수가 떨어집니다.</div>

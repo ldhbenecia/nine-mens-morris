@@ -16,7 +16,12 @@ export function RoomListPage() {
 
   return (
     <main className="flex grow items-center justify-center p-4 leading-tight">
-      {showModal && <CreateRoomModal closeModal={() => setShowModal(false)} />}
+      {
+        <CreateRoomModal
+          isShowing={showModal}
+          closeModal={() => setShowModal(false)}
+        />
+      }
       <div className="flex max-w-[40rem] grow flex-col items-center gap-6">
         <h1 className="text-2xl font-semibold">방 목록</h1>
         <div className="flex w-full justify-between gap-4">
