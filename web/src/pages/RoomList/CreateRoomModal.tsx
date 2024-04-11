@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Button } from '~/components/Button';
-import { Modal } from '~/components/Modal';
-import { useJoinRoom, useCreateRoom } from '~/hooks/useMutations';
+import { Button, Modal } from '~/components';
+import { useCreateRoom } from '~/hooks';
 
 type CreateRoomProps = {
   closeModal: () => void;

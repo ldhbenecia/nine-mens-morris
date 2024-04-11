@@ -1,7 +1,7 @@
 import Play from '~/assets/icons/play.svg?react';
 import Flag from '~/assets/icons/flag.svg?react';
 import Help from '~/assets/icons/help.svg?react';
-import { Button } from '~/components/Button';
+import { Button } from '~/components';
 
 type StatusProps = {
   isCurrentUser: boolean;

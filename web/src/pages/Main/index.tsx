@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '~/components/Button';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '~/components';
+import { QUERY } from '~/lib/queries';
 import { UserInfo } from './UserInfo';
 import { LoginModal } from './LoginModal';
 import { LogoutModal } from './LogoutModal';
-import { useQuery } from '@tanstack/react-query';
-import { QUERY } from '~/lib/queries';
 
 export function MainPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);

@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Button } from '~/components/Button';
-import Undo from '~/assets/icons/undo.svg?react';
-import { RankingItem } from './RankingItem';
 import { useQuery } from '@tanstack/react-query';
+import { Button } from '~/components';
+import Undo from '~/assets/icons/undo.svg?react';
 import { QUERY } from '~/lib/queries';
+import { RankingItem } from './RankingItem';
 
 export function RankingPage() {
   const { data: ranks } = useQuery(QUERY.RANKS);

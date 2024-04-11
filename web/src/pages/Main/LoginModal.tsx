@@ -1,6 +1,4 @@
-import { Button } from '~/components/Button';
-import { KakaoButton } from '~/components/KakaoButton';
-import { Modal } from '~/components/Modal';
+import { Button, KakaoButton, Modal } from '~/components';
 
 type LoginModalProps = {
   closeModal: () => void;
