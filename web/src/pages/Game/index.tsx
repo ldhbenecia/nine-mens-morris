@@ -20,7 +20,7 @@ const client = new Client({
 export function GamePage() {
   const [showModal, setShowModal] = useState(false);
   const { roomId } = useParams();
-  const { gameState, ...gameMethods } = useGameState();
+  const { gameState, removingTurn, ...gameMethods } = useGameState();
 
   const onWithdraw = () => {
     setShowModal(true);
@@ -103,7 +103,11 @@ export function GamePage() {
       />
       <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
         <div className="flex animate-pulse py-2" onClick={sendMessage}>
-          빈 지점에 돌을 배치하세요.
+          {removingTurn
+            ? '상대의 돌 중 하나를 선택해 제거하세요.'
+            : gameState.phase === 1
+              ? '빈 지점에 돌을 배치하세요.'
+              : '돌을 인접한 지점으로 옮길 수 있습니다.'}
         </div>
         <Status
           isCurrentUser

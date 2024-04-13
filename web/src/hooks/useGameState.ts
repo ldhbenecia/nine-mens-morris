@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { QUERY } from '~/lib/queries';
 import { Client } from '@stomp/stompjs';
 import { GameState } from '~/lib/types';
+import { TRIPLE } from '~/lib/constants';
 
 const initialGameState: GameState = {
   roomId: -1,
@@ -20,6 +21,7 @@ const initialGameState: GameState = {
 
 export function useGameState() {
   const [gameState, setGameState] = useState(initialGameState);
+  const [removingTurn, setRemovingTurn] = useState(false);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
   console.log(gameState);
 
@@ -78,6 +80,24 @@ export function useGameState() {
     );
   };
 
+  // 새로 두려는 돌이 3연속 배열을 만드는가?
+  const isMakingTriple = (index: number) => {
+    for (const positions of TRIPLE) {
+      const current = positions.indexOf(index);
+      if (current === -1) continue;
+
+      const restStones = [
+        ...positions.slice(0, current),
+        ...positions.slice(current + 1),
+      ];
+      if (isPlayerPoint(restStones[0]) && isPlayerPoint(restStones[1])) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   const addStone = (client: Client, index: number) => {
     if (
       getCurrentPhase() === 1 &&
@@ -93,6 +113,10 @@ export function useGameState() {
           finalPosition: 99,
         }),
       });
+
+      if (isMakingTriple(index)) {
+        setRemovingTurn(true);
+      }
     }
   };
 
@@ -115,7 +139,7 @@ export function useGameState() {
   };
 
   const removeStone = (client: Client, index: number) => {
-    if (isPlayerTurn() && isEnemyPoint(index)) {
+    if (removingTurn && isPlayerTurn() && isEnemyPoint(index)) {
       client.publish({
         destination: `/app/game/removeOpponentStone`,
         body: JSON.stringify({
@@ -123,11 +147,13 @@ export function useGameState() {
           removePosition: index,
         }),
       });
+      setRemovingTurn(false);
     }
   };
 
   return {
     gameState,
+    removingTurn,
     updateGameState,
     isPlayerTurn,
     getPlayerStoneColor,
