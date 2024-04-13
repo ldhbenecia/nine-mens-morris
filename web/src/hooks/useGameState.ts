@@ -4,9 +4,23 @@ import { QUERY } from '~/lib/queries';
 import { Client } from '@stomp/stompjs';
 import { GameState } from '~/lib/types';
 
-export function useGameState(initialGameState: GameState) {
+const initialGameState: GameState = {
+  roomId: -1,
+  board: [...Array(24)].map(() => 'EMPTY'),
+  players: [-1, -1],
+  currentTurn: null,
+  addable: [9, 9],
+  total: [9, 9],
+  status: 'WAITING',
+  phase: 1,
+  winner: null,
+  loser: null,
+};
+
+export function useGameState() {
   const [gameState, setGameState] = useState(initialGameState);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
+  console.log(gameState);
 
   const updateGameState = (newState: GameState) => {
     setGameState(newState);
@@ -90,7 +104,7 @@ export function useGameState(initialGameState: GameState) {
   const removeStone = (client: Client, index: number) => {
     if (isPlayerTurn() && isEnemyPoint(index)) {
       client.publish({
-        destination: `/app/game/placeStone`,
+        destination: `/app/game/removeOpponentStone`,
         body: JSON.stringify({
           gameId: gameState.roomId,
           removePosition: index,

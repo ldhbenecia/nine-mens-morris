@@ -1,14 +1,51 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Board } from './Board';
 import { Status } from './Status';
 import { WithdrawModal } from './WithdrawModal';
+import { useGameState } from '~/hooks/useGameState';
+import { Client } from '@stomp/stompjs';
+import { useParams } from 'react-router-dom';
+import { QUERY } from '~/lib/queries';
+import { useQuery } from '@tanstack/react-query';
+
+const client = new Client({
+  brokerURL: 'ws://localhost:8080/morris-websocket',
+  debug: console.log,
+  reconnectDelay: 5000,
+  heartbeatIncoming: 4000,
+  heartbeatOutgoing: 4000,
+});
 
 export function GamePage() {
   const [showModal, setShowModal] = useState(false);
+  const { roomId } = useParams();
+  const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
+  const { gameState, ...methods } = useGameState();
 
   const onWithdraw = () => {
     setShowModal(true);
   };
+
+  useEffect(() => {
+    client.onConnect = function (frame) {
+      console.log('연결됨', frame);
+
+      client.subscribe(`/topic/game/${roomId}`, (message) => {
+        console.log('수신: ', message.body);
+      });
+    };
+
+    client.onStompError = function (frame) {
+      console.log('Broker reported error: ' + frame.headers['message']);
+      console.log('Additional details: ' + frame.body);
+    };
+
+    client.activate();
+
+    return () => {
+      client.deactivate();
+    };
+  }, [roomId]);
 
   return (
     <main className="flex grow flex-col overflow-x-hidden p-4 md:gap-4">
@@ -30,7 +67,7 @@ export function GamePage() {
           remaining={5}
         />
       </div>
-      <Board />
+      <Board board={gameState.board} />
       <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
         <div className="flex animate-pulse py-2">
           빈 지점에 돌을 배치하세요.

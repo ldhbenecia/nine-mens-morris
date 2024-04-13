@@ -1,42 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Point } from './Point';
 import { PointType, StoneType } from '~/lib/types';
+import { STONE_POSITION } from '~/lib/constants';
 
-export function Board() {
-  const [points, setPoints] = useState<PointType[]>([
-    { top: 0, left: 0, stone: 'EMPTY', selected: false },
-    { top: 0, left: 240, stone: 'EMPTY', selected: false },
-    { top: 0, left: 480, stone: 'EMPTY', selected: false },
+type BoardProps = {
+  board: StoneType[];
+};
 
-    { top: 80, left: 80, stone: 'EMPTY', selected: false },
-    { top: 80, left: 240, stone: 'EMPTY', selected: false },
-    { top: 80, left: 400, stone: 'EMPTY', selected: false },
+export function Board({ board }: BoardProps) {
+  const [points, setPoints] = useState<PointType[] | null>(null);
 
-    { top: 160, left: 160, stone: 'EMPTY', selected: false },
-    { top: 160, left: 240, stone: 'EMPTY', selected: false },
-    { top: 160, left: 320, stone: 'EMPTY', selected: false },
+  const onAddStone = (idx: number, stone: StoneType) => {
+    if (!points) return;
 
-    { top: 240, left: 0, stone: 'EMPTY', selected: false },
-    { top: 240, left: 80, stone: 'EMPTY', selected: false },
-    { top: 240, left: 160, stone: 'EMPTY', selected: false },
-    { top: 240, left: 320, stone: 'EMPTY', selected: false },
-    { top: 240, left: 400, stone: 'EMPTY', selected: false },
-    { top: 240, left: 480, stone: 'EMPTY', selected: false },
-
-    { top: 320, left: 160, stone: 'EMPTY', selected: false },
-    { top: 320, left: 240, stone: 'EMPTY', selected: false },
-    { top: 320, left: 320, stone: 'EMPTY', selected: false },
-
-    { top: 400, left: 80, stone: 'EMPTY', selected: false },
-    { top: 400, left: 240, stone: 'EMPTY', selected: false },
-    { top: 400, left: 400, stone: 'EMPTY', selected: false },
-
-    { top: 480, left: 0, stone: 'EMPTY', selected: false },
-    { top: 480, left: 240, stone: 'EMPTY', selected: false },
-    { top: 480, left: 480, stone: 'EMPTY', selected: false },
-  ]);
-
-  const onSetStone = (idx: number, stone: StoneType) => {
     setPoints([
       ...points.slice(0, idx),
       { ...points[idx], stone },
@@ -44,14 +20,24 @@ export function Board() {
     ]);
   };
 
+  useEffect(() => {
+    setPoints(
+      board.map((stone, index) => ({
+        ...STONE_POSITION[index],
+        stone,
+        selected: false,
+      }))
+    );
+  }, [board]);
+
   return (
     <div className="-m-24 flex h-[480px] w-[480px] shrink grow scale-50 flex-col items-center justify-center gap-8 self-center xs:-m-6 xs:scale-75 md:-m-0 md:scale-90 lg:scale-100">
       <div className="absolute z-10 h-[480px] w-[480px]">
-        {points.map((point, idx) => (
+        {points?.map((point, idx) => (
           <div
             key={idx}
             onClick={() =>
-              onSetStone(idx, Math.random() > 0.5 ? 'BLACK' : 'WHITE')
+              onAddStone(idx, Math.random() > 0.5 ? 'BLACK' : 'WHITE')
             }
           >
             <Point
