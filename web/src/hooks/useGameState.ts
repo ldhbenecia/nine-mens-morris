@@ -2,14 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { QUERY } from '~/lib/queries';
 import { Client } from '@stomp/stompjs';
-import { GameState } from '~/lib/types';
+import { GameState, StoneType } from '~/lib/types';
 import { NEIGHBOR, TRIPLE } from '~/lib/constants';
 
 const initialGameState: GameState = {
   roomId: -1,
   board: [...Array(24)].map(() => 'EMPTY'),
-  playerOneId: -1,
-  playerTwoId: -1,
+  hostId: -1,
+  guestId: -1,
   currentTurn: null,
   addable: [9, 9],
   total: [9, 9],
@@ -19,14 +19,37 @@ const initialGameState: GameState = {
   loser: null,
 };
 
-export function useGameState() {
-  const [gameState, setGameState] = useState(initialGameState);
+export function useGameState(roomId: number) {
+  const [gameState, setGameState] = useState<GameState>({
+    ...initialGameState,
+    roomId,
+  });
   const [removingTurn, setRemovingTurn] = useState(false);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
-  console.log(gameState);
 
-  const updateGameState = (newState: GameState) => {
+  const updateGameState = (state: GameState) => setGameState(state);
+
+  // 플레이어를 추가하고 서로 다른 2명이 모였는지 확인
+  const addPlayerAndReady = (userId: number) => {
+    if (
+      userId === -1 ||
+      !currentUser?.userId ||
+      currentUser.userId === userId
+    ) {
+      return null;
+    }
+
+    const newState: GameState = {
+      ...gameState,
+      hostId: currentUser.userId,
+      guestId: userId,
+      currentTurn: currentUser.userId,
+      status: 'PLAYING',
+    };
+
     setGameState(newState);
+
+    return newState;
   };
 
   const isPlayerTurn = () => {
@@ -34,7 +57,7 @@ export function useGameState() {
   };
 
   const isPlayerHost = () => {
-    return gameState.playerOneId === currentUser?.userId;
+    return gameState.hostId === currentUser?.userId;
   };
 
   const getPlayerStoneColor = () => {
@@ -102,7 +125,23 @@ export function useGameState() {
     return NEIGHBOR[from].includes(to);
   };
 
+  const updateBoard = (board: StoneType[]) => {
+    setGameState((gameState) => ({ ...gameState, board }));
+  };
+
   const addStone = (client: Client, index: number) => {
+    // 테스트
+    const mockBoard = [...gameState.board];
+    mockBoard[index] = getPlayerStoneColor();
+
+    client.publish({
+      destination: `/topic/game/${roomId}`,
+      body: JSON.stringify({
+        type: 'ADD_STONE',
+        mockBoard,
+      }),
+    });
+
     if (
       getCurrentPhase() === 1 &&
       isPlayerTurn() &&
@@ -160,6 +199,8 @@ export function useGameState() {
     gameState,
     removingTurn,
     updateGameState,
+    updateBoard,
+    addPlayerAndReady,
     isPlayerTurn,
     getPlayerStoneColor,
     getEnemyStoneColor,

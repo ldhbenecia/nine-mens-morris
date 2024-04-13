@@ -8,6 +8,7 @@ type StatusProps = {
   isTurn: boolean;
   color: 'WHITE' | 'BLACK';
   remaining: number;
+  visible?: boolean;
   onWithdraw?: () => void;
 };
 
@@ -16,10 +17,13 @@ export function Status({
   isTurn,
   color,
   remaining,
+  visible = true,
   onWithdraw,
 }: StatusProps) {
   return (
-    <div className={`flex ${isCurrentUser ? '-translate-x-3 ' : ''}`}>
+    <div
+      className={`flex md:translate-x-0 ${isCurrentUser ? '-translate-x-1.5 ' : ''} ${visible ? 'visible' : 'invisible'}`}
+    >
       <div className="gap-2">
         {isTurn && <Play className="animate-pulse" />}
       </div>

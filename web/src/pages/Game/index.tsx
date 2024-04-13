@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import { useGameState } from '~/hooks/useGameState';
-import { GameState } from '~/lib/types';
 import { Button } from '~/components';
 import Logout from '~/assets/icons/logout.svg?react';
 import { useLeaveRoom } from '~/hooks/useMutations';
 import { Board } from './Board';
 import { Status } from './Status';
 import { WithdrawModal } from './WithdrawModal';
+import { useQuery } from '@tanstack/react-query';
+import { QUERY } from '~/lib/queries';
 
 const client = new Client({
   brokerURL: 'ws://localhost:8080/morris-websocket',
@@ -21,52 +22,111 @@ const client = new Client({
 export function GamePage() {
   const [showModal, setShowModal] = useState(false);
   const { roomId } = useParams();
-  const { gameState, removingTurn, ...gameMethods } = useGameState();
-  const { mutate } = useLeaveRoom();
+  const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
+  const [connected, setConnected] = useState(client.connected);
+  const { mutate: leaveRoom } = useLeaveRoom();
+  const {
+    gameState,
+    removingTurn,
+    updateGameState,
+    addPlayerAndReady,
+    addStone,
+    updateBoard,
+    isPlayerTurn,
+    getPlayerStoneColor,
+    getEnemyStoneColor,
+    countPlayerAddableStone,
+    countEnemyAddableStone,
+  } = useGameState(Number(roomId));
 
   const onWithdraw = () => {
     setShowModal(true);
   };
 
   const onLeaveRoom = () => {
-    if (roomId) mutate(Number(roomId));
+    if (roomId) {
+      leaveRoom(Number(roomId));
+    }
   };
 
-  const sendMessage = () =>
+  const sendMessage = () => {
     client.publish({
-      destination: `/topic/game/test/${roomId}`,
+      destination: `/topic/test`,
       body: JSON.stringify('안뇽'),
     });
+  };
 
+  const handleEvent = useCallback(
+    (body: string) => {
+      const response = JSON.parse(body);
+      let newState = null;
+      switch (response.type) {
+        case 'SYNC_STATE':
+          console.log('전달된 상태:', response.state);
+          updateGameState(response.state);
+          break;
+        case 'JOIN_ROOM':
+          if ((newState = addPlayerAndReady(response.userId))) {
+            console.log('게임 시작! 전달할 상태:', newState);
+            client.publish({
+              destination: `/topic/game/${roomId}`,
+              body: JSON.stringify({
+                type: 'SYNC_STATE',
+                state: newState,
+              }),
+            });
+          }
+          break;
+        case 'ADD_STONE':
+          updateBoard(response.mockBoard);
+          break;
+      }
+    },
+    [roomId, addPlayerAndReady, updateGameState, updateBoard]
+  );
+
+  // 마운트/언마운트 시 소켓 연결/종료
   useEffect(() => {
-    client.onConnect = function (frame) {
-      console.log('연결됨', frame);
-
-      client.subscribe(`/topic/game/test/${roomId}`, (message) => {
-        console.log('테스트 수신: ', message.body);
-      });
-
-      client.subscribe(`/topic/game/${roomId}`, (message) => {
-        console.log('수신: ', message.body);
-        const newGameState: GameState = JSON.parse(message.body);
-        gameMethods.updateGameState(newGameState);
-      });
-
-      // 방 참가 이벤트 전송
-      client.publish({ destination: `/app/joinGame/${roomId}` });
-    };
-
-    client.onStompError = function (frame) {
-      console.log('Broker reported error: ' + frame.headers['message']);
-      console.log('Additional details: ' + frame.body);
-    };
-
     client.activate();
 
     return () => {
       client.deactivate();
     };
-  }, [roomId, gameMethods]);
+  }, []);
+
+  useEffect(() => {
+    client.onConnect = () => {
+      console.log('소켓에 연결되었습니다.');
+
+      client.subscribe(`/topic/test`, (message) => {
+        console.log('테스트 수신: ', message.body);
+      });
+
+      client.subscribe(`/topic/game/${roomId}`, (message) => {
+        handleEvent(message.body);
+      });
+
+      setConnected(true);
+    };
+  }, [roomId, handleEvent]);
+
+  // 최초 연결 시 입장 이벤트 전송
+  useEffect(() => {
+    if (connected) {
+      client.publish({ destination: `/app/joinGame/${roomId}` });
+      client.publish({
+        destination: `/topic/game/${roomId}`,
+        body: JSON.stringify({
+          type: 'JOIN_ROOM',
+          userId: currentUser?.userId,
+        }),
+      });
+    }
+  }, [connected, roomId, currentUser]);
+
+  useEffect(() => {
+    console.log('게임 상태:', gameState);
+  }, [gameState]);
 
   if (!gameState) {
     return <div>로딩 중...</div>;
@@ -82,6 +142,7 @@ export function GamePage() {
         />
       }
       <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
+        {/* gameState.hostId} vs {gameState.guestId */}
         {gameState.status === 'WAITING' ? (
           <div className="flex items-center gap-2">
             <span className="animate-pulse">상대를 기다리는 중...</span>
@@ -94,7 +155,7 @@ export function GamePage() {
             />
           </div>
         ) : (
-          <div className="z-20 flex w-full items-center justify-center gap-4 bg-phase text-white md:flex-col md:gap-0 md:bg-none md:text-black">
+          <div className="z-20 flex w-full items-center justify-center gap-4 bg-phase text-white md:flex-col md:items-start md:gap-0 md:bg-none md:text-black">
             <h1 className="font-phase text-xl md:text-5xl">
               Phase {gameState.phase}
             </h1>
@@ -103,17 +164,18 @@ export function GamePage() {
             </span>
           </div>
         )}
-        <Status
-          isTurn={false}
-          color={gameMethods.getEnemyStoneColor()}
-          remaining={gameMethods.countEnemyAddableStone()}
-        />
+        {
+          <Status
+            isTurn={false}
+            color={getEnemyStoneColor()}
+            remaining={countEnemyAddableStone()}
+            visible={gameState.hostId !== -1}
+          />
+        }
       </div>
-      <Board
-        client={client}
-        board={gameState.board}
-        addStone={gameMethods.addStone}
-      />
+      {client && (
+        <Board client={client} board={gameState.board} addStone={addStone} />
+      )}
       <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
         <div className="flex animate-pulse py-2" onClick={sendMessage}>
           {removingTurn
@@ -124,9 +186,9 @@ export function GamePage() {
         </div>
         <Status
           isCurrentUser
-          isTurn={gameMethods.isPlayerTurn()}
-          color={gameMethods.getPlayerStoneColor()}
-          remaining={gameMethods.countPlayerAddableStone()}
+          isTurn={isPlayerTurn()}
+          color={getPlayerStoneColor()}
+          remaining={countPlayerAddableStone()}
           onWithdraw={onWithdraw}
         />
       </div>
