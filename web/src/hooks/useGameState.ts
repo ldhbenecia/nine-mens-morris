@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { QUERY } from '~/lib/queries';
 import { Client } from '@stomp/stompjs';
 import { GameState } from '~/lib/types';
-import { TRIPLE } from '~/lib/constants';
+import { NEIGHBOR, TRIPLE } from '~/lib/constants';
 
 const initialGameState: GameState = {
   roomId: -1,
@@ -98,6 +98,10 @@ export function useGameState() {
     return false;
   };
 
+  const isAdjacent = (from: number, to: number) => {
+    return NEIGHBOR[from].includes(to);
+  };
+
   const addStone = (client: Client, index: number) => {
     if (
       getCurrentPhase() === 1 &&
@@ -125,7 +129,8 @@ export function useGameState() {
       getCurrentPhase() === 2 &&
       isPlayerTurn() &&
       isPlayerPoint(from) &&
-      isEmptyPoint(to)
+      isEmptyPoint(to) &&
+      isAdjacent(from, to)
     ) {
       client.publish({
         destination: `/app/game/placeStone`,
