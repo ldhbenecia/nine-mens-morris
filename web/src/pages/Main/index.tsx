@@ -6,18 +6,20 @@ import { QUERY } from '~/lib/queries';
 import { UserInfo } from './UserInfo';
 import { LoginModal } from './LoginModal';
 import { LogoutModal } from './LogoutModal';
+import { useLogout } from '~/hooks';
 
 export function MainPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
+  const { mutate } = useLogout();
   const navigate = useNavigate();
 
   const onClickStart = () =>
     currentUser ? navigate('/rooms') : setShowLoginModal(true);
 
   const onLogout = () => {
-    // 로그아웃 로직
+    mutate();
     setShowLogoutModal(false);
   };
 

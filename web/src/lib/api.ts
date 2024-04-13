@@ -6,10 +6,20 @@ export const client = axios.create({
   withCredentials: true,
 });
 
+export const logout = async () => {
+  const response = await client.post('auth/logout');
+
+  return response.status === 200;
+};
+
 export const getCurrentUser = async () => {
   const response = await client.get<User>('user');
 
-  return response.data;
+  if (response.status === 200) {
+    return response.data;
+  }
+
+  throw new Error('로그아웃된 사용자입니다.');
 };
 
 export const getRanks = async () => {
