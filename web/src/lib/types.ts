@@ -30,3 +30,16 @@ export type PointType = {
   stone: StoneType;
   selected: boolean;
 };
+
+export type GameState = {
+  roomId: number;
+  board: StoneType[24];
+  players: [number, number];
+  currentTurn: number | null;
+  addable: [number, number];
+  total: [number, number];
+  status: 'WAITING' | 'PLAYING' | 'FINISHED';
+  phase: 1 | 2;
+  winner: number | null;
+  loser: number | null;
+};
