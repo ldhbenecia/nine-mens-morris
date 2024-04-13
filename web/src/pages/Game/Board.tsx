@@ -2,22 +2,21 @@ import { useEffect, useState } from 'react';
 import { Point } from './Point';
 import { PointType, StoneType } from '~/lib/types';
 import { STONE_POSITION } from '~/lib/constants';
+import { Client } from '@stomp/stompjs';
 
 type BoardProps = {
+  client: Client;
   board: StoneType[];
+  addStone: (client: Client, index: number) => void;
 };
 
-export function Board({ board }: BoardProps) {
+export function Board({ client, board, addStone }: BoardProps) {
   const [points, setPoints] = useState<PointType[] | null>(null);
 
-  const onAddStone = (idx: number, stone: StoneType) => {
+  const onAddStone = (idx: number) => {
     if (!points) return;
 
-    setPoints([
-      ...points.slice(0, idx),
-      { ...points[idx], stone },
-      ...points.slice(idx + 1),
-    ]);
+    addStone(client, idx);
   };
 
   useEffect(() => {
@@ -34,12 +33,7 @@ export function Board({ board }: BoardProps) {
     <div className="-m-24 flex h-[480px] w-[480px] shrink grow scale-50 flex-col items-center justify-center gap-8 self-center xs:-m-6 xs:scale-75 md:-m-0 md:scale-90 lg:scale-100">
       <div className="absolute z-10 h-[480px] w-[480px]">
         {points?.map((point, idx) => (
-          <div
-            key={idx}
-            onClick={() =>
-              onAddStone(idx, Math.random() > 0.5 ? 'BLACK' : 'WHITE')
-            }
-          >
+          <div key={idx} onClick={() => onAddStone(idx)}>
             <Point
               top={point.top}
               left={point.left}

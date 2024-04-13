@@ -17,7 +17,7 @@ export function RankingPage() {
             <Button theme="secondary" slim text="이전으로" icon={<Undo />} />
           </Link>
         </div>
-        <div className="flex w-full flex-col">
+        <div className="flex w-full flex-col gap-2">
           {ranks &&
             ranks.map(({ nickname, imageUrl, score }, index) => (
               <RankingItem

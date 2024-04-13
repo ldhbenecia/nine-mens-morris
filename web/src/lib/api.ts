@@ -30,12 +30,6 @@ export const createRoom = async (roomTitle: string) => {
   return { roomId: response.status === 201 ? response.data.roomId : -1 };
 };
 
-export const joinRoom = async (roomId: number) => {
-  const response = await client.post<{ roomId: number }>(`joinGame/${roomId}`);
-
-  return { roomId: response.status === 200 ? roomId : -1 };
-};
-
 export const getRanks = async () => {
   const response = await client.get<Rank[]>('rank');
 

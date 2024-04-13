@@ -20,7 +20,7 @@ const client = new Client({
 export function GamePage() {
   const [showModal, setShowModal] = useState(false);
   const { roomId } = useParams();
-  const { gameState, ...game } = useGameState();
+  const { gameState, ...gameMethods } = useGameState();
 
   const onWithdraw = () => {
     setShowModal(true);
@@ -43,8 +43,11 @@ export function GamePage() {
       client.subscribe(`/topic/game/${roomId}`, (message) => {
         console.log('수신: ', message.body);
         const newGameState: GameState = JSON.parse(message.body);
-        game.updateGameState(newGameState);
+        gameMethods.updateGameState(newGameState);
       });
+
+      // 방 참가 이벤트 전송
+      client.publish({ destination: `/app/joinGame/${roomId}` });
     };
 
     client.onStompError = function (frame) {
@@ -57,7 +60,7 @@ export function GamePage() {
     return () => {
       client.deactivate();
     };
-  }, [roomId, game]);
+  }, [roomId, gameMethods]);
 
   if (!gameState) {
     return <div>로딩 중...</div>;
@@ -89,20 +92,24 @@ export function GamePage() {
         )}
         <Status
           isTurn={false}
-          color={game.getEnemyStoneColor()}
-          remaining={game.countEnemyAddableStone()}
+          color={gameMethods.getEnemyStoneColor()}
+          remaining={gameMethods.countEnemyAddableStone()}
         />
       </div>
-      <Board board={gameState.board} />
+      <Board
+        client={client}
+        board={gameState.board}
+        addStone={gameMethods.addStone}
+      />
       <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
         <div className="flex animate-pulse py-2" onClick={sendMessage}>
           빈 지점에 돌을 배치하세요.
         </div>
         <Status
           isCurrentUser
-          isTurn={game.isPlayerTurn()}
-          color={game.getPlayerStoneColor()}
-          remaining={game.countPlayerAddableStone()}
+          isTurn={gameMethods.isPlayerTurn()}
+          color={gameMethods.getPlayerStoneColor()}
+          remaining={gameMethods.countPlayerAddableStone()}
           onWithdraw={onWithdraw}
         />
       </div>

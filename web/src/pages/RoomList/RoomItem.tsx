@@ -1,4 +1,4 @@
-import { useJoinRoom } from '~/hooks/useMutations';
+import { useNavigate } from 'react-router-dom';
 
 type RoomItemProps = {
   roomId: number;
@@ -17,9 +17,11 @@ export function RoomItem({
   hostScore,
   ongoing = false,
 }: RoomItemProps) {
-  const { mutate } = useJoinRoom();
+  const navigate = useNavigate();
 
-  const onJoinRoom = () => mutate(roomId);
+  const onJoinRoom = () => {
+    navigate(`/game/${roomId}`);
+  };
 
   return (
     <div
