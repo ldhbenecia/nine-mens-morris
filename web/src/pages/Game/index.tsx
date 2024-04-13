@@ -5,6 +5,7 @@ import { useGameState } from '~/hooks/useGameState';
 import { GameState } from '~/lib/types';
 import { Button } from '~/components';
 import Logout from '~/assets/icons/logout.svg?react';
+import { useLeaveRoom } from '~/hooks/useMutations';
 import { Board } from './Board';
 import { Status } from './Status';
 import { WithdrawModal } from './WithdrawModal';
@@ -21,9 +22,14 @@ export function GamePage() {
   const [showModal, setShowModal] = useState(false);
   const { roomId } = useParams();
   const { gameState, removingTurn, ...gameMethods } = useGameState();
+  const { mutate } = useLeaveRoom();
 
   const onWithdraw = () => {
     setShowModal(true);
+  };
+
+  const onLeaveRoom = () => {
+    if (roomId) mutate(Number(roomId));
   };
 
   const sendMessage = () =>
@@ -71,6 +77,7 @@ export function GamePage() {
       {
         <WithdrawModal
           isShowing={showModal}
+          onLeaveRoom={onLeaveRoom}
           closeModal={() => setShowModal(false)}
         />
       }
@@ -78,7 +85,13 @@ export function GamePage() {
         {gameState.status === 'WAITING' ? (
           <div className="flex items-center gap-2">
             <span className="animate-pulse">상대를 기다리는 중...</span>
-            <Button slim text="나가기" theme="secondary" icon={<Logout />} />
+            <Button
+              slim
+              text="나가기"
+              theme="secondary"
+              icon={<Logout />}
+              onClick={onLeaveRoom}
+            />
           </div>
         ) : (
           <div className="z-20 flex w-full items-center justify-center gap-4 bg-phase text-white md:flex-col md:gap-0 md:bg-none md:text-black">

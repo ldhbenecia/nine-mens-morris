@@ -2,10 +2,15 @@ import { Button, Modal } from '~/components';
 
 type WithdrawModalProps = {
   isShowing: boolean;
+  onLeaveRoom: () => void;
   closeModal: () => void;
 };
 
-export function WithdrawModal({ isShowing, closeModal }: WithdrawModalProps) {
+export function WithdrawModal({
+  isShowing,
+  onLeaveRoom,
+  closeModal,
+}: WithdrawModalProps) {
   return (
     <Modal isShowing={isShowing}>
       <>
@@ -18,7 +23,7 @@ export function WithdrawModal({ isShowing, closeModal }: WithdrawModalProps) {
             text="취소"
             onClick={closeModal}
           />
-          <Button fullWidth text="확인" onClick={() => {}} />
+          <Button fullWidth text="확인" onClick={onLeaveRoom} />
         </div>
       </>
     </Modal>

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createRoom } from '~/lib/api';
+import { createRoom, leaveRoom } from '~/lib/api';
 import { QUERY } from '~/lib/queries';
 
 export const useCreateRoom = () => {
@@ -11,6 +11,18 @@ export const useCreateRoom = () => {
     onSuccess: ({ roomId }: { roomId: number }) => {
       queryClient.invalidateQueries({ queryKey: [...QUERY.ROOMS.queryKey] });
       navigate(`/game/${roomId}`);
+    },
+  });
+
+  return { mutate };
+};
+
+export const useLeaveRoom = () => {
+  const navigate = useNavigate();
+  const { mutate } = useMutation({
+    mutationFn: (roomId: number) => leaveRoom(roomId),
+    onSuccess: () => {
+      navigate('/rooms');
     },
   });
 

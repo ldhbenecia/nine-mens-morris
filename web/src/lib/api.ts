@@ -12,6 +12,12 @@ export const getCurrentUser = async () => {
   return response.data;
 };
 
+export const getRanks = async () => {
+  const response = await client.get<Rank[]>('rank');
+
+  return response.data;
+};
+
 export const getRooms = async () => {
   const response = await client.get<Room[]>('games');
 
@@ -30,8 +36,8 @@ export const createRoom = async (roomTitle: string) => {
   return { roomId: response.status === 201 ? response.data.roomId : -1 };
 };
 
-export const getRanks = async () => {
-  const response = await client.get<Rank[]>('rank');
+export const leaveRoom = async (roomId: number) => {
+  const response = await client.post(`leaveGame/${roomId}`);
 
-  return response.data;
+  return response.status === 200;
 };
