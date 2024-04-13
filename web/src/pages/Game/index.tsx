@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { Client } from '@stomp/stompjs';
+import { useGameState } from '~/hooks/useGameState';
+import { GameState } from '~/lib/types';
+import { Button } from '~/components';
+import Logout from '~/assets/icons/logout.svg?react';
 import { Board } from './Board';
 import { Status } from './Status';
 import { WithdrawModal } from './WithdrawModal';
-import { useGameState } from '~/hooks/useGameState';
-import { Client } from '@stomp/stompjs';
-import { useParams } from 'react-router-dom';
-import { QUERY } from '~/lib/queries';
-import { useQuery } from '@tanstack/react-query';
 
 const client = new Client({
   brokerURL: 'ws://localhost:8080/morris-websocket',
@@ -19,19 +20,30 @@ const client = new Client({
 export function GamePage() {
   const [showModal, setShowModal] = useState(false);
   const { roomId } = useParams();
-  const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
-  const { gameState, ...methods } = useGameState();
+  const { gameState, ...game } = useGameState();
 
   const onWithdraw = () => {
     setShowModal(true);
   };
 
+  const sendMessage = () =>
+    client.publish({
+      destination: `/topic/game/test/${roomId}`,
+      body: JSON.stringify('안뇽'),
+    });
+
   useEffect(() => {
     client.onConnect = function (frame) {
       console.log('연결됨', frame);
 
+      client.subscribe(`/topic/game/test/${roomId}`, (message) => {
+        console.log('테스트 수신: ', message.body);
+      });
+
       client.subscribe(`/topic/game/${roomId}`, (message) => {
         console.log('수신: ', message.body);
+        const newGameState: GameState = JSON.parse(message.body);
+        game.updateGameState(newGameState);
       });
     };
 
@@ -45,7 +57,11 @@ export function GamePage() {
     return () => {
       client.deactivate();
     };
-  }, [roomId]);
+  }, [roomId, game]);
+
+  if (!gameState) {
+    return <div>로딩 중...</div>;
+  }
 
   return (
     <main className="flex grow flex-col overflow-x-hidden p-4 md:gap-4">
@@ -56,27 +72,37 @@ export function GamePage() {
         />
       }
       <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
-        <div className="z-20 flex w-full justify-center gap-4 bg-phase text-white md:flex-col md:gap-0 md:bg-none md:text-black">
-          <h1 className="font-phase text-xl md:text-5xl">Phase 1</h1>
-          <span className="font-semibold">돌 배치 단계</span>
-        </div>
+        {gameState.status === 'WAITING' ? (
+          <div className="flex items-center gap-2">
+            <span className="animate-pulse">상대를 기다리는 중...</span>
+            <Button slim text="나가기" theme="secondary" icon={<Logout />} />
+          </div>
+        ) : (
+          <div className="z-20 flex w-full items-center justify-center gap-4 bg-phase text-white md:flex-col md:gap-0 md:bg-none md:text-black">
+            <h1 className="font-phase text-xl md:text-5xl">
+              Phase {gameState.phase}
+            </h1>
+            <span className="font-semibold">
+              돌 {gameState.phase === 1 ? '배치' : '이동'} 단계
+            </span>
+          </div>
+        )}
         <Status
-          isCurrentUser={false}
           isTurn={false}
-          color="BLACK"
-          remaining={5}
+          color={game.getEnemyStoneColor()}
+          remaining={game.countEnemyAddableStone()}
         />
       </div>
       <Board board={gameState.board} />
       <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
-        <div className="flex animate-pulse py-2">
+        <div className="flex animate-pulse py-2" onClick={sendMessage}>
           빈 지점에 돌을 배치하세요.
         </div>
         <Status
-          isCurrentUser={true}
-          isTurn={true}
-          color="WHITE"
-          remaining={7}
+          isCurrentUser
+          isTurn={game.isPlayerTurn()}
+          color={game.getPlayerStoneColor()}
+          remaining={game.countPlayerAddableStone()}
           onWithdraw={onWithdraw}
         />
       </div>

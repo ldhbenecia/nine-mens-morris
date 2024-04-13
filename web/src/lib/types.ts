@@ -34,7 +34,8 @@ export type PointType = {
 export type GameState = {
   roomId: number;
   board: StoneType[];
-  players: [number, number];
+  playerOneId: number;
+  playerTwoId: number;
   currentTurn: number | null;
   addable: [number, number];
   total: [number, number];

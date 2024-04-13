@@ -7,7 +7,8 @@ import { GameState } from '~/lib/types';
 const initialGameState: GameState = {
   roomId: -1,
   board: [...Array(24)].map(() => 'EMPTY'),
-  players: [-1, -1],
+  playerOneId: -1,
+  playerTwoId: -1,
   currentTurn: null,
   addable: [9, 9],
   total: [9, 9],
@@ -30,24 +31,36 @@ export function useGameState() {
     return gameState.currentTurn === currentUser?.userId;
   };
 
-  const getPlayerIndex = () => {
-    return gameState.players.indexOf(currentUser?.userId || -1);
+  const isPlayerHost = () => {
+    return gameState.playerOneId === currentUser?.userId;
   };
 
   const getPlayerStoneColor = () => {
-    return getPlayerIndex() === 0 ? 'BLACK' : 'WHITE';
+    return isPlayerHost() ? 'BLACK' : 'WHITE';
+  };
+
+  const getEnemyStoneColor = () => {
+    return isPlayerHost() ? 'WHITE' : 'BLACK';
   };
 
   const getCurrentPhase = () => {
     return gameState.phase;
   };
 
-  const countAddableStone = () => {
-    return gameState.addable[getPlayerIndex()];
+  const countPlayerAddableStone = () => {
+    return gameState.addable[isPlayerHost() ? 0 : 1];
   };
 
-  const countTotalStone = () => {
-    return gameState.total[getPlayerIndex()];
+  const countEnemyAddableStone = () => {
+    return gameState.addable[isPlayerHost() ? 1 : 0];
+  };
+
+  const countPlayerTotalStone = () => {
+    return gameState.total[isPlayerHost() ? 0 : 1];
+  };
+
+  const countEnemyTotalStone = () => {
+    return gameState.total[isPlayerHost() ? 1 : 0];
   };
 
   const isEmptyPoint = (index: number) => {
@@ -70,7 +83,7 @@ export function useGameState() {
       getCurrentPhase() === 1 &&
       isPlayerTurn() &&
       isEmptyPoint(index) &&
-      countAddableStone() > 0
+      countPlayerAddableStone() > 0
     ) {
       client.publish({
         destination: `/app/game/placeStone`,
@@ -118,8 +131,11 @@ export function useGameState() {
     updateGameState,
     isPlayerTurn,
     getPlayerStoneColor,
-    countAddableStone,
-    countTotalStone,
+    getEnemyStoneColor,
+    countPlayerAddableStone,
+    countEnemyAddableStone,
+    countPlayerTotalStone,
+    countEnemyTotalStone,
     addStone,
     moveStone,
     removeStone,

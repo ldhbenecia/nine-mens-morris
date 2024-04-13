@@ -4,7 +4,7 @@ import Help from '~/assets/icons/help.svg?react';
 import { Button } from '~/components';
 
 type StatusProps = {
-  isCurrentUser: boolean;
+  isCurrentUser?: boolean;
   isTurn: boolean;
   color: 'WHITE' | 'BLACK';
   remaining: number;
@@ -12,7 +12,7 @@ type StatusProps = {
 };
 
 export function Status({
-  isCurrentUser,
+  isCurrentUser = false,
   isTurn,
   color,
   remaining,
