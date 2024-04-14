@@ -28,13 +28,16 @@ export function GamePage() {
   const {
     gameState,
     setGameState,
-    addStone,
-    moveStone,
-    removeStone,
-    isPlayerHost,
     isPlayerTurn,
     getPlayerStoneColor,
     getEnemyStoneColor,
+    getPlayerAddable,
+    getEnemyAddable,
+    getPlayerTotal,
+    getEnemyTotal,
+    addStone,
+    moveStone,
+    removeStone,
   } = useGameState();
 
   const onShowWithdrawModal = () => {
@@ -86,11 +89,6 @@ export function GamePage() {
   useEffect(() => {
     client.onConnect = () => {
       console.log('소켓에 연결되었습니다.');
-
-      client.subscribe(`/topic/test`, (message) => {
-        console.log('테스트 수신: ', message.body);
-      });
-
       client.subscribe(`/topic/game/${roomId}`, (message) => {
         handleEvent(message.body);
       });
@@ -140,11 +138,9 @@ export function GamePage() {
           <Status
             isTurn={!isPlayerTurn()}
             color={getEnemyStoneColor()}
-            addable={
-              !isPlayerHost() ? gameState.hostAddable : gameState.guestAddable
-            }
-            total={!isPlayerHost() ? gameState.hostTotal : gameState.guestTotal}
-            visible={gameState.hostId !== -1}
+            addable={getEnemyAddable()}
+            total={getEnemyTotal()}
+            visible={gameState.status !== 'WAITING'}
           />
         }
       </div>
@@ -172,10 +168,8 @@ export function GamePage() {
           isCurrentUser
           isTurn={isPlayerTurn()}
           color={getPlayerStoneColor()}
-          addable={
-            isPlayerHost() ? gameState.hostAddable : gameState.guestAddable
-          }
-          total={isPlayerHost() ? gameState.hostTotal : gameState.guestTotal}
+          addable={getPlayerAddable()}
+          total={getPlayerTotal()}
           onShowWithdrawModal={onShowWithdrawModal}
         />
       </div>

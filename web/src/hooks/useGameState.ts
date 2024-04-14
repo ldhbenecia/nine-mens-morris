@@ -46,6 +46,22 @@ export function useGameState() {
     return isPlayerHost() ? 'WHITE' : 'BLACK';
   };
 
+  const getPlayerAddable = () => {
+    return isPlayerHost() ? gameState.hostAddable : gameState.guestAddable;
+  };
+
+  const getEnemyAddable = () => {
+    return !isPlayerHost() ? gameState.hostAddable : gameState.guestAddable;
+  };
+
+  const getPlayerTotal = () => {
+    return isPlayerHost() ? gameState.hostTotal : gameState.guestTotal;
+  };
+
+  const getEnemyTotal = () => {
+    return !isPlayerHost() ? gameState.hostTotal : gameState.guestTotal;
+  };
+
   const getCurrentPhase = () => {
     return gameState.phase;
   };
@@ -138,10 +154,13 @@ export function useGameState() {
   return {
     gameState,
     setGameState,
-    isPlayerHost,
     isPlayerTurn,
     getPlayerStoneColor,
     getEnemyStoneColor,
+    getPlayerAddable,
+    getEnemyAddable,
+    getPlayerTotal,
+    getEnemyTotal,
     addStone,
     moveStone,
     removeStone,
