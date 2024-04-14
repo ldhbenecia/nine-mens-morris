@@ -10,7 +10,7 @@ type StatusProps = {
   addable: number;
   total: number;
   visible?: boolean;
-  onWithdraw?: () => void;
+  onShowWithdrawModal?: () => void;
 };
 
 export function Status({
@@ -20,7 +20,7 @@ export function Status({
   addable,
   total,
   visible = true,
-  onWithdraw,
+  onShowWithdrawModal,
 }: StatusProps) {
   return (
     <div
@@ -67,7 +67,7 @@ export function Status({
               slim
               small
               fullWidth
-              onClick={onWithdraw}
+              onClick={onShowWithdrawModal}
             />
             <Button
               theme="secondary"

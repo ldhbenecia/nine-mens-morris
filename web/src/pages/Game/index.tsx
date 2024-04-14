@@ -27,17 +27,17 @@ export function GamePage() {
   const { mutate: leaveRoom } = useLeaveRoom();
   const {
     gameState,
-    updateGameState,
-    addPlayerAndReady,
+    setGameState,
     addStone,
+    moveStone,
     removeStone,
     isPlayerHost,
     isPlayerTurn,
     getPlayerStoneColor,
     getEnemyStoneColor,
-  } = useGameState(Number(roomId));
+  } = useGameState();
 
-  const onWithdraw = () => {
+  const onShowWithdrawModal = () => {
     setShowModal(true);
   };
 
@@ -57,28 +57,14 @@ export function GamePage() {
   const handleEvent = useCallback(
     (body: string) => {
       const response = JSON.parse(body);
-      let newState = null;
-
       switch (response.type) {
-        case 'SYNC_STATE':
+        case 'SYNC_GAME':
           console.log('전달된 상태:', response.state);
-          updateGameState(response.state);
-          break;
-        case 'JOIN_ROOM':
-          if ((newState = addPlayerAndReady(response.userId))) {
-            console.log('게임 시작! 전달할 상태:', newState);
-            client.publish({
-              destination: `/topic/game/${roomId}`,
-              body: JSON.stringify({
-                type: 'SYNC_STATE',
-                state: newState,
-              }),
-            });
-          }
+          setGameState(response.state);
           break;
       }
     },
-    [roomId, addPlayerAndReady, updateGameState]
+    [setGameState]
   );
 
   // 마운트/언마운트 시 소켓 연결/종료
@@ -89,6 +75,13 @@ export function GamePage() {
       client.deactivate();
     };
   }, []);
+
+  // 최초 연결 시 입장 이벤트 전송
+  useEffect(() => {
+    if (connected) {
+      client.publish({ destination: `/app/joinGame/${roomId}` });
+    }
+  }, [connected, roomId, currentUser]);
 
   useEffect(() => {
     client.onConnect = () => {
@@ -106,24 +99,6 @@ export function GamePage() {
     };
   }, [roomId, handleEvent]);
 
-  // 최초 연결 시 입장 이벤트 전송
-  useEffect(() => {
-    if (connected) {
-      client.publish({ destination: `/app/joinGame/${roomId}` });
-      client.publish({
-        destination: `/topic/game/${roomId}`,
-        body: JSON.stringify({
-          type: 'JOIN_ROOM',
-          userId: currentUser?.userId,
-        }),
-      });
-    }
-  }, [connected, roomId, currentUser]);
-
-  useEffect(() => {
-    console.log('게임 상태:', gameState);
-  }, [gameState]);
-
   if (!gameState) {
     return <div>로딩 중...</div>;
   }
@@ -140,7 +115,6 @@ export function GamePage() {
         />
       }
       <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
-        {/* gameState.hostId} vs {gameState.guestId */}
         {gameState.status === 'WAITING' ? (
           <div className="flex items-center gap-2">
             <span className="animate-pulse">상대를 기다리는 중...</span>
@@ -202,7 +176,7 @@ export function GamePage() {
             isPlayerHost() ? gameState.hostAddable : gameState.guestAddable
           }
           total={isPlayerHost() ? gameState.hostTotal : gameState.guestTotal}
-          onWithdraw={onWithdraw}
+          onShowWithdrawModal={onShowWithdrawModal}
         />
       </div>
     </main>
