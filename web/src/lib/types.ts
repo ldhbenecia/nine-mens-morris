@@ -41,6 +41,7 @@ export type GameState = {
   total: [number, number];
   status: 'WAITING' | 'PLAYING' | 'FINISHED';
   phase: 1 | 2;
+  isRemoving: boolean;
   winner: number | null;
   loser: number | null;
 };

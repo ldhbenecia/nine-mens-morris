@@ -27,7 +27,6 @@ export function GamePage() {
   const { mutate: leaveRoom } = useLeaveRoom();
   const {
     gameState,
-    removingTurn,
     updateGameState,
     addPlayerAndReady,
     addStone,
@@ -60,6 +59,7 @@ export function GamePage() {
     (body: string) => {
       const response = JSON.parse(body);
       let newState = null;
+
       switch (response.type) {
         case 'SYNC_STATE':
           console.log('전달된 상태:', response.state);
@@ -78,7 +78,7 @@ export function GamePage() {
           }
           break;
         case 'ADD_STONE':
-          updateBoard(response.mockBoard);
+          updateBoard(response.board);
           break;
       }
     },
@@ -160,7 +160,8 @@ export function GamePage() {
               Phase {gameState.phase}
             </h1>
             <span className="font-semibold">
-              돌 {gameState.phase === 1 ? '배치' : '이동'} 단계
+              돌 {gameState.phase === 1 ? '배치' : '이동'} 단계{' '}
+              {gameState.isRemoving && '[제거]'}
             </span>
           </div>
         )}
@@ -178,7 +179,7 @@ export function GamePage() {
       )}
       <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
         <div className="flex animate-pulse py-2" onClick={sendMessage}>
-          {removingTurn
+          {gameState.isRemoving
             ? '상대의 돌 중 하나를 선택해 제거하세요.'
             : gameState.phase === 1
               ? '빈 지점에 돌을 배치하세요.'

@@ -15,6 +15,7 @@ const initialGameState: GameState = {
   total: [9, 9],
   status: 'WAITING',
   phase: 1,
+  isRemoving: false,
   winner: null,
   loser: null,
 };
@@ -24,33 +25,9 @@ export function useGameState(roomId: number) {
     ...initialGameState,
     roomId,
   });
-  const [removingTurn, setRemovingTurn] = useState(false);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
 
   const updateGameState = (state: GameState) => setGameState(state);
-
-  // 플레이어를 추가하고 서로 다른 2명이 모였는지 확인
-  const addPlayerAndReady = (userId: number) => {
-    if (
-      userId === -1 ||
-      !currentUser?.userId ||
-      currentUser.userId === userId
-    ) {
-      return null;
-    }
-
-    const newState: GameState = {
-      ...gameState,
-      hostId: currentUser.userId,
-      guestId: userId,
-      currentTurn: currentUser.userId,
-      status: 'PLAYING',
-    };
-
-    setGameState(newState);
-
-    return newState;
-  };
 
   const isPlayerTurn = () => {
     return gameState.currentTurn === currentUser?.userId;
@@ -58,6 +35,12 @@ export function useGameState(roomId: number) {
 
   const isPlayerHost = () => {
     return gameState.hostId === currentUser?.userId;
+  };
+
+  const getOppositeTurnPlayer = () => {
+    return gameState.currentTurn === gameState.hostId
+      ? gameState.guestId
+      : gameState.hostId;
   };
 
   const getPlayerStoneColor = () => {
@@ -114,6 +97,7 @@ export function useGameState(roomId: number) {
         ...positions.slice(current + 1),
       ];
       if (isPlayerPoint(restStones[0]) && isPlayerPoint(restStones[1])) {
+        console.log(positions);
         return true;
       }
     }
@@ -129,25 +113,54 @@ export function useGameState(roomId: number) {
     setGameState((gameState) => ({ ...gameState, board }));
   };
 
+  // 플레이어를 추가하고 서로 다른 2명이 모였는지 확인
+  const addPlayerAndReady = (userId: number) => {
+    if (
+      userId === -1 ||
+      !currentUser?.userId ||
+      currentUser.userId === userId
+    ) {
+      return null;
+    }
+
+    const newState: GameState = {
+      ...gameState,
+      hostId: currentUser.userId,
+      guestId: userId,
+      currentTurn: currentUser.userId,
+      status: 'PLAYING',
+    };
+
+    setGameState(newState);
+
+    return newState;
+  };
+
   const addStone = (client: Client, index: number) => {
-    // 테스트
-    const mockBoard = [...gameState.board];
-    mockBoard[index] = getPlayerStoneColor();
-
-    client.publish({
-      destination: `/topic/game/${roomId}`,
-      body: JSON.stringify({
-        type: 'ADD_STONE',
-        mockBoard,
-      }),
-    });
-
     if (
       getCurrentPhase() === 1 &&
       isPlayerTurn() &&
       isEmptyPoint(index) &&
       countPlayerAddableStone() > 0
     ) {
+      const newBoard = [...gameState.board];
+      newBoard[index] = getPlayerStoneColor();
+      const makingTriple = isMakingTriple(index);
+
+      client.publish({
+        destination: `/topic/game/${roomId}`,
+        body: JSON.stringify({
+          type: 'SYNC_STATE',
+          state: {
+            ...gameState,
+            board: newBoard,
+            currentTurn: makingTriple
+              ? gameState.currentTurn
+              : getOppositeTurnPlayer(),
+            isRemoving: makingTriple,
+          },
+        } as { type: string; state: GameState }),
+      });
       client.publish({
         destination: `/app/game/placeStone`,
         body: JSON.stringify({
@@ -156,10 +169,6 @@ export function useGameState(roomId: number) {
           finalPosition: 99,
         }),
       });
-
-      if (isMakingTriple(index)) {
-        setRemovingTurn(true);
-      }
     }
   };
 
@@ -183,7 +192,7 @@ export function useGameState(roomId: number) {
   };
 
   const removeStone = (client: Client, index: number) => {
-    if (removingTurn && isPlayerTurn() && isEnemyPoint(index)) {
+    if (gameState.isRemoving && isPlayerTurn() && isEnemyPoint(index)) {
       client.publish({
         destination: `/app/game/removeOpponentStone`,
         body: JSON.stringify({
@@ -191,13 +200,12 @@ export function useGameState(roomId: number) {
           removePosition: index,
         }),
       });
-      setRemovingTurn(false);
+      gameState.isRemoving = false;
     }
   };
 
   return {
     gameState,
-    removingTurn,
     updateGameState,
     updateBoard,
     addPlayerAndReady,
