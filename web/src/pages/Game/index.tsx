@@ -81,8 +81,11 @@ export function GamePage() {
 
   // 최초 연결 시 입장 이벤트 전송
   useEffect(() => {
-    if (connected) {
-      client.publish({ destination: `/app/joinGame/${roomId}` });
+    if (connected && currentUser) {
+      client.publish({
+        destination: `/app/joinGame/${roomId}`,
+        body: JSON.stringify({ roomId, userId: currentUser.userId }),
+      });
     }
   }, [connected, roomId, currentUser]);
 
