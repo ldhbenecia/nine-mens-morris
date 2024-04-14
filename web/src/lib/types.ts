@@ -37,8 +37,10 @@ export type GameState = {
   hostId: number;
   guestId: number;
   currentTurn: number | null;
-  addable: [number, number];
-  total: [number, number];
+  hostAddable: number;
+  guestAddable: number;
+  hostTotal: number;
+  guestTotal: number;
   status: 'WAITING' | 'PLAYING' | 'FINISHED';
   phase: 1 | 2;
   isRemoving: boolean;

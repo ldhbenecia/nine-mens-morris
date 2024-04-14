@@ -30,12 +30,10 @@ export function GamePage() {
     updateGameState,
     addPlayerAndReady,
     addStone,
-    updateBoard,
+    isPlayerHost,
     isPlayerTurn,
     getPlayerStoneColor,
     getEnemyStoneColor,
-    countPlayerAddableStone,
-    countEnemyAddableStone,
   } = useGameState(Number(roomId));
 
   const onWithdraw = () => {
@@ -77,12 +75,9 @@ export function GamePage() {
             });
           }
           break;
-        case 'ADD_STONE':
-          updateBoard(response.board);
-          break;
       }
     },
-    [roomId, addPlayerAndReady, updateGameState, updateBoard]
+    [roomId, addPlayerAndReady, updateGameState]
   );
 
   // 마운트/언마운트 시 소켓 연결/종료
@@ -167,9 +162,11 @@ export function GamePage() {
         )}
         {
           <Status
-            isTurn={false}
+            isTurn={!isPlayerTurn()}
             color={getEnemyStoneColor()}
-            remaining={countEnemyAddableStone()}
+            remaining={
+              !isPlayerHost() ? gameState.hostAddable : gameState.guestAddable
+            }
             visible={gameState.hostId !== -1}
           />
         }
@@ -178,7 +175,10 @@ export function GamePage() {
         <Board client={client} board={gameState.board} addStone={addStone} />
       )}
       <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
-        <div className="flex animate-pulse py-2" onClick={sendMessage}>
+        <div
+          className={`flex animate-pulse py-2 ${isPlayerTurn() ? 'visible' : 'invisible'}`}
+          onClick={sendMessage}
+        >
           {gameState.isRemoving
             ? '상대의 돌 중 하나를 선택해 제거하세요.'
             : gameState.phase === 1
@@ -189,7 +189,9 @@ export function GamePage() {
           isCurrentUser
           isTurn={isPlayerTurn()}
           color={getPlayerStoneColor()}
-          remaining={countPlayerAddableStone()}
+          remaining={
+            isPlayerHost() ? gameState.hostAddable : gameState.guestAddable
+          }
           onWithdraw={onWithdraw}
         />
       </div>

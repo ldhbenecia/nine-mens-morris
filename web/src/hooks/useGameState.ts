@@ -11,8 +11,10 @@ const initialGameState: GameState = {
   hostId: -1,
   guestId: -1,
   currentTurn: null,
-  addable: [9, 9],
-  total: [9, 9],
+  hostAddable: 9,
+  guestAddable: 9,
+  hostTotal: 9,
+  guestTotal: 9,
   status: 'WAITING',
   phase: 1,
   isRemoving: false,
@@ -53,22 +55,6 @@ export function useGameState(roomId: number) {
 
   const getCurrentPhase = () => {
     return gameState.phase;
-  };
-
-  const countPlayerAddableStone = () => {
-    return gameState.addable[isPlayerHost() ? 0 : 1];
-  };
-
-  const countEnemyAddableStone = () => {
-    return gameState.addable[isPlayerHost() ? 1 : 0];
-  };
-
-  const countPlayerTotalStone = () => {
-    return gameState.total[isPlayerHost() ? 0 : 1];
-  };
-
-  const countEnemyTotalStone = () => {
-    return gameState.total[isPlayerHost() ? 1 : 0];
   };
 
   const isEmptyPoint = (index: number) => {
@@ -141,25 +127,25 @@ export function useGameState(roomId: number) {
       getCurrentPhase() === 1 &&
       isPlayerTurn() &&
       isEmptyPoint(index) &&
-      countPlayerAddableStone() > 0
+      (isPlayerHost() ? gameState.hostAddable : gameState.guestAddable) > 0
     ) {
       const newBoard = [...gameState.board];
       newBoard[index] = getPlayerStoneColor();
       const makingTriple = isMakingTriple(index);
+      const newState = {
+        ...gameState,
+        board: newBoard,
+        currentTurn: makingTriple
+          ? gameState.currentTurn
+          : getOppositeTurnPlayer(),
+        isRemoving: makingTriple,
+        hostAddable: gameState.hostAddable - (isPlayerHost() ? 1 : 0),
+        guestAddable: gameState.guestAddable - (!isPlayerHost() ? 1 : 0),
+      };
 
       client.publish({
         destination: `/topic/game/${roomId}`,
-        body: JSON.stringify({
-          type: 'SYNC_STATE',
-          state: {
-            ...gameState,
-            board: newBoard,
-            currentTurn: makingTriple
-              ? gameState.currentTurn
-              : getOppositeTurnPlayer(),
-            isRemoving: makingTriple,
-          },
-        } as { type: string; state: GameState }),
+        body: JSON.stringify({ type: 'SYNC_STATE', state: newState }),
       });
       client.publish({
         destination: `/app/game/placeStone`,
@@ -209,13 +195,10 @@ export function useGameState(roomId: number) {
     updateGameState,
     updateBoard,
     addPlayerAndReady,
+    isPlayerHost,
     isPlayerTurn,
     getPlayerStoneColor,
     getEnemyStoneColor,
-    countPlayerAddableStone,
-    countEnemyAddableStone,
-    countPlayerTotalStone,
-    countEnemyTotalStone,
     addStone,
     moveStone,
     removeStone,

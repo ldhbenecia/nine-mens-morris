@@ -22,10 +22,10 @@ export function Status({
 }: StatusProps) {
   return (
     <div
-      className={`flex md:translate-x-0 ${isCurrentUser ? '-translate-x-1.5 ' : ''} ${visible ? 'visible' : 'invisible'}`}
+      className={`flex md:translate-x-0 ${visible ? 'visible' : 'invisible'}`}
     >
-      <div className="gap-2">
-        {isTurn && <Play className="animate-pulse" />}
+      <div className={`gap-2 ${isTurn ? '' : 'opacity-0'}`}>
+        <Play />
       </div>
       <div className="flex w-48 flex-col gap-1">
         <div className="flex items-center justify-between">
