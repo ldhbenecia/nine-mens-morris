@@ -30,6 +30,7 @@ export function GamePage() {
     updateGameState,
     addPlayerAndReady,
     addStone,
+    removeStone,
     isPlayerHost,
     isPlayerTurn,
     getPlayerStoneColor,
@@ -164,15 +165,22 @@ export function GamePage() {
           <Status
             isTurn={!isPlayerTurn()}
             color={getEnemyStoneColor()}
-            remaining={
+            addable={
               !isPlayerHost() ? gameState.hostAddable : gameState.guestAddable
             }
+            total={!isPlayerHost() ? gameState.hostTotal : gameState.guestTotal}
             visible={gameState.hostId !== -1}
           />
         }
       </div>
       {client && (
-        <Board client={client} board={gameState.board} addStone={addStone} />
+        <Board
+          client={client}
+          board={gameState.board}
+          playerStoneColor={getPlayerStoneColor()}
+          addStone={addStone}
+          removeStone={removeStone}
+        />
       )}
       <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
         <div
@@ -189,9 +197,10 @@ export function GamePage() {
           isCurrentUser
           isTurn={isPlayerTurn()}
           color={getPlayerStoneColor()}
-          remaining={
+          addable={
             isPlayerHost() ? gameState.hostAddable : gameState.guestAddable
           }
+          total={isPlayerHost() ? gameState.hostTotal : gameState.guestTotal}
           onWithdraw={onWithdraw}
         />
       </div>

@@ -7,16 +7,33 @@ import { Client } from '@stomp/stompjs';
 type BoardProps = {
   client: Client;
   board: StoneType[];
+  playerStoneColor: StoneType;
   addStone: (client: Client, index: number) => void;
+  removeStone: (client: Client, index: number) => void;
 };
 
-export function Board({ client, board, addStone }: BoardProps) {
+export function Board({
+  client,
+  board,
+  playerStoneColor,
+  addStone,
+  removeStone,
+}: BoardProps) {
   const [points, setPoints] = useState<PointType[] | null>(null);
 
-  const onAddStone = (idx: number) => {
+  const onClickStone = (idx: number) => {
     if (!points) return;
 
-    addStone(client, idx);
+    switch (points[idx].stone) {
+      case 'EMPTY':
+        addStone(client, idx);
+        break;
+      case playerStoneColor:
+        break;
+      default:
+        removeStone(client, idx);
+        break;
+    }
   };
 
   useEffect(() => {
@@ -33,7 +50,7 @@ export function Board({ client, board, addStone }: BoardProps) {
     <div className="-m-24 flex h-[480px] w-[480px] shrink grow scale-50 flex-col items-center justify-center gap-8 self-center xs:-m-6 xs:scale-75 md:-m-0 md:scale-90 lg:scale-100">
       <div className="absolute z-10 h-[480px] w-[480px]">
         {points?.map((point, idx) => (
-          <div key={idx} onClick={() => onAddStone(idx)}>
+          <div key={idx} onClick={() => onClickStone(idx)}>
             <Point
               top={point.top}
               left={point.left}

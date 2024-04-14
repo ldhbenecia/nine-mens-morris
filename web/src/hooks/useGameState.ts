@@ -126,6 +126,7 @@ export function useGameState(roomId: number) {
     if (
       getCurrentPhase() === 1 &&
       isPlayerTurn() &&
+      !gameState.isRemoving &&
       isEmptyPoint(index) &&
       (isPlayerHost() ? gameState.hostAddable : gameState.guestAddable) > 0
     ) {
@@ -179,6 +180,21 @@ export function useGameState(roomId: number) {
 
   const removeStone = (client: Client, index: number) => {
     if (gameState.isRemoving && isPlayerTurn() && isEnemyPoint(index)) {
+      const newBoard = [...gameState.board];
+      newBoard[index] = 'EMPTY';
+      const newState = {
+        ...gameState,
+        board: newBoard,
+        currentTurn: getOppositeTurnPlayer(),
+        isRemoving: false,
+        hostTotal: gameState.hostTotal - (!isPlayerHost() ? 1 : 0),
+        guestTotal: gameState.guestTotal - (isPlayerHost() ? 1 : 0),
+      };
+
+      client.publish({
+        destination: `/topic/game/${roomId}`,
+        body: JSON.stringify({ type: 'SYNC_STATE', state: newState }),
+      });
       client.publish({
         destination: `/app/game/removeOpponentStone`,
         body: JSON.stringify({
@@ -186,7 +202,6 @@ export function useGameState(roomId: number) {
           removePosition: index,
         }),
       });
-      gameState.isRemoving = false;
     }
   };
 

@@ -7,7 +7,8 @@ type StatusProps = {
   isCurrentUser?: boolean;
   isTurn: boolean;
   color: 'WHITE' | 'BLACK';
-  remaining: number;
+  addable: number;
+  total: number;
   visible?: boolean;
   onWithdraw?: () => void;
 };
@@ -16,7 +17,8 @@ export function Status({
   isCurrentUser = false,
   isTurn,
   color,
-  remaining,
+  addable,
+  total,
   visible = true,
   onWithdraw,
 }: StatusProps) {
@@ -33,27 +35,29 @@ export function Status({
             {isCurrentUser ? '나' : '상대'}
           </span>
           <div
-            className={`rounded-2xl border px-1.5 text-sm ${isCurrentUser ? 'border-gray-300 bg-gray-50' : 'border-gray-800 bg-gray-800 text-white'}`}
+            className={`rounded-2xl border px-1.5 text-sm ${color === 'WHITE' ? 'border-gray-300 bg-gray-50' : 'border-gray-800 bg-gray-800 text-white'}`}
           >
             {color === 'WHITE' ? '백돌' : '흑돌'}
           </div>
         </div>
         <div className="flex justify-between">
           <div className="flex items-center gap-0.5 font-semibold">
-            {[...Array(remaining)].map((_, idx) => (
+            {[...Array(addable)].map((_, idx) => (
               <div
                 key={idx}
                 className={`h-3.5 w-3.5 rounded-full border ${color === 'WHITE' ? 'border-gray-500 bg-gray-50' : 'border-gray-800 bg-gray-800'}`}
               />
             ))}
-            {[...Array(9 - remaining)].map((_, idx) => (
+            {[...Array(9 - addable)].map((_, idx) => (
               <div
                 key={idx}
                 className={`h-3.5 w-3.5 rounded-full bg-gray-200`}
               />
             ))}
           </div>
-          <span className="px-1 text-sm font-semibold">{remaining} / 9</span>
+          <span className="px-1 text-sm font-semibold">
+            {addable} / {total}
+          </span>
         </div>
         {isCurrentUser && (
           <div className="mt-2 flex gap-2">
