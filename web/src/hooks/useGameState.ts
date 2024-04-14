@@ -82,8 +82,7 @@ export function useGameState(roomId: number) {
         ...positions.slice(0, current),
         ...positions.slice(current + 1),
       ];
-      if (isPlayerPoint(restStones[0]) && isPlayerPoint(restStones[1])) {
-        console.log(positions);
+      if (restStones.every(isPlayerPoint)) {
         return true;
       }
     }
@@ -91,12 +90,35 @@ export function useGameState(roomId: number) {
     return false;
   };
 
-  const isAdjacent = (from: number, to: number) => {
-    return NEIGHBOR[from].includes(to);
+  // 제거하려는 돌이 이미 3연속 배열을 이루고 있는가?
+  const isAlreadyTriple = (index: number) => {
+    for (const positions of TRIPLE) {
+      if (positions.indexOf(index) === -1) continue;
+
+      if (
+        positions.every(
+          (position) => gameState.board[position] === getEnemyStoneColor()
+        )
+      ) {
+        // TODO: 제거 불가능함을 알려주기
+        return true;
+      }
+    }
+
+    return false;
   };
 
-  const updateBoard = (board: StoneType[]) => {
-    setGameState((gameState) => ({ ...gameState, board }));
+  const isExistRemovable = () => {
+    const isAllTriple = gameState.board
+      .map((stone, index) => (stone === getEnemyStoneColor() ? index : -1))
+      .filter((stone) => stone !== -1)
+      .every((stone) => isAlreadyTriple(stone));
+    console.log('모두 다 트리플이야');
+    return !isAllTriple;
+  };
+
+  const isAdjacent = (from: number, to: number) => {
+    return NEIGHBOR[from].includes(to);
   };
 
   // 플레이어를 추가하고 서로 다른 2명이 모였는지 확인
@@ -132,14 +154,14 @@ export function useGameState(roomId: number) {
     ) {
       const newBoard = [...gameState.board];
       newBoard[index] = getPlayerStoneColor();
-      const makingTriple = isMakingTriple(index);
+      const isRemovable = isMakingTriple(index) && isExistRemovable();
       const newState = {
         ...gameState,
         board: newBoard,
-        currentTurn: makingTriple
+        currentTurn: isRemovable
           ? gameState.currentTurn
           : getOppositeTurnPlayer(),
-        isRemoving: makingTriple,
+        isRemoving: isRemovable,
         hostAddable: gameState.hostAddable - (isPlayerHost() ? 1 : 0),
         guestAddable: gameState.guestAddable - (!isPlayerHost() ? 1 : 0),
       };
@@ -179,7 +201,12 @@ export function useGameState(roomId: number) {
   };
 
   const removeStone = (client: Client, index: number) => {
-    if (gameState.isRemoving && isPlayerTurn() && isEnemyPoint(index)) {
+    if (
+      gameState.isRemoving &&
+      isPlayerTurn() &&
+      isEnemyPoint(index) &&
+      !isAlreadyTriple(index)
+    ) {
       const newBoard = [...gameState.board];
       newBoard[index] = 'EMPTY';
       const newState = {
@@ -208,7 +235,6 @@ export function useGameState(roomId: number) {
   return {
     gameState,
     updateGameState,
-    updateBoard,
     addPlayerAndReady,
     isPlayerHost,
     isPlayerTurn,
