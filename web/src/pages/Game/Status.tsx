@@ -51,7 +51,7 @@ export function Status({
             {[...Array(9 - addable)].map((_, idx) => (
               <div
                 key={idx}
-                className={`h-3.5 w-3.5 rounded-full bg-gray-200`}
+                className={`h-3.5 w-3.5 rounded-full bg-gray-800 opacity-10`}
               />
             ))}
           </div>

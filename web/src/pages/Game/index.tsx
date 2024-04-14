@@ -129,7 +129,9 @@ export function GamePage() {
   }
 
   return (
-    <main className="flex grow flex-col overflow-x-hidden p-4 md:gap-4">
+    <main
+      className={`transition-removing flex grow flex-col overflow-x-hidden transition-colors duration-1000 ${gameState.isRemoving && 'bg-red-200'} p-4 md:gap-4`}
+    >
       {
         <WithdrawModal
           isShowing={showModal}
@@ -156,8 +158,7 @@ export function GamePage() {
               Phase {gameState.phase}
             </h1>
             <span className="font-semibold">
-              돌 {gameState.phase === 1 ? '배치' : '이동'} 단계{' '}
-              {gameState.isRemoving && '[제거]'}
+              돌 {gameState.phase === 1 ? '배치' : '이동'} 단계
             </span>
           </div>
         )}
@@ -184,7 +185,7 @@ export function GamePage() {
       )}
       <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
         <div
-          className={`flex animate-pulse py-2 ${isPlayerTurn() ? 'visible' : 'invisible'}`}
+          className={`flex animate-pulse py-2 ${isPlayerTurn() ? 'visible' : 'invisible'}  ${gameState.isRemoving ? 'text-red-800' : ''}`}
           onClick={sendMessage}
         >
           {gameState.isRemoving

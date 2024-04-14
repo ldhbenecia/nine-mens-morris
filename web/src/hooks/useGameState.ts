@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { QUERY } from '~/lib/queries';
 import { Client } from '@stomp/stompjs';
-import { GameState, StoneType } from '~/lib/types';
+import { GameState } from '~/lib/types';
 import { NEIGHBOR, TRIPLE } from '~/lib/constants';
 
 const initialGameState: GameState = {
