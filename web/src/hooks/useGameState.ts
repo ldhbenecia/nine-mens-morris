@@ -6,7 +6,6 @@ import { GameState } from '~/lib/types';
 import { NEIGHBOR, TRIPLE } from '~/lib/constants';
 
 const initialGameState: GameState = {
-  roomId: -1,
   board: [...Array(24)].map(() => 'EMPTY'),
   hostId: -1,
   guestId: -1,
@@ -93,7 +92,7 @@ export function useGameState() {
     );
   };
 
-  const addStone = (client: Client, index: number) => {
+  const addStone = (client: Client, roomId: number, index: number) => {
     if (
       getCurrentPhase() === 1 &&
       !isRemovingStage() &&
@@ -101,10 +100,17 @@ export function useGameState() {
       isEmptyPoint(index) &&
       (isPlayerHost() ? gameState.hostAddable : gameState.guestAddable) > 0
     ) {
+      console.log(
+        JSON.stringify({
+          gameId: roomId,
+          initialPosition: index,
+          finalPosition: 99,
+        })
+      );
       client.publish({
         destination: `/app/game/placeStone`,
         body: JSON.stringify({
-          gameId: gameState.roomId,
+          gameId: roomId,
           initialPosition: index,
           finalPosition: 99,
         }),
@@ -112,7 +118,12 @@ export function useGameState() {
     }
   };
 
-  const moveStone = (client: Client, from: number, to: number) => {
+  const moveStone = (
+    client: Client,
+    roomId: number,
+    from: number,
+    to: number
+  ) => {
     if (
       getCurrentPhase() === 2 &&
       !isRemovingStage() &&
@@ -124,7 +135,7 @@ export function useGameState() {
       client.publish({
         destination: `/app/game/placeStone`,
         body: JSON.stringify({
-          gameId: gameState.roomId,
+          gameId: roomId,
           initialPosition: from,
           finalPosition: to,
         }),
@@ -132,7 +143,7 @@ export function useGameState() {
     }
   };
 
-  const removeStone = (client: Client, index: number) => {
+  const removeStone = (client: Client, roomId: number, index: number) => {
     if (
       isRemovingStage() &&
       isPlayerTurn() &&
@@ -144,7 +155,7 @@ export function useGameState() {
       client.publish({
         destination: `/app/game/removeOpponentStone`,
         body: JSON.stringify({
-          gameId: gameState.roomId,
+          gameId: roomId,
           removePosition: index,
         }),
       });
@@ -154,6 +165,7 @@ export function useGameState() {
   return {
     gameState,
     setGameState,
+    isPlayerHost,
     isPlayerTurn,
     getPlayerStoneColor,
     getEnemyStoneColor,

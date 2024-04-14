@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Point } from './Point';
+import { useParams } from 'react-router-dom';
+import { Client } from '@stomp/stompjs';
 import { PointType, StoneType } from '~/lib/types';
 import { STONE_POSITION } from '~/lib/constants';
-import { Client } from '@stomp/stompjs';
+import { Point } from './Point';
 
 type BoardProps = {
   client: Client;
   board: StoneType[];
   playerStoneColor: StoneType;
-  addStone: (client: Client, index: number) => void;
-  removeStone: (client: Client, index: number) => void;
+  addStone: (client: Client, roomId: number, index: number) => void;
+  removeStone: (client: Client, roomId: number, index: number) => void;
 };
 
 export function Board({
@@ -19,19 +20,20 @@ export function Board({
   addStone,
   removeStone,
 }: BoardProps) {
+  const { roomId } = useParams();
   const [points, setPoints] = useState<PointType[] | null>(null);
 
   const onClickStone = (idx: number) => {
-    if (!points) return;
+    if (!points || !roomId) return;
 
     switch (points[idx].stone) {
       case 'EMPTY':
-        addStone(client, idx);
+        addStone(client, Number(roomId), idx);
         break;
       case playerStoneColor:
         break;
       default:
-        removeStone(client, idx);
+        removeStone(client, Number(roomId), idx);
         break;
     }
   };

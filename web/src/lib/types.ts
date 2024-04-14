@@ -32,7 +32,6 @@ export type PointType = {
 };
 
 export type GameState = {
-  roomId: number;
   board: StoneType[];
   hostId: number;
   guestId: number;

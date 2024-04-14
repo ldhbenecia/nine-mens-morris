@@ -20,8 +20,8 @@ const client = new Client({
 });
 
 export function GamePage() {
-  const [showModal, setShowModal] = useState(false);
   const { roomId } = useParams();
+  const [showModal, setShowModal] = useState(false);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
   const [connected, setConnected] = useState(client.connected);
   const { mutate: leaveRoom } = useLeaveRoom();
@@ -36,7 +36,6 @@ export function GamePage() {
     getPlayerTotal,
     getEnemyTotal,
     addStone,
-    moveStone,
     removeStone,
   } = useGameState();
 
@@ -50,22 +49,11 @@ export function GamePage() {
     }
   };
 
-  const sendMessage = () => {
-    client.publish({
-      destination: `/topic/test`,
-      body: JSON.stringify('안뇽'),
-    });
-  };
-
   const handleEvent = useCallback(
     (body: string) => {
       const response = JSON.parse(body);
-      switch (response.type) {
-        case 'SYNC_GAME':
-          console.log('전달된 상태:', response.state);
-          setGameState(response.state);
-          break;
-      }
+      console.log(response);
+      setGameState({ ...response, message: undefined });
     },
     [setGameState]
   );
@@ -81,10 +69,11 @@ export function GamePage() {
 
   // 최초 연결 시 입장 이벤트 전송
   useEffect(() => {
-    if (connected && currentUser) {
+    // 방장이 아닐 때에만 전송해야 함
+    if (connected && roomId && currentUser) {
       client.publish({
         destination: `/app/joinGame/${roomId}`,
-        body: JSON.stringify({ roomId, userId: currentUser.userId }),
+        body: JSON.stringify(currentUser.userId),
       });
     }
   }, [connected, roomId, currentUser]);
@@ -159,7 +148,6 @@ export function GamePage() {
       <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
         <div
           className={`flex animate-pulse py-2 ${isPlayerTurn() ? 'visible' : 'invisible'}  ${gameState.isRemoving ? 'text-red-800' : ''}`}
-          onClick={sendMessage}
         >
           {gameState.isRemoving
             ? '상대의 돌 중 하나를 선택해 제거하세요.'
