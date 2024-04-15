@@ -1,11 +1,13 @@
-import { PointType } from '~/lib/types';
+import { StoneType } from '~/lib/types';
 
-export function Point({
-  stone = 'EMPTY',
-  top,
-  left,
-  selected = false,
-}: PointType) {
+type PointProps = {
+  top: number;
+  left: number;
+  stone: StoneType;
+  selected: boolean;
+};
+
+export function Point({ stone = 'EMPTY', top, left, selected }: PointProps) {
   return (
     <div
       className="absolute flex h-[80px] w-[80px] cursor-pointer items-center justify-center"

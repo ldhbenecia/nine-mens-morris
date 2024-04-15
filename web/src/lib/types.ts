@@ -28,7 +28,6 @@ export type PointType = {
   top: number;
   left: number;
   stone: StoneType;
-  selected: boolean;
 };
 
 export type GameState = {
@@ -42,7 +41,7 @@ export type GameState = {
   guestTotal: number;
   status: 'WAITING' | 'PLAYING' | 'FINISHED';
   phase: 1 | 2;
-  isRemoving: boolean;
+  removing: boolean;
   winner: number | null;
   loser: number | null;
 };

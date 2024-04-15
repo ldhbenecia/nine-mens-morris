@@ -36,6 +36,7 @@ export function GamePage() {
     getPlayerTotal,
     getEnemyTotal,
     addStone,
+    moveStone,
     removeStone,
   } = useGameState();
 
@@ -53,7 +54,12 @@ export function GamePage() {
     (body: string) => {
       const response = JSON.parse(body);
       console.log(response);
-      setGameState({ ...response, message: undefined });
+      if (response.status !== null) {
+        setGameState({ ...response, message: undefined });
+        return;
+      }
+
+      console.log(response.message);
     },
     [setGameState]
   );
@@ -69,7 +75,6 @@ export function GamePage() {
 
   // 최초 연결 시 입장 이벤트 전송
   useEffect(() => {
-    // 방장이 아닐 때에만 전송해야 함
     if (connected && roomId && currentUser) {
       client.publish({
         destination: `/app/joinGame/${roomId}`,
@@ -95,7 +100,7 @@ export function GamePage() {
 
   return (
     <main
-      className={`transition-removing flex grow flex-col overflow-x-hidden transition-colors duration-1000 ${gameState.isRemoving && 'bg-red-200'} p-4 md:gap-4`}
+      className={`transition-removing flex grow flex-col overflow-x-hidden transition-colors duration-1000 ${gameState.removing && 'bg-red-200'} p-4 md:gap-4`}
     >
       <WithdrawModal
         visible={showModal}
@@ -138,14 +143,15 @@ export function GamePage() {
           board={gameState.board}
           playerStoneColor={getPlayerStoneColor()}
           addStone={addStone}
+          moveStone={moveStone}
           removeStone={removeStone}
         />
       )}
       <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
         <div
-          className={`flex animate-pulse py-2 ${isPlayerTurn() ? 'visible' : 'invisible'}  ${gameState.isRemoving ? 'text-red-800' : ''}`}
+          className={`flex animate-pulse py-2 ${isPlayerTurn() ? 'visible' : 'invisible'}  ${gameState.removing ? 'text-red-800' : ''}`}
         >
-          {gameState.isRemoving
+          {gameState.removing
             ? '상대의 돌 중 하나를 선택해 제거하세요.'
             : gameState.phase === 1
               ? '빈 지점에 돌을 배치하세요.'

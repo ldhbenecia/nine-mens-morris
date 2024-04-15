@@ -16,7 +16,7 @@ const initialGameState: GameState = {
   guestTotal: 9,
   status: 'WAITING',
   phase: 1,
-  isRemoving: false,
+  removing: false,
   winner: null,
   loser: null,
 };
@@ -26,7 +26,7 @@ export function useGameState() {
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
 
   const isRemovingStage = () => {
-    return gameState.isRemoving;
+    return gameState.removing;
   };
 
   const isPlayerTurn = () => {

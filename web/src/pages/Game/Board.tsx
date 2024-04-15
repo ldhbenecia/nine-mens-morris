@@ -10,6 +10,7 @@ type BoardProps = {
   board: StoneType[];
   playerStoneColor: StoneType;
   addStone: (client: Client, roomId: number, index: number) => void;
+  moveStone: (client: Client, roomId: number, from: number, to: number) => void;
   removeStone: (client: Client, roomId: number, index: number) => void;
 };
 
@@ -18,19 +19,27 @@ export function Board({
   board,
   playerStoneColor,
   addStone,
+  moveStone,
   removeStone,
 }: BoardProps) {
   const { roomId } = useParams();
   const [points, setPoints] = useState<PointType[] | null>(null);
+  const [selectedStone, setSelectedStone] = useState<number | null>(null);
 
-  const onClickStone = (idx: number) => {
+  const onClickPoint = (idx: number) => {
     if (!points || !roomId) return;
 
     switch (points[idx].stone) {
       case 'EMPTY':
+        if (selectedStone !== null) {
+          moveStone(client, Number(roomId), selectedStone, idx);
+          break;
+        }
+
         addStone(client, Number(roomId), idx);
         break;
       case playerStoneColor:
+        setSelectedStone(selectedStone === idx ? null : idx);
         break;
       default:
         removeStone(client, Number(roomId), idx);
@@ -43,7 +52,6 @@ export function Board({
       board.map((stone, index) => ({
         ...STONE_POSITION[index],
         stone,
-        selected: false,
       }))
     );
   }, [board]);
@@ -52,12 +60,12 @@ export function Board({
     <div className="-m-24 flex h-[480px] w-[480px] shrink grow scale-50 flex-col items-center justify-center gap-8 self-center xs:-m-6 xs:scale-75 md:-m-0 md:scale-90 lg:scale-100">
       <div className="absolute z-10 h-[480px] w-[480px]">
         {points?.map((point, idx) => (
-          <div key={idx} onClick={() => onClickStone(idx)}>
+          <div key={idx} onClick={() => onClickPoint(idx)}>
             <Point
               top={point.top}
               left={point.left}
               stone={point.stone}
-              selected={point.selected}
+              selected={idx === selectedStone}
             />
           </div>
         ))}
