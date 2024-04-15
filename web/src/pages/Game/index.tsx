@@ -57,7 +57,7 @@ export function GamePage() {
 
   const onWithdraw = () => {
     if (roomId && currentUser) {
-      withdraw(client, Number(roomId), currentUser.userId);
+      withdraw(client, Number(roomId));
     }
   };
 

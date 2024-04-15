@@ -31,7 +31,7 @@ export function Point({ stone = 'EMPTY', top, left, selected }: PointProps) {
             className={`h-full w-full rounded-full shadow-stone ${stone === 'WHITE' ? 'bg-white-stone' : 'bg-black-stone'}`}
           />
           <div
-            className={`bg-selected-stone animate-stone-selected-effect absolute -z-10 h-[115%] w-[115%] rounded-full ${selected ? '' : 'opacity-0'}`}
+            className={`absolute -z-10 h-[115%] w-[115%] animate-stone-selected-effect rounded-full bg-selected-stone ${selected ? '' : 'opacity-0'}`}
           />
         </div>
       )}

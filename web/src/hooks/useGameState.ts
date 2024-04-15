@@ -4,6 +4,9 @@ import { QUERY } from '~/lib/queries';
 import { Client } from '@stomp/stompjs';
 import { GameState } from '~/lib/types';
 import { NEIGHBOR, TRIPLE } from '~/lib/constants';
+import { Howl } from 'howler';
+import whiteStone from '~/assets/sounds/white_stone.mp3';
+import blackStone from '~/assets/sounds/black_stone.mp3';
 
 const initialGameState: GameState = {
   board: [...Array(24)].map(() => 'EMPTY'),
@@ -24,6 +27,8 @@ const initialGameState: GameState = {
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
+  const whiteStoneSound = new Howl({ src: whiteStone });
+  const blackStoneSound = new Howl({ src: blackStone });
 
   const isRemovingStage = () => {
     return gameState.removing;
@@ -113,6 +118,7 @@ export function useGameState() {
           finalPosition: 99,
         }),
       });
+      playStoneSound();
     }
   };
 
@@ -139,6 +145,7 @@ export function useGameState() {
           finalPosition: to,
         }),
       });
+      playStoneSound();
     }
   };
 
@@ -172,17 +179,32 @@ export function useGameState() {
     }
   };
 
-  const withdraw = (client: Client, roomId: number, userId: number) => {
-    if (!isGameOver()) {
+  const withdraw = (client: Client, roomId: number) => {
+    if (!isGameOver() && currentUser) {
       client.publish({
         destination: `/app/game/withdraw`,
         body: JSON.stringify({
           gameId: roomId,
-          userId,
+          userId: currentUser.userId,
         }),
       });
     }
   };
+
+  const playStoneSound = () => {
+    if (getPlayerStoneColor() === 'WHITE') {
+      console.log('흰돌', whiteStoneSound);
+      whiteStoneSound.play();
+      return;
+    }
+
+    console.log('검은돌');
+    blackStoneSound.play();
+  };
+
+  whiteStoneSound.on('end', function () {
+    console.log('끝!');
+  });
 
   return {
     gameState,
