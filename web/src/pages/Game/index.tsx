@@ -38,6 +38,7 @@ export function GamePage() {
     addStone,
     moveStone,
     removeStone,
+    skipRemoving,
   } = useGameState();
 
   const onShowWithdrawModal = () => {
@@ -47,6 +48,12 @@ export function GamePage() {
   const onLeaveRoom = () => {
     if (roomId) {
       leaveRoom(Number(roomId));
+    }
+  };
+
+  const onSkipRemoving = () => {
+    if (roomId) {
+      skipRemoving(client, Number(roomId));
     }
   };
 
@@ -151,11 +158,22 @@ export function GamePage() {
         <div
           className={`flex animate-pulse py-2 ${isPlayerTurn() ? 'visible' : 'invisible'}  ${gameState.removing ? 'text-red-800' : ''}`}
         >
-          {gameState.removing
-            ? '상대의 돌 중 하나를 선택해 제거하세요.'
-            : gameState.phase === 1
-              ? '빈 지점에 돌을 배치하세요.'
-              : '돌을 인접한 지점으로 옮길 수 있습니다.'}
+          {gameState.removing ? (
+            <div className="flex items-center gap-1">
+              상대의 돌 중 하나를 선택해 제거하세요.
+              <Button
+                theme="secondary"
+                text="스킵"
+                slim
+                small
+                onClick={onSkipRemoving}
+              />
+            </div>
+          ) : gameState.phase === 1 ? (
+            '빈 지점에 돌을 배치하세요.'
+          ) : (
+            '돌을 인접한 지점으로 옮길 수 있습니다.'
+          )}
         </div>
         <Status
           isCurrentUser

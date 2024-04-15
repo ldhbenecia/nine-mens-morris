@@ -100,13 +100,6 @@ export function useGameState() {
       isEmptyPoint(index) &&
       (isPlayerHost() ? gameState.hostAddable : gameState.guestAddable) > 0
     ) {
-      console.log(
-        JSON.stringify({
-          gameId: roomId,
-          initialPosition: index,
-          finalPosition: 99,
-        })
-      );
       client.publish({
         destination: `/app/game/placeStone`,
         body: JSON.stringify({
@@ -150,13 +143,23 @@ export function useGameState() {
       isEnemyPoint(index) &&
       !isBelongToTriple(index)
     ) {
-      const newBoard = [...gameState.board];
-      newBoard[index] = 'EMPTY';
       client.publish({
         destination: `/app/game/removeOpponentStone`,
         body: JSON.stringify({
           gameId: roomId,
           removePosition: index,
+        }),
+      });
+    }
+  };
+
+  const skipRemoving = (client: Client, roomId: number) => {
+    if (isRemovingStage() && isPlayerTurn()) {
+      client.publish({
+        destination: `/app/game/removeOpponentStone`,
+        body: JSON.stringify({
+          gameId: roomId,
+          removePosition: 99,
         }),
       });
     }
@@ -176,5 +179,6 @@ export function useGameState() {
     addStone,
     moveStone,
     removeStone,
+    skipRemoving,
   };
 }
