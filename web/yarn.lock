@@ -968,6 +968,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/howler@npm:^2":
+  version: 2.2.11
+  resolution: "@types/howler@npm:2.2.11"
+  checksum: 10c0/0a6b6d35852f8807ff6513cc101cb4fd7a80a8d9ced8b26cf978ea976b5a7c39ca4b9db06bb76971739fe38695ff4ec91e315d7e99290718fa9fb51e9d826d0b
+  languageName: node
+  linkType: hard
+
 "@types/json-schema@npm:^7.0.12":
   version: 7.0.15
   resolution: "@types/json-schema@npm:7.0.15"
@@ -2808,6 +2815,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"howler@npm:^2.2.4":
+  version: 2.2.4
+  resolution: "howler@npm:2.2.4"
+  checksum: 10c0/74a295f56fd9b2abce122b27ed12c33fa195fb8a76832803e92d8e462a1eca803b55f44c14db052211d0cfab85c7c5249664c68d95bbbc16c775fac73866c6ef
+  languageName: node
+  linkType: hard
+
 "http-cache-semantics@npm:^4.1.1":
   version: 4.1.1
   resolution: "http-cache-semantics@npm:4.1.1"
@@ -3653,6 +3667,7 @@ __metadata:
   dependencies:
     "@stomp/stompjs": "npm:^7.0.0"
     "@tanstack/react-query": "npm:^5.29.0"
+    "@types/howler": "npm:^2"
     "@types/react": "npm:^18.2.66"
     "@types/react-dom": "npm:^18.2.22"
     "@types/react-transition-group": "npm:^4"
@@ -3668,6 +3683,7 @@ __metadata:
     eslint-plugin-react: "npm:^7.34.1"
     eslint-plugin-react-hooks: "npm:^4.6.0"
     eslint-plugin-react-refresh: "npm:^0.4.6"
+    howler: "npm:^2.2.4"
     jotai: "npm:^2.8.0"
     postcss: "npm:^8.4.38"
     prettier: "npm:^3.2.5"
