@@ -33,6 +33,7 @@ export function Board({
       case 'EMPTY':
         if (selectedStone !== null) {
           moveStone(client, Number(roomId), selectedStone, idx);
+          setSelectedStone(null);
           break;
         }
 

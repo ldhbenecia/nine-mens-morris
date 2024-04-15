@@ -2,13 +2,13 @@ import { Button, Modal } from '~/components';
 
 type WithdrawModalProps = {
   visible: boolean;
-  onLeaveRoom: () => void;
+  onWithdraw: () => void;
   onClose: () => void;
 };
 
 export function WithdrawModal({
   visible,
-  onLeaveRoom,
+  onWithdraw,
   onClose,
 }: WithdrawModalProps) {
   return (
@@ -18,7 +18,7 @@ export function WithdrawModal({
         <div>패배 처리되며 점수가 떨어집니다.</div>
         <div className="flex w-full gap-4">
           <Button theme="secondary" fullWidth text="취소" onClick={onClose} />
-          <Button fullWidth text="확인" onClick={onLeaveRoom} />
+          <Button fullWidth text="확인" onClick={onWithdraw} />
         </div>
       </>
     </Modal>

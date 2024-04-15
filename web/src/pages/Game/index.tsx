@@ -10,6 +10,7 @@ import { Status } from './Status';
 import { WithdrawModal } from './WithdrawModal';
 import { useQuery } from '@tanstack/react-query';
 import { QUERY } from '~/lib/queries';
+import { GameResultModal } from './GameResultModal';
 
 const client = new Client({
   brokerURL: 'ws://localhost:8080/morris-websocket',
@@ -21,9 +22,10 @@ const client = new Client({
 
 export function GamePage() {
   const { roomId } = useParams();
-  const [showModal, setShowModal] = useState(false);
-  const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showGameResultModal, setShowGameResultModal] = useState(false);
   const [connected, setConnected] = useState(client.connected);
+  const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
   const { mutate: leaveRoom } = useLeaveRoom();
   const {
     gameState,
@@ -42,12 +44,18 @@ export function GamePage() {
   } = useGameState();
 
   const onShowWithdrawModal = () => {
-    setShowModal(true);
+    setShowWithdrawModal(true);
   };
 
   const onLeaveRoom = () => {
     if (roomId) {
       leaveRoom(Number(roomId));
+    }
+  };
+
+  const onWithdraw = () => {
+    if (roomId) {
+      // withdraw(Number(roomId));
     }
   };
 
@@ -60,13 +68,10 @@ export function GamePage() {
   const handleEvent = useCallback(
     (body: string) => {
       const response = JSON.parse(body);
-      console.log(response);
-      if (response.status !== null) {
-        setGameState({ ...response, message: undefined });
-        return;
+      setGameState(response.data);
+      if (response.type === 'GAME_OVER') {
+        setShowGameResultModal(true);
       }
-
-      console.log(response.message);
     },
     [setGameState]
   );
@@ -110,9 +115,15 @@ export function GamePage() {
       className={`transition-removing flex grow flex-col overflow-x-hidden transition-colors duration-1000 ${gameState.removing && 'bg-red-200'} p-4 md:gap-4`}
     >
       <WithdrawModal
-        visible={showModal}
+        visible={showWithdrawModal}
+        onWithdraw={onWithdraw}
+        onClose={() => setShowWithdrawModal(false)}
+      />
+      <GameResultModal
+        visible={showGameResultModal}
+        won={gameState.winner === currentUser?.userId}
+        score={30}
         onLeaveRoom={onLeaveRoom}
-        onClose={() => setShowModal(false)}
       />
       <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
         {gameState.status === 'WAITING' ? (
