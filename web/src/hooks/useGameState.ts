@@ -29,6 +29,10 @@ export function useGameState() {
     return gameState.removing;
   };
 
+  const isGameOver = () => {
+    return gameState.status === 'FINISHED';
+  };
+
   const isPlayerTurn = () => {
     return gameState.currentTurn === currentUser?.userId;
   };
@@ -94,6 +98,7 @@ export function useGameState() {
 
   const addStone = (client: Client, roomId: number, index: number) => {
     if (
+      !isGameOver() &&
       getCurrentPhase() === 1 &&
       !isRemovingStage() &&
       isPlayerTurn() &&
@@ -118,6 +123,7 @@ export function useGameState() {
     to: number
   ) => {
     if (
+      !isGameOver() &&
       getCurrentPhase() === 2 &&
       !isRemovingStage() &&
       isPlayerTurn() &&
@@ -138,6 +144,7 @@ export function useGameState() {
 
   const removeStone = (client: Client, roomId: number, index: number) => {
     if (
+      !isGameOver() &&
       isRemovingStage() &&
       isPlayerTurn() &&
       isEnemyPoint(index) &&
@@ -154,12 +161,24 @@ export function useGameState() {
   };
 
   const skipRemoving = (client: Client, roomId: number) => {
-    if (isRemovingStage() && isPlayerTurn()) {
+    if (!isGameOver() && isRemovingStage() && isPlayerTurn()) {
       client.publish({
         destination: `/app/game/removeOpponentStone`,
         body: JSON.stringify({
           gameId: roomId,
           removePosition: 99,
+        }),
+      });
+    }
+  };
+
+  const withdraw = (client: Client, roomId: number, userId: number) => {
+    if (!isGameOver()) {
+      client.publish({
+        destination: `/app/game/withdraw`,
+        body: JSON.stringify({
+          gameId: roomId,
+          userId,
         }),
       });
     }
@@ -180,5 +199,6 @@ export function useGameState() {
     moveStone,
     removeStone,
     skipRemoving,
+    withdraw,
   };
 }

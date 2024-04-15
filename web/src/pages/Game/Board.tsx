@@ -9,6 +9,7 @@ type BoardProps = {
   client: Client;
   board: StoneType[];
   playerStoneColor: StoneType;
+  selectable: boolean;
   addStone: (client: Client, roomId: number, index: number) => void;
   moveStone: (client: Client, roomId: number, from: number, to: number) => void;
   removeStone: (client: Client, roomId: number, index: number) => void;
@@ -18,6 +19,7 @@ export function Board({
   client,
   board,
   playerStoneColor,
+  selectable,
   addStone,
   moveStone,
   removeStone,
@@ -36,11 +38,12 @@ export function Board({
           setSelectedStone(null);
           break;
         }
-
         addStone(client, Number(roomId), idx);
         break;
       case playerStoneColor:
-        setSelectedStone(selectedStone === idx ? null : idx);
+        if (selectable) {
+          setSelectedStone(selectedStone === idx ? null : idx);
+        }
         break;
       default:
         removeStone(client, Number(roomId), idx);
@@ -58,7 +61,7 @@ export function Board({
   }, [board]);
 
   return (
-    <div className="-m-24 flex h-[480px] w-[480px] shrink grow scale-50 flex-col items-center justify-center gap-8 self-center xs:-m-6 xs:scale-75 md:-m-0 md:scale-90 lg:scale-100">
+    <div className="absolute top-1/2 flex h-[480px] w-[480px] shrink grow -translate-y-1/2 scale-50 flex-col items-center justify-center gap-8 self-center xs:-m-6 xs:scale-75 md:-m-0 md:scale-90 lg:scale-100">
       <div className="absolute z-10 h-[480px] w-[480px]">
         {points?.map((point, idx) => (
           <div key={idx} onClick={() => onClickPoint(idx)}>
