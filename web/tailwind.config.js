@@ -11,6 +11,7 @@ export default {
       backgroundImage: {
         'white-stone': 'radial-gradient(circle, #ffffff 25%, #e5e7eb 100%)',
         'black-stone': 'radial-gradient(circle, #4b5563 25%, #1f2937 100%)',
+        'selected-stone': 'conic-gradient(transparent 180deg, #ff0000 360deg)',
         phase:
           'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(31,41,55,1) 20%, rgba(31,41,55,1) 80%, rgba(255,255,255,0) 100%)',
       },
@@ -34,12 +35,17 @@ export default {
           '0%': { transform: 'scale(100%)', opacity: 0.2 },
           '100%': { transform: 'scale(400%)', opacity: 0 },
         },
+        'stone-selected-effect': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
       },
       animation: {
         'modal-background': 'fade-in 0.25s ease forwards',
         modal: 'move-up 0.25s ease forwards',
         'stone-set': 'stone-set 0.25s ease-out forwards',
         'stone-set-effect': 'stone-set-effect 0.75s ease-out forwards',
+        'stone-selected-effect': 'stone-selected-effect 1s linear infinite',
       },
       screens: {
         xs: '430px',
