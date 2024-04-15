@@ -37,7 +37,7 @@ export const useLeaveRoom = () => {
   const navigate = useNavigate();
   const { mutate } = useMutation({
     mutationFn: (roomId: number) => leaveRoom(roomId),
-    onSuccess: () => {
+    onSettled: () => {
       navigate('/rooms');
     },
   });
