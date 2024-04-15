@@ -97,13 +97,11 @@ export function GamePage() {
     <main
       className={`transition-removing flex grow flex-col overflow-x-hidden transition-colors duration-1000 ${gameState.isRemoving && 'bg-red-200'} p-4 md:gap-4`}
     >
-      {
-        <WithdrawModal
-          isShowing={showModal}
-          onLeaveRoom={onLeaveRoom}
-          closeModal={() => setShowModal(false)}
-        />
-      }
+      <WithdrawModal
+        visible={showModal}
+        onLeaveRoom={onLeaveRoom}
+        onClose={() => setShowModal(false)}
+      />
       <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
         {gameState.status === 'WAITING' ? (
           <div className="flex items-center gap-2">
@@ -126,15 +124,13 @@ export function GamePage() {
             </span>
           </div>
         )}
-        {
-          <Status
-            isTurn={!isPlayerTurn()}
-            color={getEnemyStoneColor()}
-            addable={getEnemyAddable()}
-            total={getEnemyTotal()}
-            visible={gameState.status !== 'WAITING'}
-          />
-        }
+        <Status
+          isTurn={!isPlayerTurn()}
+          color={getEnemyStoneColor()}
+          addable={getEnemyAddable()}
+          total={getEnemyTotal()}
+          visible={gameState.status !== 'WAITING'}
+        />
       </div>
       {client && (
         <Board

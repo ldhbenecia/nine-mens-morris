@@ -1,5 +1,3 @@
-import { useNavigate } from 'react-router-dom';
-
 type RoomItemProps = {
   roomId: number;
   roomTitle: string;
@@ -7,6 +5,7 @@ type RoomItemProps = {
   hostImageUrl: string;
   hostScore: number;
   ongoing?: boolean;
+  onJoinRoom: (roomId: number) => void;
 };
 
 export function RoomItem({
@@ -16,17 +15,12 @@ export function RoomItem({
   hostImageUrl,
   hostScore,
   ongoing = false,
+  onJoinRoom,
 }: RoomItemProps) {
-  const navigate = useNavigate();
-
-  const onJoinRoom = () => {
-    navigate(`/game/${roomId}`);
-  };
-
   return (
     <div
       className={`flex items-center gap-2 rounded-xl border px-4 py-3 ${ongoing ? 'border-gray-300 bg-gray-300' : 'cursor-pointer border-gray-300 bg-gray-50 hover:bg-white active:bg-gray-100'}`}
-      onClick={ongoing ? undefined : onJoinRoom}
+      onClick={ongoing ? undefined : () => onJoinRoom(roomId)}
     >
       <img
         src={hostImageUrl}

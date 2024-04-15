@@ -25,19 +25,16 @@ export function MainPage() {
 
   return (
     <main className="flex grow flex-col items-center justify-center gap-12">
-      {
-        <LoginModal
-          isShowing={showLoginModal}
-          closeModal={() => setShowLoginModal(false)}
-        />
-      }
-      {
-        <LogoutModal
-          isShowing={showLogoutModal}
-          onLogout={onLogout}
-          closeModal={() => setShowLogoutModal(false)}
-        />
-      }
+      <LoginModal
+        visible={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
+
+      <LogoutModal
+        visible={showLogoutModal}
+        onLogout={onLogout}
+        onClose={() => setShowLogoutModal(false)}
+      />
       {currentUser && (
         <UserInfo
           user={currentUser}

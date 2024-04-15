@@ -2,15 +2,15 @@ import { useRef } from 'react';
 import { Transition } from 'react-transition-group';
 
 type ModalProps = {
-  isShowing: boolean;
+  visible: boolean;
   children: React.ReactElement;
 };
 
-export function Modal({ isShowing, children }: ModalProps) {
+export function Modal({ visible, children }: ModalProps) {
   const nodeRef = useRef(null);
 
   return (
-    <Transition in={isShowing} timeout={150} unmountOnExit nodeRef={nodeRef}>
+    <Transition in={visible} timeout={150} unmountOnExit nodeRef={nodeRef}>
       {(state) => (
         <div
           ref={nodeRef}

@@ -3,11 +3,11 @@ import { Button, Modal } from '~/components';
 import { useCreateRoom } from '~/hooks';
 
 type CreateRoomProps = {
-  isShowing: boolean;
-  closeModal: () => void;
+  visible: boolean;
+  onClose: () => void;
 };
 
-export function CreateRoomModal({ isShowing, closeModal }: CreateRoomProps) {
+export function CreateRoomModal({ visible, onClose }: CreateRoomProps) {
   const [roomTitle, setRoomTitle] = useState('');
   const { mutate } = useCreateRoom();
 
@@ -21,7 +21,7 @@ export function CreateRoomModal({ isShowing, closeModal }: CreateRoomProps) {
   };
 
   return (
-    <Modal isShowing={isShowing}>
+    <Modal visible={visible}>
       <>
         <div className="font-semibold">방 제목을 입력해 주세요.</div>
         <input
@@ -31,12 +31,7 @@ export function CreateRoomModal({ isShowing, closeModal }: CreateRoomProps) {
           onChange={onChangeInput}
         />
         <div className="flex w-full gap-4">
-          <Button
-            theme="secondary"
-            fullWidth
-            text="취소"
-            onClick={closeModal}
-          />
+          <Button theme="secondary" fullWidth text="취소" onClick={onClose} />
           <Button fullWidth text="확인" onClick={onCreateRoom} />
         </div>
       </>
