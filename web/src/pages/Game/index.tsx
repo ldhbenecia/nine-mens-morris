@@ -182,7 +182,6 @@ export function GamePage() {
       <GameResultModal
         visible={showGameResultModal}
         won={gameState.winner === currentUser?.userId}
-        score={30}
         onLeaveRoom={onLeaveRoom}
       />
       <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
