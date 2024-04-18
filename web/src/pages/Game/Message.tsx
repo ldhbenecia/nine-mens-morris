@@ -15,7 +15,7 @@ export function Message({
 }: MessageProps) {
   return (
     <div className="flex flex-col items-center py-2">
-      {error && <span className="animate-shake text-red-600">{error}</span>}
+      {error && <span className="animate-shaking text-red-600">{error}</span>}
       <div
         className={`flex items-center gap-1 ${turn ? 'visible' : 'invisible'}  ${removing ? 'text-red-800' : ''}`}
       >

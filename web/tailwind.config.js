@@ -39,7 +39,7 @@ export default {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(360deg)' },
         },
-        shake: {
+        shaking: {
           '0%': { transform: 'translateX(-8px)' },
           '10%': { transform: 'translateX(7px)' },
           '20%': { transform: 'translateX(-6px)' },
@@ -50,6 +50,13 @@ export default {
           '70%': { transform: 'translateX(1px)' },
           '80%': { transform: 'translateX(0)' },
         },
+        blinking: {
+          '0%': { opacity: 1 },
+          '10%': { opacity: 0 },
+          '20%': { opacity: 1 },
+          '30%': { opacity: 0 },
+          '40%': { opacity: 1 },
+        },
       },
       animation: {
         'modal-background': 'fade-in 0.25s ease forwards',
@@ -57,7 +64,8 @@ export default {
         'stone-set': 'stone-set 0.25s ease-out forwards',
         'stone-set-effect': 'stone-set-effect 0.75s ease-out forwards',
         'stone-selected-effect': 'stone-selected-effect 1s linear infinite',
-        shake: 'shake 0.5s linear forwards',
+        shaking: 'shaking 0.5s linear forwards',
+        blinking: 'blinking 0.5s linear forwards',
       },
       screens: {
         xs: '430px',

@@ -234,6 +234,7 @@ export function useGameState() {
     isPlayerHost,
     isPlayerTurn,
     isGameOver,
+    isRemovingStage,
     getPlayerStoneColor,
     getEnemyStoneColor,
     getPlayerAddable,
