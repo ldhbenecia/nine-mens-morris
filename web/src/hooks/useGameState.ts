@@ -4,9 +4,7 @@ import { QUERY } from '~/lib/queries';
 import { Client } from '@stomp/stompjs';
 import { GameState } from '~/lib/types';
 import { NEIGHBOR, TRIPLE } from '~/lib/constants';
-import { Howl } from 'howler';
-import whiteStone from '~/assets/sounds/white_stone.mp3';
-import blackStone from '~/assets/sounds/black_stone.mp3';
+import { useSound } from './useSound';
 
 const initialGameState: GameState = {
   board: [...Array(24)].map(() => 'EMPTY'),
@@ -27,8 +25,7 @@ const initialGameState: GameState = {
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
-  const whiteStoneSound = new Howl({ src: whiteStone });
-  const blackStoneSound = new Howl({ src: blackStone });
+  const { whiteStoneSound, blackStoneSound, stoneDroppingSound } = useSound();
 
   const isRemovingStage = () => {
     return gameState.removing;
@@ -164,6 +161,7 @@ export function useGameState() {
           removePosition: index,
         }),
       });
+      stoneDroppingSound.play();
     }
   };
 
@@ -193,18 +191,12 @@ export function useGameState() {
 
   const playStoneSound = () => {
     if (getPlayerStoneColor() === 'WHITE') {
-      console.log('흰돌', whiteStoneSound);
       whiteStoneSound.play();
       return;
     }
 
-    console.log('검은돌');
     blackStoneSound.play();
   };
-
-  whiteStoneSound.on('end', function () {
-    console.log('끝!');
-  });
 
   return {
     gameState,
