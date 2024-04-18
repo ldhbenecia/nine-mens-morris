@@ -4,7 +4,11 @@ import { QUERY } from '~/lib/queries';
 import { Client } from '@stomp/stompjs';
 import { GameState } from '~/lib/types';
 import { NEIGHBOR, TRIPLE } from '~/lib/constants';
-import { useSound } from './useSound';
+import {
+  blackStoneSound,
+  stoneDroppingSound,
+  whiteStoneSound,
+} from '~/lib/sounds';
 
 const initialGameState: GameState = {
   board: [...Array(24)].map(() => 'EMPTY'),
@@ -25,7 +29,6 @@ const initialGameState: GameState = {
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
-  const { whiteStoneSound, blackStoneSound, stoneDroppingSound } = useSound();
 
   const isRemovingStage = () => {
     return gameState.removing;
@@ -203,6 +206,7 @@ export function useGameState() {
     setGameState,
     isPlayerHost,
     isPlayerTurn,
+    isGameOver,
     getPlayerStoneColor,
     getEnemyStoneColor,
     getPlayerAddable,

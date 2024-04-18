@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
-import { useGameState } from '~/hooks/useGameState';
-import { Button } from '~/components';
+import { QUERY } from '~/lib/queries';
 import Logout from '~/assets/icons/logout.svg?react';
-import { useLeaveRoom } from '~/hooks/useMutations';
+import { useGameState, useLeaveRoom } from '~/hooks';
+import { Button } from '~/components';
 import { Board } from './Board';
 import { Status } from './Status';
 import { WithdrawModal } from './WithdrawModal';
-import { useQuery } from '@tanstack/react-query';
-import { QUERY } from '~/lib/queries';
 import { GameResultModal } from './GameResultModal';
 import { Message } from './Message';
+import { joinSound, lossSound, winSound } from '~/lib/sounds';
 
 const client = new Client({
   brokerURL: 'ws://localhost:8080/morris-websocket',
@@ -32,6 +32,7 @@ export function GamePage() {
     gameState,
     setGameState,
     isPlayerTurn,
+    isGameOver,
     getPlayerStoneColor,
     getEnemyStoneColor,
     getPlayerAddable,
@@ -106,8 +107,21 @@ export function GamePage() {
       });
 
       setConnected(true);
+      joinSound.play();
     };
   }, [roomId, handleEvent]);
+
+  useEffect(() => {
+    if (isGameOver()) {
+      if (gameState.winner === currentUser?.userId) {
+        winSound.play();
+      }
+
+      if (gameState.loser === currentUser?.userId) {
+        lossSound.play();
+      }
+    }
+  }, [gameState, currentUser, isGameOver]);
 
   if (!gameState) {
     return <div>로딩 중...</div>;
