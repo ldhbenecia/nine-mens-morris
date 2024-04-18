@@ -2,7 +2,7 @@ import { clickSound } from '~/lib/sounds';
 
 type ButtonProps = {
   text: string;
-  onClick: () => void;
+  onClick?: () => void;
   theme?: 'primary' | 'secondary';
   icon?: React.ReactNode;
   slim?: boolean;
@@ -20,7 +20,7 @@ export function Button({
   small = false,
 }: ButtonProps) {
   const onClickWithSound = () => {
-    onClick();
+    onClick?.();
     clickSound.play();
   };
 

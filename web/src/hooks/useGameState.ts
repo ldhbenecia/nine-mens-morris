@@ -4,11 +4,6 @@ import { QUERY } from '~/lib/queries';
 import { Client } from '@stomp/stompjs';
 import { GameState } from '~/lib/types';
 import { NEIGHBOR, TRIPLE } from '~/lib/constants';
-import {
-  blackStoneSound,
-  stoneDroppingSound,
-  whiteStoneSound,
-} from '~/lib/sounds';
 
 const initialGameState: GameState = {
   board: [...Array(24)].map(() => 'EMPTY'),
@@ -118,7 +113,13 @@ export function useGameState() {
           finalPosition: 99,
         }),
       });
-      playStoneSound();
+      client.publish({
+        destination: `/topic/game/${roomId}`,
+        body: JSON.stringify({
+          type: 'CLIENT_EVENT',
+          contents: `ADD_${getPlayerStoneColor()}`,
+        }),
+      });
     }
   };
 
@@ -145,7 +146,13 @@ export function useGameState() {
           finalPosition: to,
         }),
       });
-      playStoneSound();
+      client.publish({
+        destination: `/topic/game/${roomId}`,
+        body: JSON.stringify({
+          type: 'CLIENT_EVENT',
+          contents: `ADD_${getPlayerStoneColor()}`,
+        }),
+      });
     }
   };
 
@@ -164,7 +171,13 @@ export function useGameState() {
           removePosition: index,
         }),
       });
-      stoneDroppingSound.play();
+      client.publish({
+        destination: `/topic/game/${roomId}`,
+        body: JSON.stringify({
+          type: 'CLIENT_EVENT',
+          contents: 'REMOVE_STONE',
+        }),
+      });
     }
   };
 
@@ -190,15 +203,6 @@ export function useGameState() {
         }),
       });
     }
-  };
-
-  const playStoneSound = () => {
-    if (getPlayerStoneColor() === 'WHITE') {
-      whiteStoneSound.play();
-      return;
-    }
-
-    blackStoneSound.play();
   };
 
   return {

@@ -11,7 +11,14 @@ import { Status } from './Status';
 import { WithdrawModal } from './WithdrawModal';
 import { GameResultModal } from './GameResultModal';
 import { Message } from './Message';
-import { joinSound, lossSound, winSound } from '~/lib/sounds';
+import {
+  joinSound,
+  lossSound,
+  winSound,
+  blackStoneSound,
+  stoneDroppingSound,
+  whiteStoneSound,
+} from '~/lib/sounds';
 
 const client = new Client({
   brokerURL: 'ws://localhost:8080/morris-websocket',
@@ -68,16 +75,37 @@ export function GamePage() {
     }
   };
 
+  const handleClientEvent = useCallback((contents: string) => {
+    switch (contents) {
+      case 'ADD_WHITE':
+        whiteStoneSound.play();
+        break;
+      case 'ADD_BLACK':
+        blackStoneSound.play();
+        break;
+      case 'REMOVE_STONE':
+        stoneDroppingSound.play();
+        break;
+    }
+  }, []);
+
   const handleEvent = useCallback(
     (body: string) => {
       const response = JSON.parse(body);
       console.log(response);
-      setGameState(response.data);
-      if (response.type === 'GAME_OVER') {
-        setShowGameResultModal(true);
+      switch (response.type) {
+        case 'CLIENT_EVENT':
+          handleClientEvent(response.contents);
+          break;
+        case 'GAME_OVER':
+          setGameState(response.data);
+          setShowGameResultModal(true);
+          break;
+        default:
+          setGameState(response.data);
       }
     },
-    [setGameState]
+    [setGameState, handleClientEvent]
   );
 
   // 마운트/언마운트 시 소켓 연결/종료
@@ -112,12 +140,12 @@ export function GamePage() {
   }, [roomId, handleEvent]);
 
   useEffect(() => {
-    if (isGameOver()) {
-      if (gameState.winner === currentUser?.userId) {
+    if (isGameOver() && currentUser) {
+      if (gameState.winner === currentUser.userId) {
         winSound.play();
       }
 
-      if (gameState.loser === currentUser?.userId) {
+      if (gameState.loser === currentUser.userId) {
         lossSound.play();
       }
     }
