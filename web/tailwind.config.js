@@ -39,6 +39,17 @@ export default {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(360deg)' },
         },
+        shake: {
+          '0%': { transform: 'translateX(-8px)' },
+          '10%': { transform: 'translateX(7px)' },
+          '20%': { transform: 'translateX(-6px)' },
+          '30%': { transform: 'translateX(5px)' },
+          '40%': { transform: 'translateX(-4px)' },
+          '50%': { transform: 'translateX(3px)' },
+          '60%': { transform: 'translateX(-2px)' },
+          '70%': { transform: 'translateX(1px)' },
+          '80%': { transform: 'translateX(0)' },
+        },
       },
       animation: {
         'modal-background': 'fade-in 0.25s ease forwards',
@@ -46,6 +57,7 @@ export default {
         'stone-set': 'stone-set 0.25s ease-out forwards',
         'stone-set-effect': 'stone-set-effect 0.75s ease-out forwards',
         'stone-selected-effect': 'stone-selected-effect 1s linear infinite',
+        shake: 'shake 0.5s linear forwards',
       },
       screens: {
         xs: '430px',

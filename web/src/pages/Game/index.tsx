@@ -18,6 +18,7 @@ import {
   blackStoneSound,
   stoneDroppingSound,
   whiteStoneSound,
+  startSound,
 } from '~/lib/sounds';
 
 const client = new Client({
@@ -37,6 +38,7 @@ export function GamePage() {
   const { mutate: leaveRoom } = useLeaveRoom();
   const {
     gameState,
+    error,
     setGameState,
     isPlayerTurn,
     isGameOver,
@@ -78,12 +80,15 @@ export function GamePage() {
   const handleClientEvent = useCallback((contents: string) => {
     switch (contents) {
       case 'ADD_WHITE':
+        whiteStoneSound.currentTime = 0;
         whiteStoneSound.play();
         break;
       case 'ADD_BLACK':
+        blackStoneSound.currentTime = 0;
         blackStoneSound.play();
         break;
       case 'REMOVE_STONE':
+        stoneDroppingSound.currentTime = 0;
         stoneDroppingSound.play();
         break;
     }
@@ -96,6 +101,10 @@ export function GamePage() {
       switch (response.type) {
         case 'CLIENT_EVENT':
           handleClientEvent(response.contents);
+          break;
+        case 'GAME_START':
+          setGameState(response.data);
+          startSound.play();
           break;
         case 'GAME_OVER':
           setGameState(response.data);
@@ -157,7 +166,7 @@ export function GamePage() {
 
   return (
     <main
-      className={`transition-removing flex h-full grow flex-col justify-between overflow-x-hidden transition-colors duration-1000 ${gameState.removing && 'bg-red-200'} p-4 md:gap-4`}
+      className={`transition-removing flex h-full grow flex-col justify-between overflow-hidden transition-colors duration-1000 ${gameState.removing && 'bg-red-200'} p-4 md:gap-4`}
     >
       <WithdrawModal
         visible={showWithdrawModal}
@@ -215,6 +224,7 @@ export function GamePage() {
         <Message
           phase={gameState.phase}
           removing={gameState.removing}
+          error={error}
           turn={isPlayerTurn()}
           onSkipRemoving={onSkipRemoving}
         />

@@ -4,6 +4,7 @@ import { QUERY } from '~/lib/queries';
 import { Client } from '@stomp/stompjs';
 import { GameState } from '~/lib/types';
 import { NEIGHBOR, TRIPLE } from '~/lib/constants';
+import { clickSound, errorSound } from '~/lib/sounds';
 
 const initialGameState: GameState = {
   board: [...Array(24)].map(() => 'EMPTY'),
@@ -21,8 +22,11 @@ const initialGameState: GameState = {
   loser: null,
 };
 
+let errorTimerId: NodeJS.Timeout | null = null;
+
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
+  const [error, setError] = useState('');
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
 
   const isRemovingStage = () => {
@@ -96,6 +100,15 @@ export function useGameState() {
     );
   };
 
+  const showError = (message: string) => {
+    if (errorTimerId) {
+      clearTimeout(errorTimerId);
+    }
+
+    setError(message);
+    errorTimerId = setTimeout(() => setError(''), 3000);
+  };
+
   const addStone = (client: Client, roomId: number, index: number) => {
     if (
       !isGameOver() &&
@@ -161,9 +174,15 @@ export function useGameState() {
       !isGameOver() &&
       isRemovingStage() &&
       isPlayerTurn() &&
-      isEnemyPoint(index) &&
-      !isBelongToTriple(index)
+      isEnemyPoint(index)
     ) {
+      if (isBelongToTriple(index)) {
+        showError('3연속 배열에 속한 돌은 제거할 수 없습니다.');
+        errorSound.currentTime = 0;
+        errorSound.play();
+        return;
+      }
+
       client.publish({
         destination: `/app/game/removeOpponentStone`,
         body: JSON.stringify({
@@ -178,6 +197,7 @@ export function useGameState() {
           contents: 'REMOVE_STONE',
         }),
       });
+      setError('');
     }
   };
 
@@ -191,6 +211,8 @@ export function useGameState() {
         }),
       });
     }
+    clickSound.play();
+    setError('');
   };
 
   const withdraw = (client: Client, roomId: number) => {
@@ -207,6 +229,7 @@ export function useGameState() {
 
   return {
     gameState,
+    error,
     setGameState,
     isPlayerHost,
     isPlayerTurn,
