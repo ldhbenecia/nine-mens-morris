@@ -29,10 +29,6 @@ export function useGameState() {
   const [error, setError] = useState('');
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
 
-  const isRemovingStage = () => {
-    return gameState.removing;
-  };
-
   const isGameOver = () => {
     return gameState.status === 'FINISHED';
   };
@@ -67,10 +63,6 @@ export function useGameState() {
 
   const getEnemyTotal = () => {
     return !isPlayerHost() ? gameState.hostTotal : gameState.guestTotal;
-  };
-
-  const getCurrentPhase = () => {
-    return gameState.phase;
   };
 
   const isEmptyPoint = (index: number) => {
@@ -112,8 +104,8 @@ export function useGameState() {
   const addStone = (client: Client, roomId: number, index: number) => {
     if (
       !isGameOver() &&
-      getCurrentPhase() === 1 &&
-      !isRemovingStage() &&
+      gameState.phase === 1 &&
+      !gameState.removing &&
       isPlayerTurn() &&
       isEmptyPoint(index) &&
       (isPlayerHost() ? gameState.hostAddable : gameState.guestAddable) > 0
@@ -144,8 +136,8 @@ export function useGameState() {
   ) => {
     if (
       !isGameOver() &&
-      getCurrentPhase() === 2 &&
-      !isRemovingStage() &&
+      gameState.phase === 2 &&
+      !gameState.removing &&
       isPlayerTurn() &&
       isPlayerPoint(from) &&
       isEmptyPoint(to) &&
@@ -172,7 +164,7 @@ export function useGameState() {
   const removeStone = (client: Client, roomId: number, index: number) => {
     if (
       !isGameOver() &&
-      isRemovingStage() &&
+      gameState.removing &&
       isPlayerTurn() &&
       isEnemyPoint(index)
     ) {
@@ -202,7 +194,7 @@ export function useGameState() {
   };
 
   const skipRemoving = (client: Client, roomId: number) => {
-    if (!isGameOver() && isRemovingStage() && isPlayerTurn()) {
+    if (!isGameOver() && gameState.removing && isPlayerTurn()) {
       client.publish({
         destination: `/app/game/removeOpponentStone`,
         body: JSON.stringify({
@@ -234,7 +226,6 @@ export function useGameState() {
     isPlayerHost,
     isPlayerTurn,
     isGameOver,
-    isRemovingStage,
     getPlayerStoneColor,
     getEnemyStoneColor,
     getPlayerAddable,

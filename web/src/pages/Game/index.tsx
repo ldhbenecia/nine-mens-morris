@@ -43,7 +43,6 @@ export function GamePage() {
     setGameState,
     isPlayerTurn,
     isGameOver,
-    isRemovingStage,
     getPlayerStoneColor,
     getEnemyStoneColor,
     getPlayerAddable,
@@ -151,7 +150,7 @@ export function GamePage() {
   }, [roomId, handleEvent]);
 
   useEffect(() => {
-    if (isRemovingStage()) {
+    if (gameState.removing) {
       explosionSound.play();
     }
 
@@ -164,7 +163,7 @@ export function GamePage() {
         lossSound.play();
       }
     }
-  }, [gameState, currentUser, isGameOver, isRemovingStage]);
+  }, [gameState, currentUser, isGameOver, gameState.removing]);
 
   if (!gameState) {
     return <div>로딩 중...</div>;
@@ -172,7 +171,7 @@ export function GamePage() {
 
   return (
     <main
-      className={`transition-removing flex h-full grow flex-col justify-between overflow-hidden transition-colors duration-1000 ${isRemovingStage() && 'bg-red-200'} p-4 md:gap-4`}
+      className={`transition-removing flex h-full grow flex-col justify-between overflow-hidden p-4 transition-colors  duration-1000 md:gap-4 ${gameState.removing && 'bg-red-200'}`}
     >
       <WithdrawModal
         visible={showWithdrawModal}
@@ -197,7 +196,7 @@ export function GamePage() {
             />
           </div>
         ) : (
-          <div className="animate-blinking z-20 flex w-full items-center justify-center gap-4 bg-phase text-white md:flex-col md:items-start md:gap-0 md:bg-none md:text-black">
+          <div className="z-20 flex w-full animate-blinking items-center justify-center gap-4 bg-phase text-white md:flex-col md:items-start md:gap-0 md:bg-none md:text-black">
             <h1 className="font-phase text-xl md:text-5xl">
               Phase {gameState.phase}
             </h1>
@@ -228,7 +227,7 @@ export function GamePage() {
       <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
         <Message
           phase={gameState.phase}
-          removing={isRemovingStage()}
+          removing={gameState.removing}
           error={error}
           turn={isPlayerTurn()}
           onSkipRemoving={onSkipRemoving}
