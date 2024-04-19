@@ -21,9 +21,13 @@ import {
   startSound,
   explosionSound,
 } from '~/lib/sounds';
+import { HelpModal } from './HelpModal';
 
 const client = new Client({
-  brokerURL: 'ws://localhost:8080/morris-websocket',
+  brokerURL:
+    import.meta.env.MODE === 'development'
+      ? 'ws://localhost:8080/morris-websocket'
+      : 'wss://api.ninemensmorris.site:8080/morris-websocket',
   debug: console.log,
   reconnectDelay: 5000,
   heartbeatIncoming: 4000,
@@ -34,6 +38,7 @@ export function GamePage() {
   const { roomId } = useParams();
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showGameResultModal, setShowGameResultModal] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const [connected, setConnected] = useState(client.connected);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
   const { mutate: leaveRoom } = useLeaveRoom();
@@ -182,6 +187,10 @@ export function GamePage() {
         visible={showGameResultModal}
         won={gameState.winner === currentUser?.userId}
         onLeaveRoom={onLeaveRoom}
+      />
+      <HelpModal
+        visible={showHelpModal}
+        onClose={() => setShowHelpModal(false)}
       />
       <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
         {gameState.status === 'WAITING' ? (
