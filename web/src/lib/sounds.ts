@@ -1,0 +1,21 @@
+import click from '/src/assets/sounds/click.mp3';
+import join from '/src/assets/sounds/join.mp3';
+import start from '/src/assets/sounds/start.mp3';
+import whiteStone from '/src/assets/sounds/white_stone.mp3';
+import blackStone from '/src/assets/sounds/black_stone.mp3';
+import stoneDropping from '/src/assets/sounds/stone_dropping.mp3';
+import explosion from '/src/assets/sounds/explosion.mp3';
+import win from '/src/assets/sounds/win.mp3';
+import loss from '/src/assets/sounds/loss.mp3';
+import error from '/src/assets/sounds/error.mp3';
+
+export const clickSound = new Audio(click);
+export const joinSound = new Audio(join);
+export const startSound = new Audio(start);
+export const whiteStoneSound = new Audio(whiteStone);
+export const blackStoneSound = new Audio(blackStone);
+export const stoneDroppingSound = new Audio(stoneDropping);
+export const explosionSound = new Audio(explosion);
+export const winSound = new Audio(win);
+export const lossSound = new Audio(loss);
+export const errorSound = new Audio(error);
