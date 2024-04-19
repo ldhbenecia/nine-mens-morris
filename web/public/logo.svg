@@ -1,0 +1,36 @@
+<svg width="723" height="722" viewBox="0 0 723 722" fill="none" xmlns="http://www.w3.org/2000/svg">
+	<rect x="64" y="61" width="600" height="600" stroke="#6B7280" stroke-width="16" />
+	<rect x="164" y="161" width="400" height="400" stroke="#6B7280" stroke-width="16" />
+	<rect x="264" y="261" width="200" height="200" stroke="#6B7280" stroke-width="16" />
+	<path d="M364 61V261M364 461V661M64 363H264M463 363H663" stroke="#6B7280" stroke-width="16" />
+	<circle cx="64" cy="61" r="32" fill="#6B7280" />
+	<circle cx="364" cy="61" r="32" fill="#6B7280" />
+	<circle cx="664" cy="61" r="32" fill="#6B7280" />
+	<circle cx="164" cy="161" r="32" fill="#6B7280" />
+	<circle cx="364" cy="161" r="32" fill="#6B7280" />
+	<circle cx="564" cy="161" r="32" fill="#6B7280" />
+	<circle cx="264" cy="261" r="32" fill="#6B7280" />
+	<circle cx="364" cy="261" r="32" fill="#6B7280" />
+	<circle cx="464" cy="261" r="32" fill="#6B7280" />
+	<circle cx="64" cy="361" r="32" fill="#6B7280" />
+	<circle cx="164" cy="361" r="32" fill="#6B7280" />
+	<circle cx="264" cy="361" r="32" fill="#6B7280" />
+	<circle cx="464" cy="361" r="32" fill="#6B7280" />
+	<circle cx="564" cy="361" r="32" fill="#6B7280" />
+	<circle cx="664" cy="361" r="32" fill="#6B7280" />
+	<circle cx="264" cy="461" r="32" fill="#6B7280" />
+	<circle cx="364" cy="461" r="32" fill="#6B7280" />
+	<circle cx="464" cy="461" r="32" fill="#6B7280" />
+	<circle cx="164" cy="561" r="32" fill="#6B7280" />
+	<circle cx="364" cy="561" r="32" fill="#6B7280" />
+	<circle cx="564" cy="561" r="32" fill="#6B7280" />
+	<circle cx="64" cy="661" r="32" fill="#6B7280" />
+	<circle cx="364" cy="661" r="32" fill="#6B7280" />
+	<circle cx="664" cy="661" r="32" fill="#6B7280" />
+	<circle cx="164" cy="158" r="56" fill="#F9FAFB" stroke="#D1D5DB" stroke-width="16" />
+	<circle cx="64" cy="658" r="56" fill="#F9FAFB" stroke="#D1D5DB" stroke-width="16" />
+	<circle cx="464" cy="258" r="56" fill="#F9FAFB" stroke="#D1D5DB" stroke-width="16" />
+	<circle cx="565" cy="559" r="51" fill="#1F2937" stroke="black" stroke-width="16" />
+	<circle cx="65" cy="359" r="51" fill="#1F2937" stroke="black" stroke-width="16" />
+	<circle cx="664" cy="59" r="51" fill="#1F2937" stroke="black" stroke-width="16" />
+</svg>
