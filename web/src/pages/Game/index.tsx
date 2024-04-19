@@ -24,10 +24,7 @@ import {
 import { HelpModal } from './HelpModal';
 
 const client = new Client({
-  brokerURL:
-    import.meta.env.MODE === 'development'
-      ? 'ws://localhost:8080/morris-websocket'
-      : 'wss://api.ninemensmorris.site:8080/morris-websocket',
+  brokerURL: import.meta.env.VITE_SOCKET_URL,
   debug: console.log,
   reconnectDelay: 5000,
   heartbeatIncoming: 4000,
