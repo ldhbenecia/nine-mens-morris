@@ -10,6 +10,7 @@ import { Board } from './Board';
 import { Status } from './Status';
 import { WithdrawModal } from './WithdrawModal';
 import { GameResultModal } from './GameResultModal';
+import { HelpModal } from './HelpModal';
 import { Message } from './Message';
 import {
   joinSound,
@@ -21,7 +22,6 @@ import {
   startSound,
   explosionSound,
 } from '~/lib/sounds';
-import { HelpModal } from './HelpModal';
 
 const client = new Client({
   brokerURL: import.meta.env.VITE_SOCKET_URL,
@@ -245,6 +245,7 @@ export function GamePage() {
           addable={getPlayerAddable()}
           total={getPlayerTotal()}
           onShowWithdrawModal={onShowWithdrawModal}
+          onShowHelpModal={() => setShowHelpModal(true)}
         />
       </div>
     </main>

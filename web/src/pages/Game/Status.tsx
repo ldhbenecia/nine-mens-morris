@@ -11,6 +11,7 @@ type StatusProps = {
   total: number;
   visible?: boolean;
   onShowWithdrawModal?: () => void;
+  onShowHelpModal?: () => void;
 };
 
 export function Status({
@@ -21,6 +22,7 @@ export function Status({
   total,
   visible = true,
   onShowWithdrawModal,
+  onShowHelpModal,
 }: StatusProps) {
   return (
     <div
@@ -76,6 +78,7 @@ export function Status({
               slim
               small
               fullWidth
+              onClick={onShowHelpModal}
             />
           </div>
         )}
