@@ -24,7 +24,7 @@ export function Status({
 }: StatusProps) {
   return (
     <div
-      className={`flex md:translate-x-0 ${visible ? 'visible' : 'invisible'}`}
+      className={`z-10 flex md:translate-x-0 ${visible ? 'visible' : 'invisible'}`}
     >
       <div className={`gap-2 ${isTurn ? '' : 'opacity-0'}`}>
         <Play />

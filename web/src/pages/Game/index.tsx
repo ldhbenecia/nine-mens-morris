@@ -185,7 +185,7 @@ export function GamePage() {
       />
       <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
         {gameState.status === 'WAITING' ? (
-          <div className="flex items-center gap-2">
+          <div className="z-10 flex items-center gap-2">
             <span className="animate-pulse">상대를 기다리는 중...</span>
             <Button
               slim

@@ -61,20 +61,20 @@ export function Board({
   }, [board]);
 
   return (
-    <div className="absolute top-1/2 flex h-[480px] w-[480px] shrink grow -translate-y-1/2 scale-50 flex-col items-center justify-center gap-8 self-center xs:-m-6 xs:scale-75 md:-m-0 md:scale-90 lg:scale-100">
-      <div className="absolute z-10 h-[480px] w-[480px]">
-        {points?.map((point, idx) => (
-          <div key={idx} onClick={() => onClickPoint(idx)}>
-            <Point
-              top={point.top}
-              left={point.left}
-              stone={point.stone}
-              selected={idx === selectedStone}
-            />
-          </div>
-        ))}
-      </div>
-      <div className="relative h-[480px] w-[480px]">
+    <div className="absolute left-0 top-0 flex h-full w-full items-center justify-center overflow-hidden">
+      <div className="h-[480px] w-[480px] scale-50 xs:scale-75 md:scale-90 lg:scale-100">
+        <div className="absolute z-10">
+          {points?.map((point, idx) => (
+            <div key={idx} onClick={() => onClickPoint(idx)}>
+              <Point
+                top={point.top}
+                left={point.left}
+                stone={point.stone}
+                selected={idx === selectedStone}
+              />
+            </div>
+          ))}
+        </div>
         <div className="flex h-[480px] w-[480px] items-center justify-center border border-gray-400">
           <div className="flex h-[320px] w-[320px] items-center justify-center border border-gray-400">
             <div className="h-[160px] w-[160px] border border-gray-400" />
