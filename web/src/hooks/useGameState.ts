@@ -22,7 +22,7 @@ const initialGameState: GameState = {
   loser: null,
 };
 
-let errorTimerId: NodeJS.Timeout | null = null;
+let errorTimerId = 0;
 
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
@@ -98,7 +98,7 @@ export function useGameState() {
     }
 
     setError(message);
-    errorTimerId = setTimeout(() => setError(''), 3000);
+    errorTimerId = window.setTimeout(() => setError(''), 3000);
   };
 
   const addStone = (client: Client, roomId: number, index: number) => {
