@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { Button, Modal } from '~/components';
+import example1 from '~/assets/images/example_1.png';
+import example2 from '~/assets/images/example_2.png';
+import example3 from '~/assets/images/example_3.png';
 
 type HelpModalProps = {
   visible: boolean;
@@ -8,7 +11,7 @@ type HelpModalProps = {
 
 const contents = [
   {
-    imageSrc: '/src/assets/images/example_1.png',
+    imageSrc: example1,
     text: (
       <>
         <div>
@@ -23,7 +26,7 @@ const contents = [
     ),
   },
   {
-    imageSrc: '/src/assets/images/example_3.png',
+    imageSrc: example3,
     text: (
       <>
         <div>
@@ -41,7 +44,7 @@ const contents = [
     ),
   },
   {
-    imageSrc: '/src/assets/images/example_2.png',
+    imageSrc: example2,
     text: (
       <>
         <div>
