@@ -2,7 +2,10 @@ import axios from 'axios';
 import { Rank, Room, User } from '~/lib/types';
 
 export const client = axios.create({
-  baseURL: 'http://localhost:8080/api/',
+  baseURL:
+    import.meta.env.MODE === 'development'
+      ? 'http://localhost:8080/api'
+      : 'https://api.ninemensmorris.site:8080/api',
   withCredentials: true,
 });
 
