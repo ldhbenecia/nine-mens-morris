@@ -14,7 +14,7 @@ export function Message({
   onSkipRemoving,
 }: MessageProps) {
   return (
-    <div className="flex flex-col items-center py-2">
+    <div className="z-10 flex flex-col items-center py-2">
       {error && <span className="animate-shaking text-red-600">{error}</span>}
       <div
         className={`flex items-center gap-1 ${turn ? 'visible' : 'invisible'}  ${removing ? 'text-red-800' : ''}`}
