@@ -9,6 +9,7 @@ type StatusProps = {
   color: 'WHITE' | 'BLACK';
   addable: number;
   total: number;
+  nickname?: string;
   visible?: boolean;
   onShowWithdrawModal?: () => void;
   onShowHelpModal?: () => void;
@@ -20,6 +21,7 @@ export function Status({
   color,
   addable,
   total,
+  nickname = ' ',
   visible = true,
   onShowWithdrawModal,
   onShowHelpModal,
@@ -33,9 +35,7 @@ export function Status({
       </div>
       <div className="flex w-48 flex-col gap-1">
         <div className="flex items-center justify-between">
-          <span className="text-lg font-semibold">
-            {isCurrentUser ? '나' : '상대'}
-          </span>
+          <span className="text-lg font-semibold">{nickname}</span>
           <div
             className={`rounded-2xl border px-1.5 text-sm ${color === 'WHITE' ? 'border-gray-300 bg-gray-50' : 'border-gray-800 bg-gray-800 text-white'}`}
           >

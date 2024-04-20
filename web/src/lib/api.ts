@@ -22,6 +22,12 @@ export const getCurrentUser = async () => {
   throw new Error('로그아웃된 사용자입니다.');
 };
 
+export const getUserNickname = async (userId: number) => {
+  const response = await client.get(`user/${userId}`);
+
+  return response.data;
+};
+
 export const getRanks = async () => {
   const response = await client.get<Rank[]>('rank');
 

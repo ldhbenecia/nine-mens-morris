@@ -57,6 +57,10 @@ export default {
           '30%': { opacity: 0 },
           '40%': { opacity: 1 },
         },
+        refresh: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
       },
       animation: {
         'modal-background': 'fade-in 0.25s ease forwards',
@@ -66,6 +70,7 @@ export default {
         'stone-selected-effect': 'stone-selected-effect 1s linear infinite',
         shaking: 'shaking 0.5s linear forwards',
         blinking: 'blinking 0.5s linear forwards',
+        refresh: 'refresh 0.5s ease-out forwards',
       },
       screens: {
         xs: '430px',

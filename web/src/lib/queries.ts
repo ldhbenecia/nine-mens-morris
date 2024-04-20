@@ -1,4 +1,4 @@
-import { getCurrentUser, getRanks, getRooms } from './api';
+import { getCurrentUser, getRanks, getRooms, getUserNickname } from './api';
 
 export const QUERY = {
   ROOMS: {
@@ -13,5 +13,9 @@ export const QUERY = {
   RANKS: {
     queryKey: ['ranks'],
     queryFn: getRanks,
+  },
+  USER_NICKNAME: {
+    queryKey: ['userNickname'],
+    queryFn: getUserNickname,
   },
 };

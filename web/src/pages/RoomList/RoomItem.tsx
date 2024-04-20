@@ -18,8 +18,8 @@ export function RoomItem({
   onJoinRoom,
 }: RoomItemProps) {
   return (
-    <div
-      className={`flex items-center gap-2 rounded-xl border px-4 py-3 ${ongoing ? 'border-gray-300 bg-gray-300' : 'cursor-pointer border-gray-300 bg-gray-50 hover:bg-white active:bg-gray-100'}`}
+    <li
+      className={`flex h-20 items-center gap-2 rounded-xl border px-4 py-3 ${ongoing ? 'border-gray-300 bg-gray-300' : 'cursor-pointer border-gray-300 bg-gray-50 hover:bg-white active:bg-gray-100'}`}
       onClick={ongoing ? undefined : () => onJoinRoom(roomId)}
     >
       <img
@@ -35,6 +35,6 @@ export function RoomItem({
         </div>
       </div>
       <span className="font-semibold">{ongoing ? '진행 중' : '대기 중'}</span>
-    </div>
+    </li>
   );
 }
