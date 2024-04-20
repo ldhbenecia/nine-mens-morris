@@ -42,6 +42,7 @@ export function GamePage() {
   const {
     gameState,
     error,
+    enemyNickname,
     setGameState,
     isPlayerTurn,
     isGameOver,
@@ -216,6 +217,7 @@ export function GamePage() {
           color={getEnemyStoneColor()}
           addable={getEnemyAddable()}
           total={getEnemyTotal()}
+          nickname={enemyNickname}
           visible={gameState.status !== 'WAITING'}
         />
       </div>
@@ -244,6 +246,7 @@ export function GamePage() {
           color={getPlayerStoneColor()}
           addable={getPlayerAddable()}
           total={getPlayerTotal()}
+          nickname={currentUser?.nickname}
           onShowWithdrawModal={onShowWithdrawModal}
           onShowHelpModal={() => setShowHelpModal(true)}
         />
