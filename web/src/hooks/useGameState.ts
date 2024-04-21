@@ -87,6 +87,10 @@ export function useGameState() {
     return gameState.board[index] === getEnemyStoneColor();
   };
 
+  const isPlayerFlyMode = () => {
+    return getPlayerTotal() === 3;
+  };
+
   const isAdjacent = (from: number, to: number) => {
     return NEIGHBOR[from].includes(to);
   };
@@ -151,7 +155,7 @@ export function useGameState() {
       isPlayerTurn() &&
       isPlayerPoint(from) &&
       isEmptyPoint(to) &&
-      isAdjacent(from, to)
+      (isPlayerFlyMode() || isAdjacent(from, to))
     ) {
       client.publish({
         destination: `/app/game/placeStone`,
@@ -272,6 +276,7 @@ export function useGameState() {
     setGameState,
     isPlayerHost,
     isPlayerTurn,
+    isPlayerFlyMode,
     isGameOver,
     getPlayerStoneColor,
     getEnemyStoneColor,

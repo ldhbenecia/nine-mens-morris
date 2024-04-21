@@ -50,6 +50,7 @@ export function GamePage() {
     enemyNickname,
     setGameState,
     isPlayerTurn,
+    isPlayerFlyMode,
     isGameOver,
     getPlayerStoneColor,
     getEnemyStoneColor,
@@ -304,6 +305,7 @@ export function GamePage() {
           error={error}
           turn={isPlayerTurn()}
           onSkipRemoving={onSkipRemoving}
+          flying={isPlayerFlyMode()}
         />
         <Status
           isCurrentUser
