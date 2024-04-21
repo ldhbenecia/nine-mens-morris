@@ -1,7 +1,8 @@
 import Play from '~/assets/icons/play.svg?react';
 import Flag from '~/assets/icons/flag.svg?react';
-import Help from '~/assets/icons/help.svg?react';
+import HandShake from '~/assets/icons/handshake.svg?react';
 import { Button } from '~/components';
+import { HelpButton } from './HelpButton';
 
 type StatusProps = {
   isCurrentUser?: boolean;
@@ -33,7 +34,7 @@ export function Status({
       <div className={`gap-2 ${isTurn ? '' : 'opacity-0'}`}>
         <Play />
       </div>
-      <div className="flex w-48 flex-col gap-1">
+      <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <span className="text-lg font-semibold">{nickname}</span>
           <div
@@ -42,18 +43,18 @@ export function Status({
             {color === 'WHITE' ? '백돌' : '흑돌'}
           </div>
         </div>
-        <div className="flex justify-between">
+        <div className="flex justify-between gap-2">
           <div className="flex items-center gap-0.5 font-semibold">
             {[...Array(addable)].map((_, idx) => (
               <div
                 key={idx}
-                className={`h-3.5 w-3.5 rounded-full border ${color === 'WHITE' ? 'border-gray-500 bg-gray-50' : 'border-gray-800 bg-gray-800'}`}
+                className={`h-4 w-4 rounded-full border ${color === 'WHITE' ? 'border-gray-500 bg-gray-50' : 'border-gray-800 bg-gray-800'}`}
               />
             ))}
             {[...Array(9 - addable)].map((_, idx) => (
               <div
                 key={idx}
-                className={`h-3.5 w-3.5 rounded-full bg-gray-800 opacity-10`}
+                className={`h-4 w-4 rounded-full bg-gray-800 opacity-10`}
               />
             ))}
           </div>
@@ -63,23 +64,25 @@ export function Status({
         </div>
         {isCurrentUser && (
           <div className="mt-2 flex gap-2">
-            <Button
-              text="기권하기"
-              icon={<Flag width={18} height={18} />}
-              slim
-              small
-              fullWidth
-              onClick={onShowWithdrawModal}
-            />
-            <Button
-              theme="secondary"
-              text="도움말"
-              icon={<Help width={18} height={18} />}
-              slim
-              small
-              fullWidth
-              onClick={onShowHelpModal}
-            />
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                text="기권"
+                icon={<Flag width={18} height={18} />}
+                slim
+                small
+                fullWidth
+                onClick={onShowWithdrawModal}
+              />
+              <Button
+                text="무승부"
+                icon={<HandShake width={18} height={18} />}
+                slim
+                small
+                fullWidth
+                onClick={onShowWithdrawModal}
+              />
+            </div>
+            <HelpButton onClick={onShowHelpModal} />
           </div>
         )}
       </div>

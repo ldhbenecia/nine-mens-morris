@@ -34,8 +34,9 @@ const client = new Client({
 export function GamePage() {
   const { roomId } = useParams();
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [showGameResultModal, setShowGameResultModal] = useState(false);
+  const [showDrawModal, setShowDrawModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showGameResultModal, setShowGameResultModal] = useState(false);
   const [connected, setConnected] = useState(client.connected);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
   const { mutate: leaveRoom } = useLeaveRoom();
