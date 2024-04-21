@@ -183,11 +183,8 @@ export function GamePage() {
   }, [connected, roomId, currentUser]);
 
   useEffect(() => {
-    client.onConnect = (a) => {
-      console.log('소켓에 연결되었습니다.');
-      console.log(a);
+    client.onConnect = () => {
       client.subscribe(`/topic/game/${roomId}`, (message) => {
-        console.log(message);
         handleEvent(message.body);
       });
 
