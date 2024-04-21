@@ -2,14 +2,14 @@ import { Button, Modal } from '~/components';
 
 type GameResultModalProps = {
   visible: boolean;
-  won: boolean;
+  result: 'WIN' | 'LOSS' | 'DRAW';
   score?: number;
   onLeaveRoom: () => void;
 };
 
 export function GameResultModal({
   visible,
-  won,
+  result,
   score,
   onLeaveRoom,
 }: GameResultModalProps) {
@@ -17,7 +17,11 @@ export function GameResultModal({
     <Modal visible={visible}>
       <>
         <div className="text-2xl font-semibold">
-          {won ? '승리했습니다!' : '패배했습니다...'}
+          {result === 'WIN'
+            ? '승리했습니다!'
+            : result === 'LOSS'
+              ? '패배했습니다...'
+              : '무승부!'}
         </div>
         {score && (
           <div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
@@ -40,6 +40,7 @@ export function GamePage() {
   const [showResponseDrawModal, setShowResponseDrawModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showGameResultModal, setShowGameResultModal] = useState(false);
+  const drawRequesterRef = useRef(-1);
   const [connected, setConnected] = useState(client.connected);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
   const { mutate: leaveRoom } = useLeaveRoom();
@@ -79,8 +80,9 @@ export function GamePage() {
   };
 
   const onRequestDraw = () => {
-    if (roomId) {
+    if (roomId && currentUser) {
       requestDraw(client, Number(roomId));
+      drawRequesterRef.current = currentUser.userId;
     }
 
     setShowRequestDrawModal(false);
@@ -141,11 +143,22 @@ export function GamePage() {
           setGameState(response.data);
           setShowGameResultModal(true);
           break;
+        case 'REQUEST_DRAW':
+          if (currentUser?.userId !== drawRequesterRef.current) {
+            setShowResponseDrawModal(true);
+          }
+          break;
+        case 'REJECT_DRAW':
+          drawRequesterRef.current = -1;
+          break;
+        case 'GAME_DRAW':
+          setShowGameResultModal(true);
+          break;
         default:
           setGameState(response.data);
       }
     },
-    [setGameState, handleClientEvent]
+    [setGameState, handleClientEvent, currentUser]
   );
 
   // 마운트/언마운트 시 소켓 연결/종료
@@ -168,8 +181,9 @@ export function GamePage() {
   }, [connected, roomId, currentUser]);
 
   useEffect(() => {
-    client.onConnect = () => {
+    client.onConnect = (a) => {
       console.log('소켓에 연결되었습니다.');
+      console.log(a);
       client.subscribe(`/topic/game/${roomId}`, (message) => {
         console.log(message);
         handleEvent(message.body);
@@ -211,7 +225,13 @@ export function GamePage() {
       />
       <GameResultModal
         visible={showGameResultModal}
-        won={gameState.winner === currentUser?.userId}
+        result={
+          gameState.winner === currentUser?.userId
+            ? 'WIN'
+            : gameState.loser === currentUser?.userId
+              ? 'LOSS'
+              : 'DRAW'
+        }
         onLeaveRoom={onLeaveRoom}
       />
       <HelpModal
