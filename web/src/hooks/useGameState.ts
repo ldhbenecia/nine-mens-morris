@@ -28,9 +28,7 @@ export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [error, setError] = useState('');
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
-  const {
-    data: { nickname: enemyNickname },
-  } = useQuery({
+  const { data: nicknameWrapper } = useQuery({
     ...QUERY.USER_NICKNAME,
     queryFn: () =>
       QUERY.USER_NICKNAME.queryFn(
@@ -38,6 +36,7 @@ export function useGameState() {
           ? gameState.guestId
           : gameState.hostId
       ),
+    enabled: gameState.status === 'PLAYING',
   });
 
   const isGameOver = () => {
@@ -233,7 +232,7 @@ export function useGameState() {
   return {
     gameState,
     error,
-    enemyNickname,
+    enemyNickname: nicknameWrapper?.nickname,
     setGameState,
     isPlayerHost,
     isPlayerTurn,
