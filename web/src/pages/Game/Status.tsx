@@ -60,7 +60,7 @@ export function Status({
               />
             ))}
           </div>
-          <span className="px-1 text-sm font-semibold">
+          <span className="text-nowrap px-1 text-sm font-semibold">
             {addable} / {total}
           </span>
         </div>

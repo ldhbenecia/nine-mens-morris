@@ -241,14 +241,20 @@ export function GamePage() {
             />
           </div>
         ) : (
-          <div className="z-20 flex w-full animate-blinking items-center justify-center gap-4 bg-phase text-white md:flex-col md:items-start md:gap-0 md:bg-none md:text-black">
-            <h1 className="font-phase text-xl md:text-5xl">
-              Phase {gameState.phase}
-            </h1>
-            <span className="font-semibold">
-              돌 {gameState.phase === 1 ? '배치' : '이동'} 단계
-            </span>
-          </div>
+          <>
+            {gameState.phase === 1 && (
+              <div className="z-20 flex w-full animate-blinking items-center justify-center gap-4 bg-phase text-white md:flex-col md:items-start md:gap-0 md:bg-none md:text-black">
+                <h1 className="font-phase text-xl md:text-6xl">Phase 1</h1>
+                <span className="text-lg font-semibold">돌 배치 단계</span>
+              </div>
+            )}
+            {gameState.phase === 2 && (
+              <div className="z-20 flex w-full animate-blinking items-center justify-center gap-4 bg-phase text-white md:flex-col md:items-start md:gap-0 md:bg-none md:text-black">
+                <h1 className="font-phase text-xl md:text-6xl">Phase 2</h1>
+                <span className="text-lg font-semibold">돌 이동 단계</span>
+              </div>
+            )}
+          </>
         )}
         <Status
           isTurn={!isPlayerTurn()}
