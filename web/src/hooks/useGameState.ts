@@ -28,9 +28,7 @@ export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [error, setError] = useState('');
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
-  const {
-    data: { nickname: enemyNickname },
-  } = useQuery({
+  const { data: nicknameWrapper } = useQuery({
     ...QUERY.USER_NICKNAME,
     queryFn: () =>
       QUERY.USER_NICKNAME.queryFn(
@@ -38,6 +36,7 @@ export function useGameState() {
           ? gameState.guestId
           : gameState.hostId
       ),
+    enabled: gameState.status === 'PLAYING',
   });
 
   const isGameOver = () => {
@@ -86,6 +85,10 @@ export function useGameState() {
 
   const isEnemyPoint = (index: number) => {
     return gameState.board[index] === getEnemyStoneColor();
+  };
+
+  const isPlayerFlyMode = () => {
+    return getPlayerTotal() === 3;
   };
 
   const isAdjacent = (from: number, to: number) => {
@@ -152,7 +155,7 @@ export function useGameState() {
       isPlayerTurn() &&
       isPlayerPoint(from) &&
       isEmptyPoint(to) &&
-      isAdjacent(from, to)
+      (isPlayerFlyMode() || isAdjacent(from, to))
     ) {
       client.publish({
         destination: `/app/game/placeStone`,
@@ -230,13 +233,50 @@ export function useGameState() {
     }
   };
 
+  const requestDraw = (client: Client, roomId: number) => {
+    if (!isGameOver() && currentUser) {
+      client.publish({
+        destination: `/app/game/tie-request`,
+        body: JSON.stringify({
+          gameId: roomId,
+          userId: currentUser.userId,
+        }),
+      });
+    }
+  };
+
+  const acceptDraw = (client: Client, roomId: number) => {
+    if (!isGameOver() && currentUser) {
+      client.publish({
+        destination: `/app/game/tie-accept`,
+        body: JSON.stringify({
+          gameId: roomId,
+          userId: currentUser.userId,
+        }),
+      });
+    }
+  };
+
+  const rejectDraw = (client: Client, roomId: number) => {
+    if (!isGameOver() && currentUser) {
+      client.publish({
+        destination: `/app/game/tie-reject`,
+        body: JSON.stringify({
+          gameId: roomId,
+          userId: currentUser.userId,
+        }),
+      });
+    }
+  };
+
   return {
     gameState,
     error,
-    enemyNickname,
+    enemyNickname: nicknameWrapper?.nickname,
     setGameState,
     isPlayerHost,
     isPlayerTurn,
+    isPlayerFlyMode,
     isGameOver,
     getPlayerStoneColor,
     getEnemyStoneColor,
@@ -249,5 +289,8 @@ export function useGameState() {
     removeStone,
     skipRemoving,
     withdraw,
+    requestDraw,
+    acceptDraw,
+    rejectDraw,
   };
 }

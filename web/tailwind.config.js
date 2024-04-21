@@ -56,6 +56,8 @@ export default {
           '20%': { opacity: 1 },
           '30%': { opacity: 0 },
           '40%': { opacity: 1 },
+          '50%': { opacity: 0 },
+          '60%': { opacity: 1 },
         },
         refresh: {
           '0%': { transform: 'rotate(0deg)' },
@@ -69,7 +71,7 @@ export default {
         'stone-set-effect': 'stone-set-effect 0.75s ease-out forwards',
         'stone-selected-effect': 'stone-selected-effect 1s linear infinite',
         shaking: 'shaking 0.5s linear forwards',
-        blinking: 'blinking 0.5s linear forwards',
+        blinking: 'blinking 2s linear forwards',
         refresh: 'refresh 0.5s ease-out forwards',
       },
       screens: {

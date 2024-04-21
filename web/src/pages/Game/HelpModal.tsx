@@ -26,15 +26,15 @@ const contents = [
     ),
   },
   {
-    imageSrc: example3,
+    imageSrc: example2,
     text: (
       <>
         <div>
           게임은 총 <b>2개의 페이즈</b>로 진행됩니다.
         </div>
         <div>
-          <b>1페이즈</b>에서는 각자의 돌을 하나씩 번갈아가며 보드 위에 두게
-          되고, 9개의 돌을 모두 배치하면 다음 페이즈로 넘어갑니다.
+          <b>1페이즈</b>에서는 각자 돌을 한 개씩 번갈아가며 보드 위에 둘 수
+          있고, 9개의 돌을 모두 배치하면 다음 페이즈로 넘어갑니다.
         </div>
         <div>
           <b>2페이즈</b>에서는 보드 위에 배치한 자신의 돌 중 하나를 선택하여
@@ -44,7 +44,7 @@ const contents = [
     ),
   },
   {
-    imageSrc: example2,
+    imageSrc: example3,
     text: (
       <>
         <div>
@@ -91,8 +91,8 @@ export function HelpModal({ visible, onClose }: HelpModalProps) {
             src={contents[page].imageSrc}
             className="h-64 w-64 items-center rounded-lg"
           />
-          <div className="flex w-80 flex-col gap-2">
-            {contents[page].text}{' '}
+          <div className="flex w-80 flex-col gap-2 p-2">
+            {contents[page].text}
             <span className="text-sm text-gray-500">({page + 1}/3)</span>
           </div>
         </div>
