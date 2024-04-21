@@ -1,12 +1,11 @@
-
 <img src="https://hackmd.io/_uploads/HyAvl0yWR.png" width="128px" />
 
-## Nine men's Morris | 나인멘스모리스
-> ### 배포 링크 - https://ninemensmorris.site
-> [나인멘스모리스 작업 노션](https://www.notion.so/ldhbenecia/Side-Project-f19f6b2d80074a8da597b0f0d8a7f07e?pvs=4)
+# Nine men's Morris | 나인 멘스 모리스
 
-<br />
+## 바로가기
 
+- [**배포 사이트 (ninemensmorris.site)**](https://ninemensmorris.site)
+- [**프로젝트 Notion**](https://www.notion.so/ldhbenecia/Side-Project-f19f6b2d80074a8da597b0f0d8a7f07e?pvs=4)
 
 ## 기술 스택
 | 분류 | 스택 |
@@ -16,7 +15,5 @@
 |     Infra     | <img src="https://img.shields.io/badge/Amazon EC2-FF9900?logo=amazonec2&logoColor=white"/> <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white"/> <img src="https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white"/> <img src="https://img.shields.io/badge/Nginx-009639?logo=nginx&&labelColor=009639"/>  <img src="https://img.shields.io/badge/Certbot-E20722?logo=robotframework"/>   |
 | Collaboration |  <img src="https://img.shields.io/badge/Notion-000000?logo=Notion"> <img src="https://img.shields.io/badge/Figma-F24E1E?logo=Figma&logoColor=ffffff"> <img src="https://img.shields.io/badge/Discord-5865F2?logo=Discord&logoColor=ffffff">  |
 
-<br />
-
 ## 아키텍처
-![image](https://hackmd.io/_uploads/Hy3KFaJW0.png)
+![image](https://github.com/Nine-Men-s-Morris/.github/blob/main/images/architecture.png?raw=true)
