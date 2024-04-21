@@ -33,7 +33,7 @@ export function Status({
     <div
       className={`z-10 flex transition-opacity md:translate-x-0 ${visible ? 'visible' : 'invisible'}`}
     >
-      <div className={`animate-blinking gap-2 ${turn ? '' : 'opacity-0'}`}>
+      <div className={`gap-2 ${turn ? '' : 'opacity-0'}`}>
         <Play />
       </div>
       <div className="flex w-56 flex-col gap-1">

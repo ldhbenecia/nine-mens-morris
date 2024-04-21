@@ -140,6 +140,7 @@ export function GamePage() {
           startSound.play();
           break;
         case 'GAME_OVER':
+        case 'GAME_WITHDRAW':
           setGameState(response.data);
           setShowGameResultModal(true);
           break;
