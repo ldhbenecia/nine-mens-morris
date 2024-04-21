@@ -23,7 +23,9 @@ import {
   whiteStoneSound,
   startSound,
   explosionSound,
+  notificationSound,
 } from '~/lib/sounds';
+import { InfoModal } from './InfoModal';
 
 const client = new Client({
   brokerURL: import.meta.env.VITE_SOCKET_URL,
@@ -40,6 +42,7 @@ export function GamePage() {
   const [showResponseDrawModal, setShowResponseDrawModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showGameResultModal, setShowGameResultModal] = useState(false);
+  const [infoModalText, setInfoModalText] = useState('');
   const drawRequesterRef = useRef(-1);
   const [connected, setConnected] = useState(client.connected);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
@@ -151,9 +154,13 @@ export function GamePage() {
           }
           break;
         case 'REJECT_DRAW':
+          if (currentUser?.userId === drawRequesterRef.current) {
+            setInfoModalText('무승부 요청이 거절되었습니다.');
+          }
           drawRequesterRef.current = -1;
           break;
         case 'GAME_DRAW':
+          notificationSound.play();
           setShowGameResultModal(true);
           break;
         default:
@@ -247,6 +254,7 @@ export function GamePage() {
         onAcceptDraw={onAcceptDraw}
         onRejectDraw={onRejectDraw}
       />
+      <InfoModal text={infoModalText} onClose={() => setInfoModalText('')} />
       <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
         {gameState.status === 'WAITING' ? (
           <div className="z-10 flex items-center gap-2">

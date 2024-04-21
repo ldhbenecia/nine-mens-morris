@@ -8,6 +8,7 @@ import explosion from '/src/assets/sounds/explosion.mp3';
 import win from '/src/assets/sounds/win.mp3';
 import loss from '/src/assets/sounds/loss.mp3';
 import error from '/src/assets/sounds/error.mp3';
+import notification from '/src/assets/sounds/notification.mp3';
 
 export const clickSound = new Audio(click);
 export const joinSound = new Audio(join);
@@ -19,3 +20,4 @@ export const explosionSound = new Audio(explosion);
 export const winSound = new Audio(win);
 export const lossSound = new Audio(loss);
 export const errorSound = new Audio(error);
+export const notificationSound = new Audio(notification);
