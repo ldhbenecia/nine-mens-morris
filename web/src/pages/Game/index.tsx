@@ -25,7 +25,7 @@ import {
   explosionSound,
   notificationSound,
 } from '~/lib/sounds';
-import { InfoModal } from './InfoModal';
+import { DrawRejectedModal } from './DrawRejectedModal';
 import { SocketErrorModal } from './SocketErrorModal';
 
 const client = new Client({
@@ -41,10 +41,10 @@ export function GamePage() {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showRequestDrawModal, setShowRequestDrawModal] = useState(false);
   const [showResponseDrawModal, setShowResponseDrawModal] = useState(false);
+  const [showDrawRejectedModal, setShowDrawRejectedModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showGameResultModal, setShowGameResultModal] = useState(false);
   const [showSocketErrorModal, setShowSocketErrorModal] = useState(false);
-  const [infoModalText, setInfoModalText] = useState('');
   const drawRequesterRef = useRef(-1);
   const [connected, setConnected] = useState(client.connected);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
@@ -162,8 +162,9 @@ export function GamePage() {
           break;
         case 'REJECT_DRAW':
           if (currentUser?.userId === drawRequesterRef.current) {
-            setInfoModalText('무승부 요청이 거절되었습니다.');
+            setShowDrawRejectedModal(true);
           }
+
           drawRequesterRef.current = -1;
           break;
         case 'GAME_DRAW':
@@ -261,7 +262,10 @@ export function GamePage() {
         onAcceptDraw={onAcceptDraw}
         onRejectDraw={onRejectDraw}
       />
-      <InfoModal text={infoModalText} onClose={() => setInfoModalText('')} />
+      <DrawRejectedModal
+        visible={showDrawRejectedModal}
+        onClose={() => setShowDrawRejectedModal(false)}
+      />
       <SocketErrorModal
         visible={showSocketErrorModal}
         onLeaveRoom={onLeaveRoom}
