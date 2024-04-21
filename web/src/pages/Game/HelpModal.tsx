@@ -26,7 +26,7 @@ const contents = [
     ),
   },
   {
-    imageSrc: example3,
+    imageSrc: example2,
     text: (
       <>
         <div>
@@ -44,7 +44,7 @@ const contents = [
     ),
   },
   {
-    imageSrc: example2,
+    imageSrc: example3,
     text: (
       <>
         <div>
@@ -91,8 +91,8 @@ export function HelpModal({ visible, onClose }: HelpModalProps) {
             src={contents[page].imageSrc}
             className="h-64 w-64 items-center rounded-lg"
           />
-          <div className="flex w-80 flex-col gap-2">
-            {contents[page].text}{' '}
+          <div className="flex w-80 flex-col gap-2 p-2">
+            {contents[page].text}
             <span className="text-sm text-gray-500">({page + 1}/3)</span>
           </div>
         </div>
