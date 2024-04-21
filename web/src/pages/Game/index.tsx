@@ -23,7 +23,10 @@ import {
   whiteStoneSound,
   startSound,
   explosionSound,
+  notificationSound,
 } from '~/lib/sounds';
+import { DrawRejectedModal } from './DrawRejectedModal';
+import { SocketErrorModal } from './SocketErrorModal';
 
 const client = new Client({
   brokerURL: import.meta.env.VITE_SOCKET_URL,
@@ -38,9 +41,12 @@ export function GamePage() {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showRequestDrawModal, setShowRequestDrawModal] = useState(false);
   const [showResponseDrawModal, setShowResponseDrawModal] = useState(false);
+  const [showDrawRejectedModal, setShowDrawRejectedModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showGameResultModal, setShowGameResultModal] = useState(false);
+  const [showSocketErrorModal, setShowSocketErrorModal] = useState(false);
   const drawRequesterRef = useRef(-1);
+  const gameEndedRef = useRef(false);
   const [connected, setConnected] = useState(client.connected);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
   const { mutate: leaveRoom } = useLeaveRoom();
@@ -130,6 +136,13 @@ export function GamePage() {
 
   const handleEvent = useCallback(
     (body: string) => {
+      console.log(showGameResultModal);
+      if (body === 'SOCKET_ERROR' && !gameEndedRef.current) {
+        setShowSocketErrorModal(true);
+        lossSound.play();
+        return;
+      }
+
       const response = JSON.parse(body);
       console.log(response);
       switch (response.type) {
@@ -144,23 +157,31 @@ export function GamePage() {
         case 'GAME_WITHDRAW':
           setGameState(response.data);
           setShowGameResultModal(true);
+          gameEndedRef.current = true;
           break;
         case 'REQUEST_DRAW':
           if (currentUser?.userId !== drawRequesterRef.current) {
             setShowResponseDrawModal(true);
+            notificationSound.play();
           }
           break;
         case 'REJECT_DRAW':
+          if (currentUser?.userId === drawRequesterRef.current) {
+            setShowDrawRejectedModal(true);
+            lossSound.play();
+          }
           drawRequesterRef.current = -1;
           break;
         case 'GAME_DRAW':
           setShowGameResultModal(true);
+          notificationSound.play();
+          gameEndedRef.current = true;
           break;
         default:
           setGameState(response.data);
       }
     },
-    [setGameState, handleClientEvent, currentUser]
+    [setGameState, handleClientEvent, showGameResultModal, currentUser]
   );
 
   // 마운트/언마운트 시 소켓 연결/종료
@@ -246,6 +267,14 @@ export function GamePage() {
         visible={showResponseDrawModal}
         onAcceptDraw={onAcceptDraw}
         onRejectDraw={onRejectDraw}
+      />
+      <DrawRejectedModal
+        visible={showDrawRejectedModal}
+        onClose={() => setShowDrawRejectedModal(false)}
+      />
+      <SocketErrorModal
+        visible={showSocketErrorModal}
+        onLeaveRoom={onLeaveRoom}
       />
       <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
         {gameState.status === 'WAITING' ? (
