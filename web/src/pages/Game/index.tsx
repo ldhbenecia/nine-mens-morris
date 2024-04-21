@@ -257,7 +257,7 @@ export function GamePage() {
           </>
         )}
         <Status
-          isTurn={!isPlayerTurn()}
+          turn={!isPlayerTurn()}
           color={getEnemyStoneColor()}
           addable={getEnemyAddable()}
           total={getEnemyTotal()}
@@ -286,7 +286,7 @@ export function GamePage() {
         />
         <Status
           isCurrentUser
-          isTurn={isPlayerTurn()}
+          turn={isPlayerTurn()}
           color={getPlayerStoneColor()}
           addable={getPlayerAddable()}
           total={getPlayerTotal()}
