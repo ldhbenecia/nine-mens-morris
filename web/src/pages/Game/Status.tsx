@@ -13,6 +13,7 @@ type StatusProps = {
   nickname?: string;
   visible?: boolean;
   onShowWithdrawModal?: () => void;
+  onShowRequestDrawModal?: () => void;
   onShowHelpModal?: () => void;
 };
 
@@ -25,6 +26,7 @@ export function Status({
   nickname = ' ',
   visible = true,
   onShowWithdrawModal,
+  onShowRequestDrawModal,
   onShowHelpModal,
 }: StatusProps) {
   return (
@@ -79,7 +81,7 @@ export function Status({
                 slim
                 small
                 fullWidth
-                onClick={onShowWithdrawModal}
+                onClick={onShowRequestDrawModal}
               />
             </div>
             <HelpButton onClick={onShowHelpModal} />

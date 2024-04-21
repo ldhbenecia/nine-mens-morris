@@ -229,6 +229,42 @@ export function useGameState() {
     }
   };
 
+  const requestDraw = (client: Client, roomId: number) => {
+    if (!isGameOver() && currentUser) {
+      client.publish({
+        destination: `/app/game/tie-request`,
+        body: JSON.stringify({
+          gameId: roomId,
+          userId: currentUser.userId,
+        }),
+      });
+    }
+  };
+
+  const acceptDraw = (client: Client, roomId: number) => {
+    if (!isGameOver() && currentUser) {
+      client.publish({
+        destination: `/app/game/tie-accept`,
+        body: JSON.stringify({
+          gameId: roomId,
+          userId: currentUser.userId,
+        }),
+      });
+    }
+  };
+
+  const rejectDraw = (client: Client, roomId: number) => {
+    if (!isGameOver() && currentUser) {
+      client.publish({
+        destination: `/app/game/tie-reject`,
+        body: JSON.stringify({
+          gameId: roomId,
+          userId: currentUser.userId,
+        }),
+      });
+    }
+  };
+
   return {
     gameState,
     error,
@@ -248,5 +284,8 @@ export function useGameState() {
     removeStone,
     skipRemoving,
     withdraw,
+    requestDraw,
+    acceptDraw,
+    rejectDraw,
   };
 }
