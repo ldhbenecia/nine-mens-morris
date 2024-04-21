@@ -26,6 +26,7 @@ import {
   notificationSound,
 } from '~/lib/sounds';
 import { InfoModal } from './InfoModal';
+import { SocketErrorModal } from './SocketErrorModal';
 
 const client = new Client({
   brokerURL: import.meta.env.VITE_SOCKET_URL,
@@ -42,6 +43,7 @@ export function GamePage() {
   const [showResponseDrawModal, setShowResponseDrawModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showGameResultModal, setShowGameResultModal] = useState(false);
+  const [showSocketErrorModal, setShowSocketErrorModal] = useState(false);
   const [infoModalText, setInfoModalText] = useState('');
   const drawRequesterRef = useRef(-1);
   const [connected, setConnected] = useState(client.connected);
@@ -135,6 +137,11 @@ export function GamePage() {
     (body: string) => {
       const response = JSON.parse(body);
       console.log(response);
+      if (response === 'SOCKET_ERROR') {
+        setShowSocketErrorModal(true);
+        return;
+      }
+
       switch (response.type) {
         case 'CLIENT_EVENT':
           handleClientEvent(response.contents);
@@ -255,6 +262,10 @@ export function GamePage() {
         onRejectDraw={onRejectDraw}
       />
       <InfoModal text={infoModalText} onClose={() => setInfoModalText('')} />
+      <SocketErrorModal
+        visible={showSocketErrorModal}
+        onLeaveRoom={onLeaveRoom}
+      />
       <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
         {gameState.status === 'WAITING' ? (
           <div className="z-10 flex items-center gap-2">
