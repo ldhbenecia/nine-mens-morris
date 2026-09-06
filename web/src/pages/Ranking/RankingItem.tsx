@@ -2,18 +2,29 @@ import { useQuery } from '@tanstack/react-query';
 import Medal from '~/assets/icons/medal.svg?react';
 import Person from '~/assets/icons/person.svg?react';
 import { QUERY } from '~/lib/queries';
+import { Tier } from '~/lib/types';
+import { avatarOf } from '~/lib/avatar';
+import { TIER_LABEL, TIER_STYLE } from '~/lib/tier';
 
 type RankingItemProps = {
+  userId: number;
   nickname: string;
-  imageUrl: string;
-  score: number;
+  imageUrl: string | null;
+  mmr: number;
+  tier: Tier;
+  wins: number;
+  losses: number;
   rank: number;
 };
 
 export function RankingItem({
+  userId,
   nickname,
   imageUrl,
-  score,
+  mmr,
+  tier,
+  wins,
+  losses,
   rank,
 }: RankingItemProps) {
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
@@ -39,13 +50,27 @@ export function RankingItem({
         <span className="font-semibold">{rank}위</span>
       </div>
       <div className="flex grow items-center gap-2">
-        <img src={imageUrl} alt={nickname} className="h-12 w-12 rounded-full" />
+        <img
+          src={avatarOf(imageUrl)}
+          alt={nickname}
+          className="h-12 w-12 rounded-full"
+        />
         {nickname}
-        {currentUser && currentUser.nickname === nickname && (
+        {currentUser?.userId === userId && (
           <span className="text-sm text-gray-500">나</span>
         )}
       </div>
-      <span className="font-semibold">{score.toLocaleString()}점</span>
+      <div className="flex flex-col items-end gap-0.5">
+        <div className="flex items-center gap-2">
+          <span className={`text-sm font-semibold ${TIER_STYLE[tier]}`}>
+            {TIER_LABEL[tier]}
+          </span>
+          <span className="font-semibold">{mmr.toLocaleString()}</span>
+        </div>
+        <span className="text-xs text-gray-500">
+          {wins}승 {losses}패
+        </span>
+      </div>
     </div>
   );
 }

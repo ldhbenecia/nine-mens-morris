@@ -19,13 +19,17 @@ export function RankingPage() {
         </div>
         <div className="flex w-full flex-col gap-2">
           {ranks &&
-            ranks.map(({ nickname, imageUrl, score }, index) => (
+            ranks.map((entry) => (
               <RankingItem
-                key={nickname}
-                nickname={nickname}
-                imageUrl={imageUrl}
-                score={score}
-                rank={index + 1}
+                key={entry.userId}
+                userId={entry.userId}
+                nickname={entry.nickname}
+                imageUrl={entry.imageUrl}
+                mmr={entry.mmr}
+                tier={entry.tier}
+                wins={entry.wins}
+                losses={entry.losses}
+                rank={entry.rank}
               />
             ))}
         </div>

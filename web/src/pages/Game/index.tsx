@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
@@ -6,6 +6,7 @@ import { QUERY } from '~/lib/queries';
 import Logout from '~/assets/icons/logout.svg?react';
 import { useGameState, useLeaveRoom } from '~/hooks';
 import { Button } from '~/components';
+import { MoveRejected, RoomEvent } from '~/lib/types';
 import { Board } from './Board';
 import { Status } from './Status';
 import { WithdrawModal } from './WithdrawModal';
@@ -30,7 +31,6 @@ import { SocketErrorModal } from './SocketErrorModal';
 
 const client = new Client({
   brokerURL: import.meta.env.VITE_SOCKET_URL,
-  debug: console.log,
   reconnectDelay: 5000,
   heartbeatIncoming: 4000,
   heartbeatOutgoing: 4000,
@@ -45,146 +45,132 @@ export function GamePage() {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showGameResultModal, setShowGameResultModal] = useState(false);
   const [showSocketErrorModal, setShowSocketErrorModal] = useState(false);
-  const drawRequesterRef = useRef(-1);
-  const gameEndedRef = useRef(false);
-  const [connected, setConnected] = useState(client.connected);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
   const { mutate: leaveRoom } = useLeaveRoom();
   const {
     gameState,
     error,
-    enemyNickname,
     setGameState,
+    showError,
     isPlayerTurn,
-    isPlayerFlyMode,
-    isGameOver,
-    getPlayerStoneColor,
-    getEnemyStoneColor,
-    getPlayerAddable,
-    getEnemyAddable,
-    getPlayerTotal,
-    getEnemyTotal,
+    myStone,
+    enemyStone,
+    enemyId,
+    getPlayerInHand,
+    getEnemyInHand,
+    getPlayerOnBoard,
+    getEnemyOnBoard,
+    getPlayerPhase,
     addStone,
     moveStone,
     removeStone,
-    skipRemoving,
-    withdraw,
-    requestDraw,
+    resign,
+    offerDraw,
     acceptDraw,
-    rejectDraw,
+    declineDraw,
+    startGame,
   } = useGameState();
 
+  const { data: enemy } = useQuery({
+    ...QUERY.USER_NICKNAME(enemyId()),
+    enabled: gameState.status !== 'WAITING' && enemyId() > 0,
+  });
+
   const onLeaveRoom = () => {
-    if (roomId) {
-      leaveRoom(Number(roomId));
-    }
+    if (roomId) leaveRoom(Number(roomId));
   };
 
-  const onWithdraw = () => {
-    if (roomId) {
-      withdraw(client, Number(roomId));
-    }
+  const onResign = () => {
+    if (roomId) resign(client, Number(roomId));
+    setShowWithdrawModal(false);
   };
 
-  const onRequestDraw = () => {
-    if (roomId && currentUser) {
-      requestDraw(client, Number(roomId));
-      drawRequesterRef.current = currentUser.userId;
-    }
-
+  const onOfferDraw = () => {
+    if (roomId) offerDraw(client, Number(roomId));
     setShowRequestDrawModal(false);
   };
 
   const onAcceptDraw = () => {
-    if (roomId) {
-      acceptDraw(client, Number(roomId));
-    }
-
+    if (roomId) acceptDraw(client, Number(roomId));
     setShowResponseDrawModal(false);
   };
 
-  const onRejectDraw = () => {
-    if (roomId) {
-      rejectDraw(client, Number(roomId));
-    }
-
+  const onDeclineDraw = () => {
+    if (roomId) declineDraw(client, Number(roomId));
     setShowResponseDrawModal(false);
   };
 
-  const onSkipRemoving = () => {
-    if (roomId) {
-      skipRemoving(client, Number(roomId));
-    }
+  const onStart = () => {
+    if (roomId) startGame(client, Number(roomId));
   };
 
-  const handleClientEvent = useCallback((contents: string) => {
-    switch (contents) {
-      case 'ADD_WHITE':
-        whiteStoneSound.currentTime = 0;
-        whiteStoneSound.play();
-        break;
-      case 'ADD_BLACK':
-        blackStoneSound.currentTime = 0;
-        blackStoneSound.play();
-        break;
-      case 'REMOVE_STONE':
-        stoneDroppingSound.currentTime = 0;
-        stoneDroppingSound.play();
-        break;
+  // 착수 효과음. 예전에는 클라이언트가 /topic 으로 직접 발행해 서로에게 알렸는데
+  // 서버가 그 경로를 막았고, 애초에 착수 결과가 브로드캐스트되므로 필요 없다
+  const playMoveSound = useCallback((before: string[], after: string[]) => {
+    const added = after.findIndex(
+      (stone, idx) => stone !== 'EMPTY' && before[idx] === 'EMPTY'
+    );
+    const removed = after.findIndex(
+      (stone, idx) => stone === 'EMPTY' && before[idx] !== 'EMPTY'
+    );
+
+    if (removed !== -1 && added === -1) {
+      stoneDroppingSound.currentTime = 0;
+      stoneDroppingSound.play();
+      return;
     }
+    if (added === -1) return;
+
+    const sound = after[added] === 'BLACK' ? blackStoneSound : whiteStoneSound;
+    sound.currentTime = 0;
+    sound.play();
   }, []);
 
   const handleEvent = useCallback(
-    (body: string) => {
-      console.log(showGameResultModal);
-      if (body === 'SOCKET_ERROR' && !gameEndedRef.current) {
-        setShowSocketErrorModal(true);
-        lossSound.play();
-        return;
-      }
-
-      const response = JSON.parse(body);
-      console.log(response);
-      switch (response.type) {
-        case 'CLIENT_EVENT':
-          handleClientEvent(response.contents);
-          break;
-        case 'GAME_START':
-          setGameState(response.data);
+    (event: RoomEvent) => {
+      switch (event.type) {
+        case 'STARTED':
+          if (event.state) setGameState(event.state);
           startSound.play();
           break;
-        case 'GAME_OVER':
-        case 'GAME_WITHDRAW':
-          setGameState(response.data);
-          setShowGameResultModal(true);
-          gameEndedRef.current = true;
+        case 'SNAPSHOT':
+          if (event.state) setGameState(event.state);
           break;
-        case 'REQUEST_DRAW':
-          if (currentUser?.userId !== drawRequesterRef.current) {
+        case 'STATE_CHANGED':
+          if (!event.state) break;
+          setGameState((previous) => {
+            playMoveSound(previous.board, event.state!.board);
+            return event.state!;
+          });
+          break;
+        case 'FINISHED':
+          if (event.state) setGameState(event.state);
+          setShowGameResultModal(true);
+          break;
+        case 'DRAW_OFFERED':
+          if (event.actorId !== currentUser?.userId) {
             setShowResponseDrawModal(true);
             notificationSound.play();
           }
           break;
-        case 'REJECT_DRAW':
-          if (currentUser?.userId === drawRequesterRef.current) {
+        case 'DRAW_DECLINED':
+          if (event.actorId !== currentUser?.userId) {
             setShowDrawRejectedModal(true);
-            lossSound.play();
           }
-          drawRequesterRef.current = -1;
           break;
-        case 'GAME_DRAW':
-          setShowGameResultModal(true);
-          notificationSound.play();
-          gameEndedRef.current = true;
+        case 'OPPONENT_DISCONNECTED':
+          if (event.state) setGameState(event.state);
+          setShowSocketErrorModal(true);
           break;
-        default:
-          setGameState(response.data);
+        case 'PLAYER_JOINED':
+        case 'PLAYER_LEFT':
+        case 'SETTINGS_CHANGED':
+          break;
       }
     },
-    [setGameState, handleClientEvent, showGameResultModal, currentUser]
+    [currentUser, playMoveSound, setGameState]
   );
 
-  // 마운트/언마운트 시 소켓 연결/종료
   useEffect(() => {
     client.activate();
 
@@ -193,62 +179,67 @@ export function GamePage() {
     };
   }, []);
 
-  // 최초 연결 시 입장 이벤트 전송
-  useEffect(() => {
-    if (connected && roomId && currentUser) {
-      client.publish({
-        destination: `/app/joinGame/${roomId}`,
-        body: JSON.stringify(currentUser.userId),
-      });
-    }
-  }, [connected, roomId, currentUser]);
-
   useEffect(() => {
     client.onConnect = () => {
-      client.subscribe(`/topic/game/${roomId}`, (message) => {
-        handleEvent(message.body);
+      // 방 토픽 하나만 구독하면 된다. 예전에는 토픽이 둘로 나뉘어 있었고
+      // 그중 하나는 아무도 구독하지 않았다
+      client.subscribe(`/topic/rooms/${roomId}`, (message) => {
+        handleEvent(JSON.parse(message.body) as RoomEvent);
       });
 
-      setConnected(true);
+      // 규칙 위반 거절은 방이 아니라 나에게만 온다
+      client.subscribe('/user/queue/errors', (message) => {
+        const rejected = JSON.parse(message.body) as MoveRejected;
+        showError(rejected.message);
+        explosionSound.currentTime = 0;
+        explosionSound.play();
+      });
+
+      // 새로고침 후 판 복구
+      client.subscribe('/user/queue/sync', (message) => {
+        handleEvent(JSON.parse(message.body) as RoomEvent);
+      });
+
+      // 구독 직후 진행 중인 판이 있는지 물어본다. 새로고침해도 판을 잃지 않는다
+      if (roomId) {
+        client.publish({ destination: `/app/rooms/${roomId}/sync` });
+      }
+
       joinSound.play();
     };
-  }, [roomId, handleEvent]);
+  }, [roomId, handleEvent, showError]);
 
+  const myTurn = isPlayerTurn();
   useEffect(() => {
-    if (gameState.removing) {
+    if (gameState.awaitingRemoval && myTurn) {
       explosionSound.play();
     }
+  }, [gameState.awaitingRemoval, myTurn]);
 
-    if (isGameOver() && currentUser) {
-      if (gameState.winner === currentUser.userId) {
-        winSound.play();
-      }
+  const { status, winnerId, loserId } = gameState;
+  useEffect(() => {
+    if (status !== 'FINISHED' || !currentUser) return;
+    if (winnerId === currentUser.userId) winSound.play();
+    if (loserId === currentUser.userId) lossSound.play();
+  }, [status, winnerId, loserId, currentUser]);
 
-      if (gameState.loser === currentUser.userId) {
-        lossSound.play();
-      }
-    }
-  }, [gameState, currentUser, isGameOver, gameState.removing]);
-
-  if (!gameState) {
-    return <div>로딩 중...</div>;
-  }
+  const isHost = !!currentUser && gameState.status === 'WAITING';
 
   return (
     <main
-      className={`transition-removing flex h-full grow flex-col justify-between overflow-hidden p-4 transition-colors  duration-1000 md:gap-4 ${gameState.removing && 'bg-red-200'}`}
+      className={`transition-removing flex h-full grow flex-col justify-between overflow-hidden p-4 transition-colors duration-1000 md:gap-4 ${gameState.awaitingRemoval && 'bg-red-200'}`}
     >
       <WithdrawModal
         visible={showWithdrawModal}
-        onWithdraw={onWithdraw}
+        onWithdraw={onResign}
         onClose={() => setShowWithdrawModal(false)}
       />
       <GameResultModal
         visible={showGameResultModal}
         result={
-          gameState.winner === currentUser?.userId
+          gameState.winnerId === currentUser?.userId
             ? 'WIN'
-            : gameState.loser === currentUser?.userId
+            : gameState.loserId === currentUser?.userId
               ? 'LOSS'
               : 'DRAW'
         }
@@ -260,13 +251,13 @@ export function GamePage() {
       />
       <RequestDrawModal
         visible={showRequestDrawModal}
-        onRequestDraw={onRequestDraw}
+        onRequestDraw={onOfferDraw}
         onClose={() => setShowRequestDrawModal(false)}
       />
       <ResponseDrawModal
         visible={showResponseDrawModal}
         onAcceptDraw={onAcceptDraw}
-        onRejectDraw={onRejectDraw}
+        onRejectDraw={onDeclineDraw}
       />
       <DrawRejectedModal
         visible={showDrawRejectedModal}
@@ -280,6 +271,7 @@ export function GamePage() {
         {gameState.status === 'WAITING' ? (
           <div className="z-10 flex items-center gap-2">
             <span className="animate-pulse">상대를 기다리는 중...</span>
+            {isHost && <Button slim text="게임 시작" onClick={onStart} />}
             <Button
               slim
               text="나가기"
@@ -289,56 +281,39 @@ export function GamePage() {
             />
           </div>
         ) : (
-          <>
-            {gameState.phase === 1 && (
-              <div className="z-20 flex w-full animate-blinking items-center justify-center gap-4 bg-phase text-white md:flex-col md:items-start md:gap-0 md:bg-none md:text-black">
-                <h1 className="font-phase text-xl md:text-6xl">Phase 1</h1>
-                <span className="text-lg font-semibold">돌 배치 단계</span>
-              </div>
-            )}
-            {gameState.phase === 2 && (
-              <div className="z-20 flex w-full animate-blinking items-center justify-center gap-4 bg-phase text-white md:flex-col md:items-start md:gap-0 md:bg-none md:text-black">
-                <h1 className="font-phase text-xl md:text-6xl">Phase 2</h1>
-                <span className="text-lg font-semibold">돌 이동 단계</span>
-              </div>
-            )}
-          </>
+          <PhaseBanner phase={getPlayerPhase()} />
         )}
         <Status
           turn={!isPlayerTurn()}
-          color={getEnemyStoneColor()}
-          addable={getEnemyAddable()}
-          total={getEnemyTotal()}
-          nickname={enemyNickname}
+          color={enemyStone()}
+          inHand={getEnemyInHand()}
+          onBoard={getEnemyOnBoard()}
+          nickname={enemy?.nickname}
           visible={gameState.status !== 'WAITING'}
         />
       </div>
-      {client && (
-        <Board
-          client={client}
-          board={gameState.board}
-          selectable={gameState.phase === 2 && isPlayerTurn()}
-          playerStoneColor={getPlayerStoneColor()}
-          addStone={addStone}
-          moveStone={moveStone}
-          removeStone={removeStone}
-        />
-      )}
+      <Board
+        client={client}
+        board={gameState.board}
+        selectable={getPlayerPhase() !== 'PLACING' && isPlayerTurn()}
+        playerStoneColor={myStone()}
+        addStone={addStone}
+        moveStone={moveStone}
+        removeStone={removeStone}
+      />
       <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
         <Message
-          phase={gameState.phase}
-          removing={gameState.removing}
+          phase={getPlayerPhase()}
+          removing={gameState.awaitingRemoval}
           error={error}
           turn={isPlayerTurn()}
-          onSkipRemoving={onSkipRemoving}
-          flying={isPlayerFlyMode()}
         />
         <Status
           isCurrentUser
           turn={isPlayerTurn()}
-          color={getPlayerStoneColor()}
-          addable={getPlayerAddable()}
-          total={getPlayerTotal()}
+          color={myStone()}
+          inHand={getPlayerInHand()}
+          onBoard={getPlayerOnBoard()}
           nickname={currentUser?.nickname}
           onShowWithdrawModal={() => setShowWithdrawModal(true)}
           onShowRequestDrawModal={() => setShowRequestDrawModal(true)}
@@ -346,5 +321,20 @@ export function GamePage() {
         />
       </div>
     </main>
+  );
+}
+
+function PhaseBanner({ phase }: { phase: 'PLACING' | 'MOVING' | 'FLYING' }) {
+  const label = {
+    PLACING: { title: 'Phase 1', description: '돌 배치 단계' },
+    MOVING: { title: 'Phase 2', description: '돌 이동 단계' },
+    FLYING: { title: 'Phase 3', description: '자유 이동 단계' },
+  }[phase];
+
+  return (
+    <div className="z-20 flex w-full animate-blinking items-center justify-center gap-4 bg-phase text-white md:flex-col md:items-start md:gap-0 md:bg-none md:text-black">
+      <h1 className="font-phase text-xl md:text-6xl">{label.title}</h1>
+      <span className="text-lg font-semibold">{label.description}</span>
+    </div>
   );
 }

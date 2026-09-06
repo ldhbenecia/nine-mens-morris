@@ -9,51 +9,48 @@ export const client = axios.create({
 export const logout = async () => {
   const response = await client.post('auth/logout');
 
-  return response.status === 200;
+  return response.status === 204;
 };
 
 export const getCurrentUser = async () => {
-  const response = await client.get<User>('user');
+  const response = await client.get<User>('users/me');
 
-  if (response.status === 200) {
-    return response.data;
-  }
-
-  throw new Error('로그아웃된 사용자입니다.');
+  return response.data;
 };
 
 export const getUserNickname = async (userId: number) => {
-  const response = await client.get(`user/${userId}`);
+  const response = await client.get<{ nickname: string }>(`users/${userId}`);
 
   return response.data;
 };
 
 export const getRanks = async () => {
-  const response = await client.get<Rank[]>('rank');
+  const response = await client.get<Rank[]>('rankings');
 
   return response.data;
 };
 
 export const getRooms = async () => {
-  const response = await client.get<Room[]>('games');
+  const response = await client.get<Room[]>('rooms');
 
   return response.data;
 };
 
-export const createRoom = async (roomTitle: string) => {
-  const response = await client.post<{
-    roomId: number;
-    roomTitle: number;
-    host: string;
-  }>('createGame', {
-    roomTitle,
-  });
+export const createRoom = async (title: string) => {
+  const response = await client.post<{ roomId: number; title: string }>(
+    'rooms',
+    { title }
+  );
 
-  return { roomId: response.status === 201 ? response.data.roomId : -1 };
+  return { roomId: response.data.roomId };
+};
+
+// 방 입장은 "방에 플레이어를 추가"하는 것이므로 하위 리소스 생성이다
+// userId 를 보내지 않는다. 서버가 인증 정보에서 확정한다
+export const joinRoom = async (roomId: number) => {
+  await client.post(`rooms/${roomId}/players`);
 };
 
 export const leaveRoom = async (roomId: number) => {
-  const response = await client.post(`leaveGame/${roomId}`);
-
-  return response.status === 200;
+  await client.delete(`rooms/${roomId}/players/me`);
 };

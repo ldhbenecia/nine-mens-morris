@@ -14,8 +14,10 @@ export const QUERY = {
     queryKey: ['ranks'],
     queryFn: getRanks,
   },
-  USER_NICKNAME: {
-    queryKey: ['userNickname'],
-    queryFn: getUserNickname,
-  },
+  // 상대가 바뀌면 캐시도 갈려야 하므로 userId 를 키에 넣는다
+  // 예전에는 키가 ['userNickname'] 로 고정이라 상대가 바뀌어도 옛 값이 나왔다
+  USER_NICKNAME: (userId: number) => ({
+    queryKey: ['userNickname', userId],
+    queryFn: () => getUserNickname(userId),
+  }),
 };

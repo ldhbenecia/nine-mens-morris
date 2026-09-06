@@ -1,5 +1,6 @@
 import Close from '~/assets/icons/close.svg?react';
 import { User } from '~/lib/types';
+import { avatarOf } from '~/lib/avatar';
 
 type UserInfoProps = {
   user: User;
@@ -22,7 +23,7 @@ export function UserInfo({ user, onShowLogoutModal }: UserInfoProps) {
         <div className="fixed right-2 top-2 flex items-center gap-2 rounded-full bg-white p-1 pl-4">
           {user.nickname}
           <div className="h-10 w-10 overflow-hidden rounded-full">
-            <img src={user.imageUrl} alt={user.nickname} />
+            <img src={avatarOf(user.imageUrl)} alt={user.nickname} />
           </div>
         </div>
       </>

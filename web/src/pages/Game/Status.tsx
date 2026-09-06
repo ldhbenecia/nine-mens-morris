@@ -3,13 +3,15 @@ import Flag from '~/assets/icons/flag.svg?react';
 import HandShake from '~/assets/icons/handshake.svg?react';
 import { Button } from '~/components';
 import { HelpButton } from './HelpButton';
+import { StoneType } from '~/lib/types';
 
 type StatusProps = {
   isCurrentUser?: boolean;
   turn: boolean;
-  color: 'WHITE' | 'BLACK';
-  addable: number;
-  total: number;
+  // 시작 전에는 흑백이 정해지지 않아 EMPTY 가 온다
+  color: StoneType;
+  inHand: number;
+  onBoard: number;
   nickname?: string;
   visible?: boolean;
   onShowWithdrawModal?: () => void;
@@ -21,8 +23,8 @@ export function Status({
   isCurrentUser = false,
   turn,
   color,
-  addable,
-  total,
+  inHand,
+  onBoard,
   nickname = ' ',
   visible = true,
   onShowWithdrawModal,
@@ -44,18 +46,18 @@ export function Status({
           <div
             className={`rounded-2xl border px-1.5 text-sm ${color === 'WHITE' ? 'border-gray-300 bg-gray-50' : 'border-gray-800 bg-gray-800 text-white'}`}
           >
-            {color === 'WHITE' ? '백돌' : '흑돌'}
+            {color === 'EMPTY' ? '대기' : color === 'WHITE' ? '백돌' : '흑돌'}
           </div>
         </div>
         <div className={`flex justify-between ${turn ? '' : 'opacity-50'}`}>
           <div className="flex items-center gap-0.5 font-semibold">
-            {[...Array(addable)].map((_, idx) => (
+            {[...Array(inHand)].map((_, idx) => (
               <div
                 key={idx}
                 className={`h-4 w-4 rounded-full border ${color === 'WHITE' ? 'border-gray-500 bg-gray-50' : 'border-gray-800 bg-gray-800'}`}
               />
             ))}
-            {[...Array(9 - addable)].map((_, idx) => (
+            {[...Array(Math.max(0, 9 - inHand))].map((_, idx) => (
               <div
                 key={idx}
                 className={`h-4 w-4 rounded-full bg-gray-800 opacity-10`}
@@ -63,7 +65,7 @@ export function Status({
             ))}
           </div>
           <span className="text-nowrap px-1 text-sm font-semibold">
-            {addable} / {total}
+            손 {inHand} / 판 {onBoard}
           </span>
         </div>
         {isCurrentUser && (

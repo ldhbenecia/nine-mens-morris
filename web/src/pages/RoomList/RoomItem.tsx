@@ -1,19 +1,21 @@
+import { avatarOf } from '~/lib/avatar';
+
 type RoomItemProps = {
   roomId: number;
-  roomTitle: string;
+  title: string;
   hostNickname: string;
-  hostImageUrl: string;
-  hostScore: number;
+  hostImageUrl: string | null;
+  hostRating: number;
   ongoing?: boolean;
   onJoinRoom: (roomId: number) => void;
 };
 
 export function RoomItem({
   roomId,
-  roomTitle,
+  title,
   hostNickname,
   hostImageUrl,
-  hostScore,
+  hostRating,
   ongoing = false,
   onJoinRoom,
 }: RoomItemProps) {
@@ -23,15 +25,15 @@ export function RoomItem({
       onClick={ongoing ? undefined : () => onJoinRoom(roomId)}
     >
       <img
-        src={hostImageUrl}
+        src={avatarOf(hostImageUrl)}
         alt={hostNickname}
         className="h-12 w-12 rounded-full"
       />
       <div className="flex grow flex-col gap-0.5">
-        <span className="font-semibold">{roomTitle}</span>
+        <span className="font-semibold">{title}</span>
         <div className="flex gap-2 text-sm">
           {hostNickname}
-          <span className="text-gray-500">레이팅 {hostScore}점</span>
+          <span className="text-gray-500">MMR {hostRating}</span>
         </div>
       </div>
       <span className="font-semibold">{ongoing ? '진행 중' : '대기 중'}</span>

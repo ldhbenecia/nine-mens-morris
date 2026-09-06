@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '~/components';
 import { QUERY } from '~/lib/queries';
@@ -9,21 +9,25 @@ import { CreateRoomModal } from './CreateRoomModal';
 import { RoomItem } from './RoomItem';
 import { NoRoomAlert } from './NoRoomAlert';
 import { CreateRoomButton } from './CreateRoomButton';
+import { useJoinRoom } from '~/hooks';
 
 export function RoomListPage() {
   const [showCreateRoomModal, setShowCreateRoomModal] = useState(false);
   const [showNoRoomAlert, setShowNoRoomAlert] = useState(false);
   const [refreshed, setRefreshed] = useState(true);
   const { data: rooms, refetch } = useQuery(QUERY.ROOMS);
-  const navigate = useNavigate();
+  const { mutate: joinRoom } = useJoinRoom();
 
+  // 서버에 실제로 입장 요청을 보낸다
+  // 예전에는 목록에 있는지만 확인하고 화면을 넘겨서, 방이 가득 찼거나
+  // 사라진 경우를 알 수 없었다
   const onJoinRoom = async (roomId: number) => {
     const { data: currentRooms } = await refetch();
-    if (currentRooms?.find((room) => room.roomId === roomId)) {
-      return navigate(`/game/${roomId}`);
+    if (!currentRooms?.find((room) => room.roomId === roomId)) {
+      return setShowNoRoomAlert(true);
     }
 
-    setShowNoRoomAlert(true);
+    joinRoom(roomId);
   };
 
   const onClickCreateRoom = () => setShowCreateRoomModal(true);
@@ -64,27 +68,18 @@ export function RoomListPage() {
             rooms
               .slice()
               .reverse()
-              .map(
-                ({
-                  roomId,
-                  roomTitle,
-                  playerCount,
-                  host,
-                  hostImageUrl,
-                  hostScore,
-                }) => (
-                  <RoomItem
-                    key={roomId}
-                    roomId={roomId}
-                    roomTitle={roomTitle}
-                    hostNickname={host}
-                    hostImageUrl={hostImageUrl}
-                    hostScore={hostScore}
-                    ongoing={playerCount >= 2}
-                    onJoinRoom={onJoinRoom}
-                  />
-                )
-              )}
+              .map((room) => (
+                <RoomItem
+                  key={room.roomId}
+                  roomId={room.roomId}
+                  title={room.title}
+                  hostNickname={room.hostNickname}
+                  hostImageUrl={room.hostImageUrl}
+                  hostRating={room.hostRating}
+                  ongoing={room.playing || room.playerCount >= 2}
+                  onJoinRoom={onJoinRoom}
+                />
+              ))}
         </ul>
       </div>
     </main>
