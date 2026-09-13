@@ -1,4 +1,4 @@
-import { avatarOf } from '~/lib/avatar';
+import { Avatar } from '~/components';
 
 type RoomItemProps = {
   roomId: number;
@@ -24,11 +24,7 @@ export function RoomItem({
       className={`flex h-20 items-center gap-2 rounded-xl border px-4 py-3 ${ongoing ? 'border-gray-300 bg-gray-300' : 'cursor-pointer border-gray-300 bg-gray-50 hover:bg-white active:bg-gray-100'}`}
       onClick={ongoing ? undefined : () => onJoinRoom(roomId)}
     >
-      <img
-        src={avatarOf(hostImageUrl)}
-        alt={hostNickname}
-        className="h-12 w-12 rounded-full"
-      />
+      <Avatar nickname={hostNickname} imageUrl={hostImageUrl} size="lg" />
       <div className="flex grow flex-col gap-0.5">
         <span className="font-semibold">{title}</span>
         <div className="flex gap-2 text-sm">

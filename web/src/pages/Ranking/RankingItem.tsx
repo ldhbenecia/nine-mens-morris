@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import Medal from '~/assets/icons/medal.svg?react';
 import Person from '~/assets/icons/person.svg?react';
+import { Avatar } from '~/components';
 import { QUERY } from '~/lib/queries';
 import { Tier } from '~/lib/types';
-import { avatarOf } from '~/lib/avatar';
 import { TIER_LABEL, TIER_STYLE } from '~/lib/tier';
 
 type RankingItemProps = {
@@ -50,11 +50,7 @@ export function RankingItem({
         <span className="font-semibold">{rank}위</span>
       </div>
       <div className="flex grow items-center gap-2">
-        <img
-          src={avatarOf(imageUrl)}
-          alt={nickname}
-          className="h-12 w-12 rounded-full"
-        />
+        <Avatar nickname={nickname} imageUrl={imageUrl} size="lg" />
         {nickname}
         {currentUser?.userId === userId && (
           <span className="text-sm text-gray-500">나</span>
