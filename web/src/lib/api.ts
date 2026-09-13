@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Rank, Room, User } from '~/lib/types';
+import { Rank, Room, RoomDetail, User } from '~/lib/types';
 
 export const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -43,6 +43,13 @@ export const createRoom = async (title: string) => {
   );
 
   return { roomId: response.data.roomId };
+};
+
+// 게임 시작 전에도 방장이 누구인지 알아야 함
+export const getRoom = async (roomId: number) => {
+  const response = await client.get<RoomDetail>(`rooms/${roomId}`);
+
+  return response.data;
 };
 
 // 방 입장은 "방에 플레이어를 추가"하는 것이므로 하위 리소스 생성이다

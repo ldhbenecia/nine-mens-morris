@@ -87,7 +87,19 @@ export type GameState = {
   endReason: EndReason | null;
 };
 
+export type RoomDetail = {
+  roomId: number;
+  title: string;
+  hostId: number;
+  hostNickname: string;
+  guestId: number | null;
+  guestNickname: string | null;
+  firstMoveRule: FirstMoveRule;
+  playing: boolean;
+};
+
 export type RoomEventType =
+  | 'LOBBY_CHANGED'
   | 'PLAYER_JOINED'
   | 'PLAYER_LEFT'
   | 'SETTINGS_CHANGED'
