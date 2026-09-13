@@ -300,7 +300,8 @@ class GameServiceTest {
             Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
 
             // when
-            RoomBroadcast broadcast = gameService.handleDisconnect(HOST).orElseThrow();
+            RoomBroadcast broadcast =
+                    gameService.handleDisconnect(HOST, room.roomId()).orElseThrow();
 
             // then
             assertThat(broadcast.roomId()).isEqualTo(room.roomId());
@@ -317,7 +318,7 @@ class GameServiceTest {
             room.join(GUEST);
 
             // when
-            gameService.handleDisconnect(HOST);
+            gameService.handleDisconnect(HOST, room.roomId());
 
             // then
             assertThat(rooms.find(room.roomId())).isEmpty();
@@ -332,7 +333,7 @@ class GameServiceTest {
             room.join(GUEST);
 
             // when
-            gameService.handleDisconnect(GUEST);
+            gameService.handleDisconnect(GUEST, room.roomId());
 
             // then
             assertThat(rooms.find(room.roomId())).isPresent();
@@ -340,10 +341,13 @@ class GameServiceTest {
         }
 
         @Test
-        @DisplayName("어느 방에도 없으면 아무 일도 일어나지 않는다")
+        @DisplayName("방에 속하지 않은 사람이 끊겨도 아무 일도 일어나지 않는다")
         void 방에_없으면_무시한다() {
+            // given
+            Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
+
             // then
-            assertThat(gameService.handleDisconnect(OUTSIDER)).isEmpty();
+            assertThat(gameService.handleDisconnect(OUTSIDER, room.roomId())).isEmpty();
         }
     }
 

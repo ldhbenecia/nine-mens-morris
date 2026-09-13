@@ -119,8 +119,11 @@ public class GameService {
     }
 
     // 소켓이 끊긴 사용자를 방에서 내보냄
-    public Optional<RoomBroadcast> handleDisconnect(long userId) {
-        return rooms.findByPlayer(userId).flatMap(found -> exit(found.roomId(), userId, ExitCause.DISCONNECT));
+    // 어느 방이었는지는 호출자가 알려줘야 함
+    // 예전에는 findByPlayer 로 찾았는데 한 사용자가 여러 방에 속할 수 있어
+    // 임의의 방이 뽑히고 진행 중인 판이 방치됐다
+    public Optional<RoomBroadcast> handleDisconnect(long userId, long roomId) {
+        return exit(roomId, userId, ExitCause.DISCONNECT);
     }
 
     // 스스로 나가기를 누른 경우. 끊김과 같은 경로를 타야 함
