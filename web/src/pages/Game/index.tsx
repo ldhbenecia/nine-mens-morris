@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
+import { NoRoomAlert } from '~/components';
 import { QUERY } from '~/lib/queries';
 import { useGameState, useLeaveRoom } from '~/hooks';
 import { FirstMoveRule, MoveRejected, RoomEvent } from '~/lib/types';
@@ -43,7 +44,8 @@ export function GamePage() {
   const [showDrawRejectedModal, setShowDrawRejectedModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showGameResultModal, setShowGameResultModal] = useState(false);
-  const [showSocketErrorModal, setShowSocketErrorModal] = useState(false);
+  const [endNotice, setEndNotice] = useState('');
+  const [disconnected, setDisconnected] = useState(false);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
   const { mutate: leaveRoom } = useLeaveRoom();
   const {
@@ -71,11 +73,20 @@ export function GamePage() {
   } = useGameState();
 
   // 게임 시작 전에는 GameState 가 비어 있어 방장이 누구인지 알 수 없음
-  const { data: room, refetch: refetchRoom } = useQuery({
+  const {
+    data: room,
+    isError: roomGone,
+    refetch: refetchRoom,
+  } = useQuery({
     ...QUERY.ROOM(Number(roomId)),
     enabled: !!roomId,
   });
   const isHost = !!currentUser && room?.hostId === currentUser.userId;
+
+  // 'WAITING' 은 서버가 보내지 않는 값이다. 초기 상태값일 뿐이라
+  // 이것만 보고 분기하면 진행 중인 판을 새로고침했을 때 대기실이 뜬다
+  // 서버가 알려주는 hasGame 을 같이 본다
+  const inGame = gameState.status !== 'WAITING' || room?.hasGame === true;
 
   const { data: enemy } = useQuery({
     ...QUERY.USER_NICKNAME(enemyId()),
@@ -159,7 +170,6 @@ export function GamePage() {
           break;
         case 'FINISHED':
           if (event.state) setGameState(event.state);
-          setShowGameResultModal(true);
           break;
         case 'DRAW_OFFERED':
           if (event.actorId !== currentUser?.userId) {
@@ -174,7 +184,7 @@ export function GamePage() {
           break;
         case 'OPPONENT_DISCONNECTED':
           if (event.state) setGameState(event.state);
-          setShowSocketErrorModal(true);
+          setEndNotice('상대방의 연결이 끊겼습니다.');
           break;
         // 대기실 상태가 바뀌었으니 방 정보를 다시 받음
         case 'PLAYER_JOINED':
@@ -189,43 +199,59 @@ export function GamePage() {
     [currentUser, playMoveSound, setGameState, refetchRoom]
   );
 
-  useEffect(() => {
-    client.activate();
+  // onConnect 는 한 번만 불리는데 구독 콜백은 그때의 handleEvent 를 영구히 붙잡는다
+  // 그 안의 currentUser 가 아직 undefined 이면, 무승부를 신청한 사람이
+  // 자기 신청 모달을 받는 식으로 어긋난다. ref 로 항상 최신 것을 부른다
+  const handleEventRef = useRef(handleEvent);
+  handleEventRef.current = handleEvent;
+  const showErrorRef = useRef(showError);
+  showErrorRef.current = showError;
 
-    return () => {
-      client.deactivate();
-    };
-  }, []);
-
   useEffect(() => {
+    if (!roomId) return;
+
     client.onConnect = () => {
+      setDisconnected(false);
+
       // 방 토픽 하나만 구독하면 된다. 예전에는 토픽이 둘로 나뉘어 있었고
       // 그중 하나는 아무도 구독하지 않았다
       client.subscribe(`/topic/rooms/${roomId}`, (message) => {
-        handleEvent(JSON.parse(message.body) as RoomEvent);
+        handleEventRef.current(JSON.parse(message.body) as RoomEvent);
       });
 
-      // 규칙 위반 거절은 방이 아니라 나에게만 온다
+      // 규칙 위반 거절과 권한 오류는 방이 아니라 나에게만 온다
       client.subscribe('/user/queue/errors', (message) => {
         const rejected = JSON.parse(message.body) as MoveRejected;
-        showError(rejected.message);
+        showErrorRef.current(rejected.message);
         explosionSound.currentTime = 0;
         explosionSound.play();
       });
 
       // 새로고침 후 판 복구
       client.subscribe('/user/queue/sync', (message) => {
-        handleEvent(JSON.parse(message.body) as RoomEvent);
+        handleEventRef.current(JSON.parse(message.body) as RoomEvent);
       });
 
       // 구독 직후 진행 중인 판이 있는지 물어본다. 새로고침해도 판을 잃지 않는다
-      if (roomId) {
-        client.publish({ destination: `/app/rooms/${roomId}/sync` });
-      }
-
+      client.publish({ destination: `/app/rooms/${roomId}/sync` });
       joinSound.play();
     };
-  }, [roomId, handleEvent, showError]);
+
+    // 끊긴 상태에서 publish 하면 stompjs 가 throw 하므로 화면에 알려야 한다
+    client.onWebSocketClose = () => setDisconnected(true);
+    client.onStompError = (frame) =>
+      showErrorRef.current(
+        frame.headers.message ?? '서버와 통신에 실패했습니다.'
+      );
+
+    client.activate();
+
+    return () => {
+      // 의도적으로 끊는 것이므로 끊김 알림이 뜨지 않게 먼저 떼어낸다
+      client.onWebSocketClose = () => {};
+      client.deactivate();
+    };
+  }, [roomId]);
 
   const myTurn = isPlayerTurn();
   useEffect(() => {
@@ -234,9 +260,14 @@ export function GamePage() {
     }
   }, [gameState.awaitingRemoval, myTurn]);
 
+  // 어떤 이벤트로 끝났든 결과 화면은 떠야 한다
+  // 예전에는 FINISHED 이벤트에서만 열어서, 끝난 판에 새로고침해 SNAPSHOT 으로
+  // 복구되면 결과도 나가기 버튼도 없는 화면에 갇혔다
   const { status, winnerId, loserId } = gameState;
   useEffect(() => {
-    if (status !== 'FINISHED' || !currentUser) return;
+    if (status !== 'FINISHED') return;
+    setShowGameResultModal(true);
+    if (!currentUser) return;
     if (winnerId === currentUser.userId) winSound.play();
     if (loserId === currentUser.userId) lossSound.play();
   }, [status, winnerId, loserId, currentUser]);
@@ -259,6 +290,7 @@ export function GamePage() {
               ? 'LOSS'
               : 'DRAW'
         }
+        notice={endNotice}
         onLeaveRoom={onLeaveRoom}
       />
       <HelpModal
@@ -279,11 +311,9 @@ export function GamePage() {
         visible={showDrawRejectedModal}
         onClose={() => setShowDrawRejectedModal(false)}
       />
-      <SocketErrorModal
-        visible={showSocketErrorModal}
-        onLeaveRoom={onLeaveRoom}
-      />
-      {gameState.status === 'WAITING' ? (
+      <SocketErrorModal visible={disconnected} onLeaveRoom={onLeaveRoom} />
+      <NoRoomAlert visible={roomGone && !inGame} onClose={onLeaveRoom} />
+      {!inGame ? (
         <WaitingRoom
           room={room}
           isHost={isHost}

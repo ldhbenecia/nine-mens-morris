@@ -96,6 +96,7 @@ export type RoomDetail = {
   guestNickname: string | null;
   firstMoveRule: FirstMoveRule;
   playing: boolean;
+  hasGame: boolean; // 끝난 판도 true. 대기실과 판 화면을 고르는 기준
 };
 
 export type RoomEventType =

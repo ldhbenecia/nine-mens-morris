@@ -2,13 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
-import { Button } from '~/components';
+import { Button, NoRoomAlert } from '~/components';
 import { QUERY } from '~/lib/queries';
 import Undo from '~/assets/icons/undo.svg?react';
 import Refresh from '~/assets/icons/refresh.svg?react';
 import { CreateRoomModal } from './CreateRoomModal';
 import { RoomItem } from './RoomItem';
-import { NoRoomAlert } from './NoRoomAlert';
 import { CreateRoomButton } from './CreateRoomButton';
 import { useJoinRoom } from '~/hooks';
 

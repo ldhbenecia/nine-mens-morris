@@ -3,14 +3,14 @@ import { Button, Modal } from '~/components';
 type GameResultModalProps = {
   visible: boolean;
   result: 'WIN' | 'LOSS' | 'DRAW';
-  score?: number;
+  notice?: string; // 상대 연결 끊김처럼 승패 말고 더 알려줄 것이 있을 때
   onLeaveRoom: () => void;
 };
 
 export function GameResultModal({
   visible,
   result,
-  score,
+  notice,
   onLeaveRoom,
 }: GameResultModalProps) {
   return (
@@ -23,14 +23,9 @@ export function GameResultModal({
               ? '패배했습니다...'
               : '무승부!'}
         </div>
-        {score && (
-          <div>
-            점수 {score > 0 ? '+' : '-'}
-            {score}
-          </div>
-        )}
+        {notice && <div className="text-sm text-gray-600">{notice}</div>}
         <div className="flex w-full gap-4">
-          <Button fullWidth text="확인" onClick={onLeaveRoom} />
+          <Button fullWidth text="나가기" onClick={onLeaveRoom} />
         </div>
       </>
     </Modal>

@@ -12,8 +12,8 @@ type WaitingRoomProps = {
 
 const RULE_LABEL: Record<FirstMoveRule, string> = {
   RANDOM: '랜덤',
-  HOST_FIRST: '방장 선공',
-  GUEST_FIRST: '참가자 선공',
+  HOST_FIRST: '방장',
+  GUEST_FIRST: '참가자',
 };
 
 const RULES: FirstMoveRule[] = ['RANDOM', 'HOST_FIRST', 'GUEST_FIRST'];
@@ -27,14 +27,15 @@ export function WaitingRoom({
   onStart,
   onLeave,
 }: WaitingRoomProps) {
-  const opponentReady = !!room?.guestId;
+  // 방 정보를 아직 못 받았거나 이미 시작된 방이면 누를 수 없어야 한다
+  const canStart = !!room?.guestId && !room.playing;
 
   return (
     <div className="flex grow flex-col items-center justify-center gap-8">
       <div className="flex flex-col items-center gap-1">
         <h1 className="text-2xl font-semibold">{room?.title ?? '　'}</h1>
         <span className="text-sm text-gray-500">
-          {isHost ? '내가 방장입니다' : `방장: ${room?.hostNickname ?? ''}`}
+          {isHost ? '내가 만든 방' : `${room?.hostNickname ?? ''} 님의 방`}
         </span>
       </div>
 
@@ -45,7 +46,9 @@ export function WaitingRoom({
       </div>
 
       <div className="flex w-80 flex-col items-center gap-2">
-        <span className="text-sm font-semibold text-gray-600">선공</span>
+        <span className="text-sm font-semibold text-gray-600">
+          먼저 두는 사람
+        </span>
         <div className="flex w-full gap-2">
           {RULES.map((rule) => {
             const selected = room?.firstMoveRule === rule;
@@ -65,21 +68,21 @@ export function WaitingRoom({
           })}
         </div>
         {!isHost && (
-          <span className="text-xs text-gray-500">방장이 선공을 정합니다.</span>
+          <span className="text-xs text-gray-500">방장이 정합니다</span>
         )}
       </div>
 
       <div className="flex w-72 flex-col gap-2">
         {isHost ? (
           <Button
-            text={opponentReady ? '게임 시작' : '상대를 기다리는 중...'}
+            text={canStart ? '게임 시작' : '상대를 기다리는 중'}
             fullWidth
-            disabled={!opponentReady}
+            disabled={!canStart}
             onClick={onStart}
           />
         ) : (
           <span className="animate-pulse py-3 text-center text-gray-600">
-            방장이 시작하기를 기다리는 중...
+            방장이 시작할 때까지 기다려 주세요
           </span>
         )}
         <Button
@@ -102,7 +105,7 @@ function PlayerSlot({ name, role }: { name?: string | null; role: string }) {
     >
       <span className="text-xs text-gray-500">{role}</span>
       <span className={`font-semibold ${name ? '' : 'text-gray-400'}`}>
-        {name ?? '비어 있음'}
+        {name ?? '기다리는 중'}
       </span>
     </div>
   );
