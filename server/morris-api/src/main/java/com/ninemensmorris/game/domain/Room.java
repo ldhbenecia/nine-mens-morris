@@ -1,6 +1,7 @@
 package com.ninemensmorris.game.domain;
 
 import com.ninemensmorris.core.board.Stone;
+import com.ninemensmorris.core.game.GameStatus;
 import com.ninemensmorris.core.game.MorrisGame;
 import java.time.Instant;
 import java.util.Random;
@@ -39,7 +40,14 @@ public final class Room {
         return guestId != null;
     }
 
+    // 끝난 판이 남아 있어도 진행 중은 아님
+    // game != null 만 보면 종료 후에도 목록에 계속 "진행 중" 으로 뜸
     public boolean isPlaying() {
+        return game != null && game.status() == GameStatus.PLAYING;
+    }
+
+    // 판이 한 번이라도 시작됐는지. 재접속 복구는 끝난 판도 돌려줘야 함
+    public boolean hasGame() {
         return game != null;
     }
 

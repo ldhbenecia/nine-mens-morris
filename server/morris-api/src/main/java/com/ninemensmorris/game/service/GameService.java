@@ -128,8 +128,9 @@ public class GameService {
 
     // 재접속 복구. 기존에는 SYNC_GAME 이 선언만 되어 있고 새로고침하면 판을 잃었다
     public Optional<RoomEvent> snapshot(long roomId) {
+        // 끝난 판도 돌려줌. 결과 화면에서 새로고침해도 승패는 남아 있어야 함
         return rooms.find(roomId)
-                .filter(Room::isPlaying)
+                .filter(Room::hasGame)
                 .map(room -> RoomEvent.of(RoomEventType.SNAPSHOT, GameStateResponse.of(room, room.game())));
     }
 
