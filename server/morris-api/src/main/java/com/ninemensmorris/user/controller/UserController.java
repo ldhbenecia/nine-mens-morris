@@ -32,8 +32,9 @@ public class UserController {
         return userService.findNickname(userId);
     }
 
+    // 위쪽만 막아서 limit=-1 이면 PageRequest.of 가 터졌음. 아래쪽도 잠금
     @GetMapping("/rankings")
     public List<RankingResponse> findRankings(@RequestParam(defaultValue = "100") int limit) {
-        return userService.findRankings(Math.min(limit, MAX_RANKING_SIZE));
+        return userService.findRankings(Math.clamp(limit, 1, MAX_RANKING_SIZE));
     }
 }

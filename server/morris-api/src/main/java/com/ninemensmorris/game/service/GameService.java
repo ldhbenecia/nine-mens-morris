@@ -100,8 +100,7 @@ public class GameService {
 
         return switch (result) {
             case MoveResult.Rejected rejected -> {
-                // 반복되면 프론트와 서버의 규칙 구현이 어긋났거나 조작 시도다
-                log.warn("규칙 위반 거절 roomId={} userId={} 사유={} 수={}", room.roomId(), actorId, rejected.reason(), move);
+                logRejection(room.roomId(), actorId, rejected.reason(), move);
                 yield reject(rejected.reason());
             }
             case MoveResult.Finished finished -> {
@@ -116,6 +115,17 @@ public class GameService {
             case MoveResult.MillFormed ignored -> broadcast(RoomEventType.STATE_CHANGED, room, game);
             case MoveResult.Applied ignored -> broadcast(RoomEventType.STATE_CHANGED, room, game);
         };
+    }
+
+    // 상대 차례에 누르거나 이미 찬 자리를 누르는 건 평범한 오터치라 DEBUG
+    // 전부 WARN 으로 남기면 운영자가 봐야 할 것이 묻힌다
+    // 판 밖 좌표는 DTO 검증을 통과할 수 없으므로 클라이언트를 우회한 흔적임
+    private void logRejection(long roomId, long actorId, RejectReason reason, Move move) {
+        if (reason == RejectReason.OUT_OF_BOARD) {
+            log.warn("판 밖 좌표 요청 roomId={} userId={} 수={}", roomId, actorId, move);
+            return;
+        }
+        log.debug("수 거절 roomId={} userId={} 사유={} 수={}", roomId, actorId, reason, move);
     }
 
     // 소켓이 끊긴 사용자를 방에서 내보냄

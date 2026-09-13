@@ -1,5 +1,8 @@
 package com.ninemensmorris.game.controller;
 
+import com.ninemensmorris.common.exception.CustomException;
+import com.ninemensmorris.common.exception.ErrorResponse;
+import com.ninemensmorris.common.response.ErrorCode;
 import com.ninemensmorris.core.move.Move;
 import com.ninemensmorris.game.command.RoomCommand;
 import com.ninemensmorris.game.dto.request.FirstMoveRuleRequest;
@@ -10,11 +13,15 @@ import com.ninemensmorris.game.dto.response.RoomEvent;
 import com.ninemensmorris.game.service.GameService;
 import com.ninemensmorris.game.service.PlayOutcome;
 import com.ninemensmorris.security.AuthenticatedUser;
+import jakarta.validation.Valid;
 import java.security.Principal;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.support.MethodArgumentNotValidException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
@@ -25,6 +32,7 @@ import org.springframework.stereotype.Controller;
 // 행위자는 Principal 에서만 온다
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public class GameStompController {
 
     private static final String ROOM_TOPIC = "/topic/rooms/";
@@ -35,7 +43,7 @@ public class GameStompController {
 
     @MessageMapping("/rooms/{roomId}/settings")
     public void changeSettings(
-            @DestinationVariable long roomId, @Payload FirstMoveRuleRequest request, Principal principal) {
+            @DestinationVariable long roomId, @Valid @Payload FirstMoveRuleRequest request, Principal principal) {
         AuthenticatedUser actor = require(principal);
         RoomEvent event = gameService.changeFirstMoveRule(
                 new RoomCommand.ChangeFirstMoveRule(actor.id(), roomId, request.firstMoveRule()));
@@ -50,18 +58,18 @@ public class GameStompController {
 
     // 1단계 배치
     @MessageMapping("/rooms/{roomId}/place")
-    public void place(@DestinationVariable long roomId, @Payload PlaceRequest request, Principal principal) {
+    public void place(@DestinationVariable long roomId, @Valid @Payload PlaceRequest request, Principal principal) {
         play(roomId, principal, new Move.Place(request.to()));
     }
 
     // 2·3단계 이동. 기존에는 배치와 같은 목적지를 써서 쓰지 않는 필드가 섞여 있었다
     @MessageMapping("/rooms/{roomId}/move")
-    public void move(@DestinationVariable long roomId, @Payload MoveRequest request, Principal principal) {
+    public void move(@DestinationVariable long roomId, @Valid @Payload MoveRequest request, Principal principal) {
         play(roomId, principal, new Move.Slide(request.from(), request.to()));
     }
 
     @MessageMapping("/rooms/{roomId}/remove")
-    public void remove(@DestinationVariable long roomId, @Payload RemoveRequest request, Principal principal) {
+    public void remove(@DestinationVariable long roomId, @Valid @Payload RemoveRequest request, Principal principal) {
         play(roomId, principal, new Move.Remove(request.at()));
     }
 
@@ -92,6 +100,30 @@ public class GameStompController {
         gameService
                 .snapshot(roomId)
                 .ifPresent(event -> messaging.convertAndSendToUser(String.valueOf(actor.id()), "/queue/sync", event));
+    }
+
+    // @RestControllerAdvice 는 메시징에 적용되지 않아서 여기서 던진 예외는
+    // 클라이언트에 도달하지 않고 Spring 이 ERROR 스택트레이스만 찍었다
+    // 방장이 아닌 사람이 시작을 눌러도 화면에 아무 반응이 없던 이유
+    @MessageExceptionHandler(CustomException.class)
+    public void onCustomException(CustomException exception, Principal principal) {
+        sendError(principal, ErrorResponse.of(exception.getErrorCode()));
+    }
+
+    // @Valid 가 걸린 @Payload 의 검증 실패
+    // 웹 계층의 동명 예외가 아니라 messaging 쪽 예외가 날아온다. 타입을 헷갈리면 조용히 안 잡힌다
+    @MessageExceptionHandler(MethodArgumentNotValidException.class)
+    public void onInvalidPayload(MethodArgumentNotValidException exception, Principal principal) {
+        log.debug("STOMP 페이로드 검증 실패: {}", exception.getMessage());
+        sendError(principal, ErrorResponse.of(ErrorCode.INVALID_REQUEST));
+    }
+
+    private void sendError(Principal principal, ErrorResponse response) {
+        AuthenticatedUser actor = AuthenticatedUser.from(principal);
+        if (actor == null) {
+            return;
+        }
+        messaging.convertAndSendToUser(String.valueOf(actor.id()), ERROR_QUEUE, response);
     }
 
     private void play(long roomId, Principal principal, Move move) {

@@ -4,6 +4,7 @@ import com.ninemensmorris.auth.service.CustomOAuth2UserService;
 import com.ninemensmorris.security.JwtAuthenticationFilter;
 import com.ninemensmorris.security.OAuth2SuccessHandler;
 import com.ninemensmorris.security.UnauthorizedEntryPoint;
+import jakarta.servlet.DispatcherType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,7 +48,13 @@ public class SecurityConfig {
                         .deleteCookies("access_token"))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 기본을 거부로 둔다. permitAll 이 기본이면 실수로 열린 엔드포인트를 못 잡는다
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/health")
+                //
+                // ERROR 디스패치를 먼저 열어 둔다. 이게 없으면 검증 실패·깨진 JSON 처럼
+                // 컨트롤러 밖에서 터진 400 이 /error 로 포워딩되면서 기본 거부에 걸려
+                // 401 "로그인이 필요합니다" 로 바뀐다
+                .authorizeHttpRequests(auth -> auth.dispatcherTypeMatchers(DispatcherType.ERROR)
+                        .permitAll()
+                        .requestMatchers("/actuator/health")
                         .permitAll()
                         .requestMatchers("/oauth2/**", "/api/oauth2/**")
                         .permitAll()

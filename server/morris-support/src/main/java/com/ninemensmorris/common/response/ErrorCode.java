@@ -4,8 +4,10 @@ import lombok.Getter;
 
 @Getter
 public enum ErrorCode {
-    NOT_FOUND_USER(404, "해당 사용자를 찾을 수 없습니다."),
+    USER_NOT_FOUND(404, "해당 사용자를 찾을 수 없습니다."),
     UNAUTHORIZED(401, "로그인이 필요합니다."),
+    INVALID_REQUEST(400, "요청 형식이 올바르지 않습니다."),
+    INTERNAL_ERROR(500, "처리 중 오류가 발생했습니다."),
 
     // Room
     ROOM_NOT_FOUND(404, "방을 찾을 수 없습니다."),
