@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
-import { NoRoomAlert } from '~/components';
+import { AlertModal } from '~/components';
 import { QUERY } from '~/lib/queries';
 import { useGameState, useLeaveRoom } from '~/hooks';
 import { FirstMoveRule, MoveRejected, RoomEvent } from '~/lib/types';
@@ -312,7 +312,10 @@ export function GamePage() {
         onClose={() => setShowDrawRejectedModal(false)}
       />
       <SocketErrorModal visible={disconnected} onLeaveRoom={onLeaveRoom} />
-      <NoRoomAlert visible={roomGone && !inGame} onClose={onLeaveRoom} />
+      <AlertModal
+        message={roomGone && !inGame ? '사라진 방입니다' : ''}
+        onClose={onLeaveRoom}
+      />
       {!inGame ? (
         <WaitingRoom
           room={room}

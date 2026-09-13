@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
-import { Button, NoRoomAlert } from '~/components';
+import { AlertModal, Button } from '~/components';
 import { QUERY } from '~/lib/queries';
 import Undo from '~/assets/icons/undo.svg?react';
 import Refresh from '~/assets/icons/refresh.svg?react';
@@ -13,10 +13,10 @@ import { useJoinRoom } from '~/hooks';
 
 export function RoomListPage() {
   const [showCreateRoomModal, setShowCreateRoomModal] = useState(false);
-  const [showNoRoomAlert, setShowNoRoomAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   const [refreshed, setRefreshed] = useState(true);
   const { data: rooms, refetch } = useQuery(QUERY.ROOMS);
-  const { mutate: joinRoom } = useJoinRoom();
+  const { mutate: joinRoom } = useJoinRoom(setAlertMessage);
 
   // 방이 생기거나 사라지면 서버가 로비 토픽으로 알려줌
   // 목록 자체는 REST 로 다시 받음. 소켓으로 목록 전체를 흘리면
@@ -36,13 +36,12 @@ export function RoomListPage() {
     };
   }, [refetch]);
 
-  // 서버에 실제로 입장 요청을 보낸다
-  // 예전에는 목록에 있는지만 확인하고 화면을 넘겨서, 방이 가득 찼거나
-  // 사라진 경우를 알 수 없었다
+  // 목록에 있는지 먼저 보는 것은 빠른 피드백용일 뿐이고
+  // 가득 찼는지 같은 판단은 서버가 한다. 실패하면 서버 문구를 그대로 띄운다
   const onJoinRoom = async (roomId: number) => {
     const { data: currentRooms } = await refetch();
     if (!currentRooms?.find((room) => room.roomId === roomId)) {
-      return setShowNoRoomAlert(true);
+      return setAlertMessage('사라진 방입니다');
     }
 
     joinRoom(roomId);
@@ -62,10 +61,7 @@ export function RoomListPage() {
         visible={showCreateRoomModal}
         onClose={() => setShowCreateRoomModal(false)}
       />
-      <NoRoomAlert
-        visible={showNoRoomAlert}
-        onClose={() => setShowNoRoomAlert(false)}
-      />
+      <AlertModal message={alertMessage} onClose={() => setAlertMessage('')} />
       <div className="flex max-w-[40rem] grow flex-col items-center gap-6">
         <h1 className="text-2xl font-semibold">방 목록</h1>
         <div className="flex w-full justify-between gap-4">

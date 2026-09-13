@@ -6,6 +6,17 @@ export const client = axios.create({
   withCredentials: true,
 });
 
+// 서버는 실패를 전부 { status, code, message } 한 가지 모양으로 보낸다
+// 그대로 두면 axios 기본 메시지("Request failed with status code 400")만 남아
+// 화면에 보여줄 수 있는 문구가 없다
+export const errorMessageOf = (error: unknown) => {
+  if (axios.isAxiosError(error)) {
+    const body = error.response?.data as { message?: string } | undefined;
+    if (body?.message) return body.message;
+  }
+  return '요청을 처리하지 못했습니다';
+};
+
 export const logout = async () => {
   const response = await client.post('auth/logout');
 
