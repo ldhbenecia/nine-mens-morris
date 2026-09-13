@@ -4,6 +4,7 @@ import com.ninemensmorris.core.rating.Rating;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -11,8 +12,10 @@ import lombok.NoArgsConstructor;
 
 // 카카오 회원번호를 그대로 기본키로 쓰고 있음
 // 게스트 로그인을 넣으려면 대체키로 바꿔야 하며 그때 provider / providerId 로 분리함
+// 랭킹은 mmr 로 정렬하고 내 등수는 mmr 비교로 세므로 인덱스가 없으면 매번 풀스캔이다
+// /rankings 는 로그인 없이도 열리는 엔드포인트라 더 그렇다
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = @Index(name = "idx_users_mmr", columnList = "mmr"))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {

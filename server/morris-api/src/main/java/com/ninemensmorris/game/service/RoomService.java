@@ -18,10 +18,15 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-// 로비. 방 생성 / 입장 / 퇴장 / 목록
+// 로비. 방 생성 / 입장 / 목록
+//
+// 방 자체는 메모리에 있고 DB 는 방장 정보를 읽을 때만 쓴다
+// 트랜잭션이 없으면 리포지터리 호출마다 커넥션을 따로 잡는다
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 @Slf4j
 public class RoomService {
 

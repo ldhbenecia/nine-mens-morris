@@ -7,8 +7,8 @@ import com.ninemensmorris.user.dto.response.MyProfileResponse;
 import com.ninemensmorris.user.dto.response.NicknameResponse;
 import com.ninemensmorris.user.dto.response.RankingResponse;
 import com.ninemensmorris.user.repository.UserRepository;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -32,11 +32,23 @@ public class UserService {
         return new NicknameResponse(find(userId).getNickname());
     }
 
+    // 동점자는 같은 등수를 받고 다음 사람은 인원수만큼 건너뛴다
+    // 목록 인덱스를 그대로 등수로 쓰면 findRankByMmr 이 계산한 내 등수와 어긋난다
     public List<RankingResponse> findRankings(int limit) {
-        List<User> top = userRepository.findAllByOrderByMmrDesc(PageRequest.of(0, limit));
-        return IntStream.range(0, top.size())
-                .mapToObj(index -> RankingResponse.of(index + 1, top.get(index)))
-                .toList();
+        List<User> top = userRepository.findAllByOrderByMmrDescUserIdAsc(PageRequest.of(0, limit));
+
+        List<RankingResponse> ranked = new ArrayList<>(top.size());
+        int rank = 0;
+        int previousMmr = Integer.MIN_VALUE;
+        for (int index = 0; index < top.size(); index++) {
+            User user = top.get(index);
+            if (user.getMmr() != previousMmr) {
+                rank = index + 1;
+                previousMmr = user.getMmr();
+            }
+            ranked.add(RankingResponse.of(rank, user));
+        }
+        return ranked;
     }
 
     private User find(long userId) {
