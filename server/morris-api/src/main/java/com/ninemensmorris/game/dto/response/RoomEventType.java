@@ -4,6 +4,8 @@ package com.ninemensmorris.game.dto.response;
 // 기존에는 /topic/game 과 /topic/gameRoom 두 곳으로 나뉘어 있었고
 // 후자는 아무도 구독하지 않아 메시지가 어디에도 도달하지 않았다
 public enum RoomEventType {
+    // 로비 목록이 바뀜. 목록 자체는 REST 로 다시 받아감
+    LOBBY_CHANGED,
     PLAYER_JOINED,
     PLAYER_LEFT,
     SETTINGS_CHANGED, // 선공 방식 변경

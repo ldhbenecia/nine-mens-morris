@@ -3,6 +3,9 @@ package com.ninemensmorris.game.controller;
 import com.ninemensmorris.game.command.RoomCommand;
 import com.ninemensmorris.game.dto.request.CreateRoomRequest;
 import com.ninemensmorris.game.dto.response.CreateRoomResponse;
+import com.ninemensmorris.game.dto.response.RoomDetailResponse;
+import com.ninemensmorris.game.dto.response.RoomEvent;
+import com.ninemensmorris.game.dto.response.RoomEventType;
 import com.ninemensmorris.game.dto.response.RoomSummaryResponse;
 import com.ninemensmorris.game.service.RoomService;
 import com.ninemensmorris.security.AuthenticatedUser;
@@ -11,6 +14,7 @@ import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,17 +28,28 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RoomController {
 
+    // 로비 목록이 바뀌었음을 알리는 토픽. 목록 자체는 REST 로 다시 받아감
+    private static final String LOBBY_TOPIC = "/topic/lobby";
+    private static final String ROOM_TOPIC = "/topic/rooms/";
+
     private final RoomService roomService;
+    private final SimpMessagingTemplate messaging;
 
     @GetMapping
     public List<RoomSummaryResponse> findAll() {
         return roomService.findAll();
     }
 
+    @GetMapping("/{roomId}")
+    public RoomDetailResponse findOne(@PathVariable long roomId) {
+        return roomService.findDetail(roomId);
+    }
+
     @PostMapping
     public ResponseEntity<CreateRoomResponse> create(
             AuthenticatedUser actor, @Valid @RequestBody CreateRoomRequest request) {
         CreateRoomResponse response = roomService.create(new RoomCommand.CreateRoom(actor.id(), request.title()));
+        notifyLobby();
         return ResponseEntity.created(URI.create("/api/v1/rooms/" + response.roomId()))
                 .body(response);
     }
@@ -44,12 +59,21 @@ public class RoomController {
     @PostMapping("/{roomId}/players")
     public ResponseEntity<Void> join(AuthenticatedUser actor, @PathVariable long roomId) {
         roomService.join(new RoomCommand.JoinRoom(actor.id(), roomId));
+        // 방장이 새로고침하지 않아도 상대가 들어온 걸 알 수 있어야 함
+        messaging.convertAndSend(ROOM_TOPIC + roomId, RoomEvent.by(RoomEventType.PLAYER_JOINED, actor.id()));
+        notifyLobby();
         return ResponseEntity.status(201).build();
     }
 
     @DeleteMapping("/{roomId}/players/me")
     public ResponseEntity<Void> leave(AuthenticatedUser actor, @PathVariable long roomId) {
         roomService.leave(new RoomCommand.LeaveRoom(actor.id(), roomId));
+        messaging.convertAndSend(ROOM_TOPIC + roomId, RoomEvent.by(RoomEventType.PLAYER_LEFT, actor.id()));
+        notifyLobby();
         return ResponseEntity.noContent().build();
+    }
+
+    private void notifyLobby() {
+        messaging.convertAndSend(LOBBY_TOPIC, RoomEvent.signal(RoomEventType.LOBBY_CHANGED));
     }
 }

@@ -10,4 +10,9 @@ public record RoomEvent(RoomEventType type, GameStateResponse state, Long actorI
     public static RoomEvent by(RoomEventType type, long actorId) {
         return new RoomEvent(type, null, actorId, null);
     }
+
+    // 특정 사용자의 행동이 아닌 알림. actorId 에 0 같은 값을 넣으면 0번 사용자가 한 일처럼 보임
+    public static RoomEvent signal(RoomEventType type) {
+        return new RoomEvent(type, null, null, null);
+    }
 }

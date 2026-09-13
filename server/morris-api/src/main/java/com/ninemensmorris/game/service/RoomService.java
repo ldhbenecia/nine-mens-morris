@@ -6,6 +6,7 @@ import com.ninemensmorris.game.command.RoomCommand;
 import com.ninemensmorris.game.domain.Room;
 import com.ninemensmorris.game.domain.RoomRegistry;
 import com.ninemensmorris.game.dto.response.CreateRoomResponse;
+import com.ninemensmorris.game.dto.response.RoomDetailResponse;
 import com.ninemensmorris.game.dto.response.RoomSummaryResponse;
 import com.ninemensmorris.user.domain.User;
 import com.ninemensmorris.user.repository.UserRepository;
@@ -81,8 +82,14 @@ public class RoomService {
     }
 
     // 방장이 나가면 방이 사라지고, 참가자가 나가면 방은 대기 상태로 돌아간다
+    //
+    // 없는 방에서 나가는 건 오류가 아님
+    // 상대가 먼저 나가 방이 사라진 뒤 나가기를 누르면 404 로 화면이 멈춤
     public void leave(RoomCommand.LeaveRoom command) {
-        Room room = rooms.find(command.roomId()).orElseThrow(() -> new CustomException(ErrorCode.ROOM_NOT_FOUND));
+        Room room = rooms.find(command.roomId()).orElse(null);
+        if (room == null) {
+            return;
+        }
 
         if (room.hostId() == command.actorId()) {
             rooms.remove(command.roomId());
@@ -101,6 +108,18 @@ public class RoomService {
 
     public Optional<Room> find(long roomId) {
         return rooms.find(roomId);
+    }
+
+    public RoomDetailResponse findDetail(long roomId) {
+        Room room = rooms.find(roomId).orElseThrow(() -> new CustomException(ErrorCode.ROOM_NOT_FOUND));
+        return RoomDetailResponse.of(room, nicknameOf(room.hostId()), nicknameOf(room.guestId()));
+    }
+
+    private String nicknameOf(Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        return userRepository.findById(userId).map(User::getNickname).orElse("알 수 없음");
     }
 
     private enum RejectableResult {
