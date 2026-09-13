@@ -1,0 +1,45 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+.env*
+!.env.example
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Yarn berry
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.vite
+
+server
+# 로컬 전용 로그인 페이지. 배포에 포함되면 안 됨
+public/dev-login.html
+
+# PnP 런타임 파일은 전역 캐시 절대경로를 담아서 머신마다 달라짐
+# yarn.lock 만 커밋하고 yarn install --immutable 로 재생성
+.pnp.*
