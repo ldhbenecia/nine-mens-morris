@@ -507,6 +507,34 @@ class MorrisGameTest {
     class 무승부 {
 
         @Test
+        @DisplayName("제안은 Applied 가 아니라 DrawOffered 로 구분된다")
+        void 제안은_DrawOffered다() {
+            // given
+            MorrisGame game = new MorrisGame(Stone.BLACK);
+
+            // when
+            MoveResult result = game.apply(Stone.BLACK, new Move.OfferDraw());
+
+            // then — Applied 로 돌려주면 상대에게 제안이 아니라 판 갱신으로 전달된다
+            assertThat(result).isInstanceOf(MoveResult.DrawOffered.class);
+            assertThat(game.drawOfferedBy()).isEqualTo(Stone.BLACK);
+        }
+
+        @Test
+        @DisplayName("거절은 DrawDeclined 로 구분된다")
+        void 거절은_DrawDeclined다() {
+            // given
+            MorrisGame game = new MorrisGame(Stone.BLACK);
+            game.apply(Stone.BLACK, new Move.OfferDraw());
+
+            // when
+            MoveResult result = game.apply(Stone.WHITE, new Move.RespondDraw(false));
+
+            // then
+            assertThat(result).isInstanceOf(MoveResult.DrawDeclined.class);
+        }
+
+        @Test
         @DisplayName("제안하고 상대가 수락하면 무승부다")
         void 합의하면_무승부다() {
             // given

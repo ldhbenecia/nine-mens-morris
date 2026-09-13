@@ -11,6 +11,12 @@ public sealed interface MoveResult {
     // 밀이 만들어져 제거할 차례가 됨. 턴은 넘어가지 않음
     record MillFormed() implements MoveResult {}
 
+    // 무승부를 제안함. 상대에게 알려야 함
+    record DrawOffered() implements MoveResult {}
+
+    // 무승부 제안을 거절함
+    record DrawDeclined() implements MoveResult {}
+
     // 게임이 끝남
     record Finished(Outcome outcome) implements MoveResult {}
 

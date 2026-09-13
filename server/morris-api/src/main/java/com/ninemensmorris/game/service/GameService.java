@@ -94,6 +94,11 @@ public class GameService {
                 settle(room, game, finished.outcome());
                 yield broadcast(RoomEventType.FINISHED, room, game);
             }
+            // 무승부 제안과 거절은 판이 안 바뀌므로 누가 했는지를 실어 보내야 함
+            case MoveResult.DrawOffered ignored ->
+                new PlayOutcome.Broadcast(RoomEvent.by(RoomEventType.DRAW_OFFERED, actorId));
+            case MoveResult.DrawDeclined ignored ->
+                new PlayOutcome.Broadcast(RoomEvent.by(RoomEventType.DRAW_DECLINED, actorId));
             case MoveResult.MillFormed ignored -> broadcast(RoomEventType.STATE_CHANGED, room, game);
             case MoveResult.Applied ignored -> broadcast(RoomEventType.STATE_CHANGED, room, game);
         };

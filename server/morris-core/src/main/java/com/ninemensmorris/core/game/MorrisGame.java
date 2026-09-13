@@ -155,7 +155,7 @@ public final class MorrisGame {
     // 무승부 제안. 상대가 수를 두면 자동으로 소멸함
     private MoveResult offerDraw(Stone actor) {
         drawOfferedBy = actor;
-        return new MoveResult.Applied();
+        return new MoveResult.DrawOffered();
     }
 
     // 무승부 응답. 제안이 없거나 자기 제안이면 거절한다
@@ -169,7 +169,7 @@ public final class MorrisGame {
         }
         if (!accept) {
             drawOfferedBy = null;
-            return new MoveResult.Applied();
+            return new MoveResult.DrawDeclined();
         }
         return finish(Outcome.draw(EndReason.DRAW_AGREED));
     }
