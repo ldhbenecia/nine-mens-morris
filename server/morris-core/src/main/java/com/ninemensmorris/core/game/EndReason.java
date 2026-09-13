@@ -6,5 +6,6 @@ public enum EndReason {
     RESIGN, // 기권
     DRAW_AGREED, // 합의 무승부
     THREEFOLD_REPETITION, // 같은 국면이 3번 반복
-    FIFTY_MOVE_RULE // 제거 없이 50수 경과
+    FIFTY_MOVE_RULE, // 제거 없이 50수 경과
+    ABANDONED // 양쪽 다 오래 방치해 판을 접음. 한쪽 잘못이 아니라 무승부로 남김
 }

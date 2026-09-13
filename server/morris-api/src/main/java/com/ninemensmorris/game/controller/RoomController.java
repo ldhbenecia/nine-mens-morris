@@ -7,6 +7,7 @@ import com.ninemensmorris.game.dto.response.RoomDetailResponse;
 import com.ninemensmorris.game.dto.response.RoomEvent;
 import com.ninemensmorris.game.dto.response.RoomEventType;
 import com.ninemensmorris.game.dto.response.RoomSummaryResponse;
+import com.ninemensmorris.game.service.GameService;
 import com.ninemensmorris.game.service.RoomService;
 import com.ninemensmorris.security.AuthenticatedUser;
 import jakarta.validation.Valid;
@@ -33,6 +34,7 @@ public class RoomController {
     private static final String ROOM_TOPIC = "/topic/rooms/";
 
     private final RoomService roomService;
+    private final GameService gameService;
     private final SimpMessagingTemplate messaging;
 
     @GetMapping
@@ -65,11 +67,15 @@ public class RoomController {
         return ResponseEntity.status(201).build();
     }
 
+    // 나가기는 게임 정산까지 얽히므로 GameService 가 처리함
+    // 서비스가 이벤트를 돌려줬을 때만 브로드캐스트함
+    // 무조건 쏘면 방에 속하지도 않은 사람이 남의 방에 PLAYER_LEFT 를 꽂을 수 있다
     @DeleteMapping("/{roomId}/players/me")
     public ResponseEntity<Void> leave(AuthenticatedUser actor, @PathVariable long roomId) {
-        roomService.leave(new RoomCommand.LeaveRoom(actor.id(), roomId));
-        messaging.convertAndSend(ROOM_TOPIC + roomId, RoomEvent.by(RoomEventType.PLAYER_LEFT, actor.id()));
-        notifyLobby();
+        gameService.leave(new RoomCommand.LeaveRoom(actor.id(), roomId)).ifPresent(broadcast -> {
+            messaging.convertAndSend(ROOM_TOPIC + broadcast.roomId(), broadcast.event());
+            notifyLobby();
+        });
         return ResponseEntity.noContent().build();
     }
 

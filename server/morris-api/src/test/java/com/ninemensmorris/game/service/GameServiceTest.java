@@ -21,6 +21,7 @@ import com.ninemensmorris.game.domain.RoomRegistry;
 import com.ninemensmorris.game.dto.response.RoomEvent;
 import com.ninemensmorris.game.dto.response.RoomEventType;
 import com.ninemensmorris.match.service.MatchResultService;
+import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,6 +34,9 @@ class GameServiceTest {
     private static final long GUEST = 2L;
     private static final long OUTSIDER = 99L;
 
+    // 30분짜리 실제 값을 쓰면 유휴 정리를 검증할 수 없다
+    private static final Duration IDLE_TIMEOUT = Duration.ofMinutes(30);
+
     private RoomRegistry rooms;
     private MatchResultService matchResultService;
     private GameService gameService;
@@ -41,7 +45,7 @@ class GameServiceTest {
     void setUp() {
         rooms = new RoomRegistry();
         matchResultService = mock(MatchResultService.class);
-        gameService = new GameService(rooms, matchResultService);
+        gameService = new GameService(rooms, matchResultService, IDLE_TIMEOUT);
     }
 
     private Room 시작된_방(FirstMoveRule rule) {
@@ -340,6 +344,134 @@ class GameServiceTest {
         void 방에_없으면_무시한다() {
             // then
             assertThat(gameService.handleDisconnect(OUTSIDER)).isEmpty();
+        }
+    }
+
+    @Nested
+    class 나가기 {
+
+        @Test
+        @DisplayName("게임 중 나가면 기권 처리되고 전적이 기록된다")
+        void 게임_중_나가면_기권이다() {
+            // given — 끊김 경로만 정산하고 이 경로는 빠뜨려서
+            //         지고 있을 때 나가기를 누르는 쪽이 이득이었다
+            Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
+
+            // when
+            RoomBroadcast broadcast = gameService
+                    .leave(new RoomCommand.LeaveRoom(GUEST, room.roomId()))
+                    .orElseThrow();
+
+            // then
+            assertThat(broadcast.event().type()).isEqualTo(RoomEventType.FINISHED);
+            assertThat(room.game().status()).isEqualTo(GameStatus.FINISHED);
+            verify(matchResultService).record(eq(HOST), eq(GUEST), eq(HOST), eq("RESIGN"), anyInt());
+        }
+
+        @Test
+        @DisplayName("정산이 끝나면 방이 대기 상태로 돌아간다")
+        void 정산_후_방이_비워진다() {
+            // given — 정산 후에도 방이 남아 로비에 계속 뜨고
+            //         방장이 없는 상대와 새 게임을 시작할 수 있었다
+            Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
+
+            // when
+            gameService.leave(new RoomCommand.LeaveRoom(GUEST, room.roomId()));
+
+            // then
+            assertThat(room.isFull()).isFalse();
+            assertThat(room.isPlaying()).isFalse();
+        }
+
+        @Test
+        @DisplayName("방에 속하지 않은 사람이 나가면 알릴 것이 없다")
+        void 외부인의_나가기는_무시된다() {
+            // given — 무조건 브로드캐스트하면 아무나 남의 방에 PLAYER_LEFT 를 꽂을 수 있다
+            Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
+
+            // when
+            var broadcast = gameService.leave(new RoomCommand.LeaveRoom(OUTSIDER, room.roomId()));
+
+            // then
+            assertThat(broadcast).isEmpty();
+            assertThat(room.isPlaying()).isTrue();
+            verify(matchResultService, never()).record(anyLong(), anyLong(), anyLong(), anyString(), anyInt());
+        }
+
+        @Test
+        @DisplayName("없는 방에서 나가도 오류가 아니다")
+        void 없는_방은_무시한다() {
+            // then
+            assertThat(gameService.leave(new RoomCommand.LeaveRoom(HOST, 404L))).isEmpty();
+        }
+
+        @Test
+        @DisplayName("대기 중에 나가면 정산 없이 퇴장만 알린다")
+        void 대기중_나가면_정산하지_않는다() {
+            // given
+            Room room = rooms.create("방", HOST);
+            room.join(GUEST);
+
+            // when
+            RoomBroadcast broadcast = gameService
+                    .leave(new RoomCommand.LeaveRoom(GUEST, room.roomId()))
+                    .orElseThrow();
+
+            // then
+            assertThat(broadcast.event().type()).isEqualTo(RoomEventType.PLAYER_LEFT);
+            verify(matchResultService, never()).record(anyLong(), anyLong(), anyLong(), anyString(), anyInt());
+        }
+    }
+
+    @Nested
+    class 유휴_방_정리 {
+
+        private GameService 즉시_정리하는_서비스() {
+            return new GameService(rooms, matchResultService, Duration.ZERO);
+        }
+
+        @Test
+        @DisplayName("진행 중이던 방은 무승부로 기록하고 지운다")
+        void 진행중인_방은_무승부로_정산한다() {
+            // given — 예전에는 RoomRegistry 가 바로 지워서 기록이 남지 않았다
+            Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
+
+            // when — 임계값 0 이면 모든 방이 정리 대상이 된다
+            var broadcasts = 즉시_정리하는_서비스().purgeIdleRooms();
+
+            // then
+            assertThat(broadcasts).hasSize(1);
+            assertThat(broadcasts.get(0).event().type()).isEqualTo(RoomEventType.FINISHED);
+            assertThat(rooms.find(room.roomId())).isEmpty();
+            verify(matchResultService).record(eq(HOST), eq(GUEST), eq(null), eq("ABANDONED"), anyInt());
+        }
+
+        @Test
+        @DisplayName("시작 전 방은 조용히 지운다")
+        void 대기중인_방은_정산하지_않는다() {
+            // given
+            Room room = rooms.create("방", HOST);
+
+            // when
+            var broadcasts = 즉시_정리하는_서비스().purgeIdleRooms();
+
+            // then
+            assertThat(broadcasts).isEmpty();
+            assertThat(rooms.find(room.roomId())).isEmpty();
+            verify(matchResultService, never()).record(anyLong(), anyLong(), anyLong(), anyString(), anyInt());
+        }
+
+        @Test
+        @DisplayName("최근까지 쓰인 방은 건드리지 않는다")
+        void 활동중인_방은_남긴다() {
+            // given
+            Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
+
+            // when
+            gameService.purgeIdleRooms();
+
+            // then
+            assertThat(rooms.find(room.roomId())).isPresent();
         }
     }
 

@@ -71,6 +71,15 @@ public final class MorrisGame {
         };
     }
 
+    // 서버가 판을 접음. 플레이어의 수가 아니므로 Move 가 아니라 별도 메서드
+    // 양쪽 다 오래 아무 수도 두지 않은 경우라 어느 쪽 잘못도 아니어서 무승부로 남김
+    public MoveResult abandon() {
+        if (status != GameStatus.PLAYING) {
+            return reject(RejectReason.GAME_NOT_IN_PROGRESS);
+        }
+        return finish(Outcome.draw(EndReason.ABANDONED));
+    }
+
     // 1단계. 손에 든 돌을 빈 지점에 놓음
     // 이미 돌이 있는 자리에 덮어쓰는 것을 막는다. 기존에는 검사 없이 배열에 대입했음
     private MoveResult place(Stone actor, int to) {

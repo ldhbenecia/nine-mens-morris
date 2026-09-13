@@ -59,14 +59,16 @@ public final class Room {
         return isFull() ? 2 : 1;
     }
 
+    // 새 참가자가 들어오면 지난 판 기록은 버림
     public void join(long userId) {
         this.guestId = userId;
+        this.game = null;
         touch();
     }
 
+    // 끝난 판은 남겨 둠. 남은 사람이 새로고침해도 결과를 볼 수 있어야 함
     public void leaveGuest() {
         this.guestId = null;
-        this.game = null;
         touch();
     }
 
@@ -88,10 +90,6 @@ public final class Room {
         this.game = new MorrisGame(Stone.BLACK);
         touch();
         return game;
-    }
-
-    public void finish() {
-        touch();
     }
 
     public Stone stoneOf(long userId) {

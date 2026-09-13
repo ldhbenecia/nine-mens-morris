@@ -1,6 +1,5 @@
 package com.ninemensmorris.game.domain;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
@@ -9,8 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 // 방 저장소
@@ -19,11 +16,7 @@ import org.springframework.stereotype.Component;
 // STOMP 메시지는 스레드 풀에서 병렬 처리되므로 락 없이 접근하면 값이 유실된다
 // 방 하나당 락을 걸어 직렬화하고, 방끼리는 그대로 병렬로 처리한다
 @Component
-@Slf4j
 public class RoomRegistry {
-
-    // 이 시간 동안 아무 일도 없으면 정리 대상
-    private static final Duration IDLE_TIMEOUT = Duration.ofMinutes(30);
 
     private final ConcurrentMap<Long, Room> rooms = new ConcurrentHashMap<>();
     private final AtomicLong sequence = new AtomicLong();
@@ -71,18 +64,12 @@ public class RoomRegistry {
         }
     }
 
-    // 방치된 방 정리. 기존에는 정리 대상을 판별할 시각 정보조차 없어 고아 방이 쌓였다
-    @Scheduled(fixedDelay = 5, timeUnit = java.util.concurrent.TimeUnit.MINUTES)
-    public void purgeIdleRooms() {
-        Instant threshold = Instant.now().minus(IDLE_TIMEOUT);
-        List<Long> stale = rooms.values().stream()
+    // 주어진 시각보다 오래 방치된 방. 얼마나 방치돼야 정리 대상인지는 호출자가 정함
+    // 여기서 바로 지우지 않는 이유는 진행 중인 판을 정산할 수 있는 곳이 아니어서다
+    public List<Long> findIdle(Instant threshold) {
+        return rooms.values().stream()
                 .filter(room -> room.lastActivityAt().isBefore(threshold))
                 .map(Room::roomId)
                 .toList();
-
-        stale.forEach(rooms::remove);
-        if (!stale.isEmpty()) {
-            log.info("유휴 방 정리 완료. 삭제 {}건, 남은 방 {}개", stale.size(), rooms.size());
-        }
     }
 }
