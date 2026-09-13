@@ -20,15 +20,19 @@ public final class Room {
     private final long hostId;
     private final Instant createdAt = Instant.now();
 
-    private Long guestId;
-    private FirstMoveRule firstMoveRule = FirstMoveRule.RANDOM;
-    private MorrisGame game;
+    // 변경은 전부 RoomRegistry.mutate 의 방 단위 락 안에서 일어나지만
+    // 로비 목록·방 상세·유휴 정리는 락 없이 읽는다
+    // volatile 이 없으면 낡은 값이나 절반만 초기화된 MorrisGame 이 보일 수 있고
+    // long 은 읽기 자체가 쪼개질 수 있음
+    private volatile Long guestId;
+    private volatile FirstMoveRule firstMoveRule = FirstMoveRule.RANDOM;
+    private volatile MorrisGame game;
 
     // 흑/백이 각각 누구인지. 방장이 항상 흑이라는 전제를 두지 않기 위해 분리함
-    private long blackId;
-    private long whiteId;
+    private volatile long blackId;
+    private volatile long whiteId;
 
-    private Instant lastActivityAt = Instant.now();
+    private volatile Instant lastActivityAt = Instant.now();
 
     public Room(long roomId, String title, long hostId) {
         this.roomId = roomId;

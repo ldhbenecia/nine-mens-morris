@@ -98,7 +98,7 @@ public class GameStompController {
     public void sync(@DestinationVariable long roomId, Principal principal) {
         AuthenticatedUser actor = require(principal);
         gameService
-                .snapshot(roomId)
+                .snapshot(roomId, actor.id())
                 .ifPresent(event -> messaging.convertAndSendToUser(String.valueOf(actor.id()), "/queue/sync", event));
     }
 

@@ -212,11 +212,20 @@ public class GameService {
     }
 
     // 재접속 복구. 기존에는 SYNC_GAME 이 선언만 되어 있고 새로고침하면 판을 잃었다
-    public Optional<RoomEvent> snapshot(long roomId) {
-        // 끝난 판도 돌려줌. 결과 화면에서 새로고침해도 승패는 남아 있어야 함
-        return rooms.find(roomId)
-                .filter(Room::hasGame)
-                .map(room -> RoomEvent.of(RoomEventType.SNAPSHOT, GameStateResponse.of(room, room.game())));
+    // 끝난 판도 돌려줌. 결과 화면에서 새로고침해도 승패는 남아 있어야 함
+    //
+    // 반드시 방 단위 락 안에서 읽어야 함
+    // 락 밖에서 읽으면 상대가 돌을 옮기는 중간에 보드가 복제돼 돌이 출발지에도
+    // 도착지에도 없는 판이 나가고, 승부가 난 순간에는 status 만 FINISHED 이고
+    // outcome 은 아직 안 보여서 결정된 판이 무승부로 그려진다
+    // 방에 속한 사람만. 예전에는 roomId 만 보고 돌려줘서 아무나 남의 판을 끌어올 수 있었다
+    public Optional<RoomEvent> snapshot(long roomId, long actorId) {
+        return rooms.mutate(roomId, room -> {
+            if (!room.contains(actorId) || !room.hasGame()) {
+                return null;
+            }
+            return RoomEvent.of(RoomEventType.SNAPSHOT, GameStateResponse.of(room, room.game()));
+        });
     }
 
     private void settle(Room room, MorrisGame game, Outcome outcome) {

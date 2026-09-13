@@ -490,7 +490,7 @@ class GameServiceTest {
             착수(HOST, room.roomId(), new Move.Place(5));
 
             // when
-            RoomEvent event = gameService.snapshot(room.roomId()).orElseThrow();
+            RoomEvent event = gameService.snapshot(room.roomId(), HOST).orElseThrow();
 
             // then
             assertThat(event.type()).isEqualTo(RoomEventType.SNAPSHOT);
@@ -504,7 +504,17 @@ class GameServiceTest {
             Room room = rooms.create("방", HOST);
 
             // then
-            assertThat(gameService.snapshot(room.roomId())).isEmpty();
+            assertThat(gameService.snapshot(room.roomId(), HOST)).isEmpty();
+        }
+
+        @Test
+        @DisplayName("방에 속하지 않은 사람은 판을 볼 수 없다")
+        void 외부인에게는_스냅샷을_주지_않는다() {
+            // given — 예전에는 roomId 만 보고 돌려줘서 아무나 남의 판을 끌어올 수 있었다
+            Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
+
+            // then
+            assertThat(gameService.snapshot(room.roomId(), OUTSIDER)).isEmpty();
         }
     }
 }
