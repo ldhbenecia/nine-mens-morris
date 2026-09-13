@@ -3,14 +3,14 @@
 이 레포에서 새 작업을 시작할 때 다음 순서로 컨텍스트를 잡는다.
 
 1. **현재 단계 파악**
-   - [docs/plans/13-roadmap.md](../../docs/plans/13-roadmap.md) 의 "진행 상황" 표 — 어디까지 ✅ 인지
+   - [docs/plans/13-roadmap.md](../../server/docs/plans/13-roadmap.md) 의 "진행 상황" 표 — 어디까지 ✅ 인지
    - 해당 Phase 의 작업 목록에서 다음 항목 확인
 2. **관련 결정 확인**
-   - [docs/plans/07-architecture-decision.md](../../docs/plans/07-architecture-decision.md) — ADR 7건.
+   - [docs/plans/07-architecture-decision.md](../../server/docs/plans/07-architecture-decision.md) — ADR 7건.
      작업 주제와 겹치면 우선 참조. **결정과 어긋나는 구현을 하지 않는다**
 3. **알려진 결함 확인**
-   - [docs/plans/01-code-audit.md](../../docs/plans/01-code-audit.md) — 손대는 파일에 이미 알려진 결함이 있는지
-   - 게임 규칙을 건드리면 [02-game-rules-audit.md](../../docs/plans/02-game-rules-audit.md) 대조표를 기준으로
+   - [docs/plans/01-code-audit.md](../../server/docs/plans/01-code-audit.md) — 손대는 파일에 이미 알려진 결함이 있는지
+   - 게임 규칙을 건드리면 [02-game-rules-audit.md](../../server/docs/plans/02-game-rules-audit.md) 대조표를 기준으로
 4. **세부 룰 떠올리기**
    - [.claude/rules/](.) — 용어집·명명·커밋 규칙
 

@@ -9,32 +9,37 @@ import { RankingPage } from './pages/Ranking';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthGate } from './components/AuthGate';
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <MainPage />,
-  },
-  {
-    path: 'rooms',
-    element: (
-      <AuthGate>
-        <RoomListPage />
-      </AuthGate>
-    ),
-  },
-  {
-    path: 'game/:roomId',
-    element: (
-      <AuthGate>
-        <GamePage />
-      </AuthGate>
-    ),
-  },
-  {
-    path: 'ranking',
-    element: <RankingPage />,
-  },
-]);
+// Pages 하위 경로로 서비스되므로 라우터도 같은 접두사를 알아야 한다
+// BASE_URL 은 vite 의 base 설정에서 온다
+const router = createBrowserRouter(
+  [
+    {
+      path: '/',
+      element: <MainPage />,
+    },
+    {
+      path: 'rooms',
+      element: (
+        <AuthGate>
+          <RoomListPage />
+        </AuthGate>
+      ),
+    },
+    {
+      path: 'game/:roomId',
+      element: (
+        <AuthGate>
+          <GamePage />
+        </AuthGate>
+      ),
+    },
+    {
+      path: 'ranking',
+      element: <RankingPage />,
+    },
+  ],
+  { basename: import.meta.env.BASE_URL }
+);
 
 const queryClient = new QueryClient();
 

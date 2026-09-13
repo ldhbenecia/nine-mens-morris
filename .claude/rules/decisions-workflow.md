@@ -17,7 +17,7 @@
 
 ## 어디에 쓰나
 
-기존 결정 7건은 [docs/plans/07-architecture-decision.md](../../docs/plans/07-architecture-decision.md) 에 ADR-1 ~ ADR-7 로 들어 있다.
+기존 결정 7건은 [docs/plans/07-architecture-decision.md](../../server/docs/plans/07-architecture-decision.md) 에 ADR-1 ~ ADR-7 로 들어 있다.
 **새 결정은 그 파일 끝에 ADR-8 부터 이어 붙인다.** 번호는 재사용하지 않는다.
 
 ## 템플릿

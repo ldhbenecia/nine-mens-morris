@@ -2,15 +2,17 @@
 
 ## 브랜치
 
-- `develop` 단일 트렁크 (origin/HEAD 가 develop)
+- `main` 단일 트렁크
 - 작업 브랜치가 필요하면 prefix 풀네임: `feature/<slug>`, `fix/<slug>`, `refactor/<slug>`, `docs/<slug>`, `chore/<slug>`
-- 소규모 정리·문서는 develop 직접 push 허용 (1인 프로젝트). 구조를 바꾸는 작업은 브랜치 + PR
+- 소규모 정리·문서는 main 직접 push 허용 (1인 프로젝트). 구조를 바꾸는 작업은 브랜치 + PR
 
 ## 커밋 (Conventional Commits)
 
 - 형식: `type(scope): subject`
 - type: `feat` `fix` `refactor` `style` `docs` `test` `build` `chore` `perf` `ci`
-- scope 예: `game`, `auth`, `user`, `core`, `storage`, `support`, `api`, `config`, `deps`, `logging`
+- scope 예: `game`, `auth`, `user`, `core`, `storage`, `support`, `api`, `config`, `deps`, `logging`, `ui`, `web`
+- **모노레포이므로 scope 로 어느 쪽인지 드러낸다.** 서버 쪽은 모듈·도메인 이름을,
+  프론트 쪽은 `ui` / `web` 을 쓴다. 양쪽을 같이 고쳤다면 한 커밋에 담고 본문에 둘 다 적는다
 - **subject 톤**: 한국어 명사구 우선. 영어 명령형 동사(`add`, `update`)는 피함
   - 좋음: `feat(core): Board — 24지점 상태 + ASCII 표기법`
   - 피함: `feat(core): add board class`
@@ -31,9 +33,19 @@
 
 ## 커밋 전 확인
 
+서버를 고쳤으면 `server/` 에서
+
 ```bash
 ./gradlew spotlessApply    # 포맷 (필수)
 ./gradlew build            # 컴파일 + 테스트
+```
+
+프론트를 고쳤으면 `web/` 에서 (Node 22. 24 에서는 Yarn PnP 가 깨진다)
+
+```bash
+yarn tsc --noEmit
+yarn lint --fix
+yarn build
 ```
 
 **빌드를 돌리지 않고 커밋하지 않는다.** "될 것 같다"는 근거가 아니다.

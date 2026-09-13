@@ -1,0 +1,60 @@
+name: web
+
+on:
+  push:
+    branches: [main]
+    paths: ['web/**', '.github/workflows/web.yml']
+  pull_request:
+    paths: ['web/**', '.github/workflows/web.yml']
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: web
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Yarn 4 PnP 는 Node 24 에서 EBADF 로 깨진다
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn tsc --noEmit
+      - run: yarn lint
+      - run: yarn build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_SOCKET_URL: ${{ vars.VITE_SOCKET_URL }}
+          VITE_KAKAO_URL: ${{ vars.VITE_KAKAO_URL }}
+
+      # Pages 는 정적 파일만 서비스하므로 /rooms 같은 경로로 직접 들어오면 404 가 된다
+      # 404 를 index.html 로 채워 두면 라우터가 경로를 받아 처리한다
+      - run: cp dist/index.html dist/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          path: web/dist
+
+  # 서버가 아직 배포되지 않아 API 주소가 비어 있다
+  # 그대로 올리면 화면은 뜨지만 로그인도 방 목록도 전부 실패하므로
+  # 배포는 수동 실행일 때만 한다. 서버 주소가 생기면 저장소 변수를 채우고 한 번 돌리면 됨
+  deploy:
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

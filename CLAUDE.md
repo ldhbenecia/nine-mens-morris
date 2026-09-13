@@ -77,8 +77,16 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 # 프로젝트 컨텍스트
 
-나인멘스모리스(Nine Men's Morris) 온라인 대전 게임 백엔드.
-2024년에 작성한 초기 Spring Boot 프로젝트를 2026년에 재정비하는 중이다.
+나인멘스모리스(Nine Men's Morris) 온라인 대전 게임. 서버와 웹을 한 리포지터리에 둔 모노레포다.
+
+2024년에 팀으로 만든 프로젝트를 2026년에 혼자 재정비하는 중이다.
+당시 서버는 본인이, 웹은 다른 사람이 맡았고 두 리포지터리로 나뉘어 있었다.
+프로토콜을 공유하는 두 축이라 한쪽만 고치면 어긋나서 하나로 합쳤다.
+
+| 디렉터리 | 내용 | 배포 |
+| --- | --- | --- |
+| `server/` | Spring Boot / Gradle 멀티모듈 | AWS (EKS 연습 예정) |
+| `web/` | React / Vite | GitHub Pages (`/nine-mens-morris/`) |
 
 ## 스택
 
@@ -90,11 +98,13 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 | 영속성 | Spring Data JPA + MySQL 8 |
 | 인증 | 카카오 OAuth2 + 자체 JWT (jjwt) |
 | 빌드 | Gradle (Wrapper 8.14.x), Spotless |
-| 프론트엔드 | 별도 리포 `../NineMensMorris_FrontEnd` (React + Vite + @stomp/stompjs) |
+| 프론트엔드 | `web/` — React 18 + Vite + @stomp/stompjs + TanStack Query + Tailwind |
+| 프론트 패키지 | Yarn 4 PnP. **Node 22 를 쓴다** (24 에서는 PnP 가 EBADF 로 깨진다) |
 
 ## 명령어
 
 ```bash
+# server/ 에서 실행
 ./gradlew build              # 컴파일 + 테스트
 ./gradlew spotlessApply      # 포맷 적용 (커밋 전 필수)
 ./gradlew spotlessCheck      # 포맷 검사 (CI 에서 수행)
@@ -104,25 +114,25 @@ docker compose up            # 앱 + MySQL
 
 ## 반드시 먼저 읽을 것
 
-**`docs/plans/` 에 전수조사 결과와 확정된 설계 결정이 들어 있다.**
+**`server/docs/plans/` 에 전수조사 결과와 확정된 설계 결정이 들어 있다.**
 작업 전에 관련 문서를 확인하고, 결정과 어긋나는 구현을 하지 않는다.
 
 | 문서 | 언제 보나 |
 | --- | --- |
-| [docs/plans/13-roadmap.md](docs/plans/13-roadmap.md) | **작업 시작 지점.** Phase 0~9 |
-| [docs/plans/01-code-audit.md](docs/plans/01-code-audit.md) | 알려진 결함 (P0 13 / P1 17 / P2 18) |
-| [docs/plans/02-game-rules-audit.md](docs/plans/02-game-rules-audit.md) | 게임 규칙 22개 대조표 |
-| [docs/plans/07-architecture-decision.md](docs/plans/07-architecture-decision.md) | ADR 7건 (모듈·플랫폼·DB·HTTPS·토큰·Redis·메시징) |
+| [docs/plans/13-roadmap.md](server/docs/plans/13-roadmap.md) | **작업 시작 지점.** Phase 0~9 |
+| [docs/plans/01-code-audit.md](server/docs/plans/01-code-audit.md) | 알려진 결함 (P0 13 / P1 17 / P2 18) |
+| [docs/plans/02-game-rules-audit.md](server/docs/plans/02-game-rules-audit.md) | 게임 규칙 22개 대조표 |
+| [docs/plans/07-architecture-decision.md](server/docs/plans/07-architecture-decision.md) | ADR 7건 (모듈·플랫폼·DB·HTTPS·토큰·Redis·메시징) |
 
 ## 이 코드베이스에서 특히 주의할 것
 
 - **서버가 게임 규칙을 강제하지 않는다.** 턴·좌표·소유권·인접성 검증이 없다.
-  규칙 관련 코드를 만질 때는 [02](docs/plans/02-game-rules-audit.md)의 대조표를 기준으로 한다.
+  규칙 관련 코드를 만질 때는 [02](server/docs/plans/02-game-rules-audit.md)의 대조표를 기준으로 한다.
 - **클라이언트 페이로드를 신뢰하지 않는다.** 요청자 식별은 항상 `Principal`에서 가져온다.
-  DTO에 `userId`를 받는 코드는 취약점이다 ([03](docs/plans/03-layering-and-dto.md) 2절).
+  DTO에 `userId`를 받는 코드는 취약점이다 ([03](server/docs/plans/03-layering-and-dto.md) 2절).
 - **게임 상태는 `MorrisService`의 `HashMap` 11개**에 있고 동기화도 정리도 없다.
-  건드릴 때 [06](docs/plans/06-persistence-and-queries.md) 2절의 목표 구조를 참고한다.
-- **테스트가 사실상 없다.** 로직을 바꾸면 테스트를 같이 쓴다 ([11](docs/plans/11-testing-strategy.md)).
+  건드릴 때 [06](server/docs/plans/06-persistence-and-queries.md) 2절의 목표 구조를 참고한다.
+- **테스트가 사실상 없다.** 로직을 바꾸면 테스트를 같이 쓴다 ([11](server/docs/plans/11-testing-strategy.md)).
 
 ## 세부 규칙
 
