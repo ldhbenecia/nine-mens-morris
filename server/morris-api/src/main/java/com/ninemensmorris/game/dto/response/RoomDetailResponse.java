@@ -15,7 +15,8 @@ public record RoomDetailResponse(
         Long guestId,
         String guestNickname,
         FirstMoveRule firstMoveRule,
-        boolean playing) {
+        boolean playing,
+        boolean hasGame) { // 끝난 판도 true. playing 만 보면 종료된 판 새로고침 때 대기실이 뜸
 
     public static RoomDetailResponse of(Room room, String hostNickname, String guestNickname) {
         return new RoomDetailResponse(
@@ -26,6 +27,7 @@ public record RoomDetailResponse(
                 room.guestId(),
                 guestNickname,
                 room.firstMoveRule(),
-                room.isPlaying());
+                room.isPlaying(),
+                room.hasGame());
     }
 }
