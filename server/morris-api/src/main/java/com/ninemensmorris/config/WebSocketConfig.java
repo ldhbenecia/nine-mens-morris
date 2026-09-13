@@ -2,15 +2,8 @@ package com.ninemensmorris.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.messaging.simp.stomp.StompCommand;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -19,12 +12,13 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private static final String CLIENT_PREFIX = "/app/";
-
     private final String[] allowedOrigins;
+    private final ClientFrameGuard clientFrameGuard;
 
-    public WebSocketConfig(@Value("${cors.allowed-origins}") String[] allowedOrigins) {
+    public WebSocketConfig(
+            @Value("${cors.allowed-origins}") String[] allowedOrigins, ClientFrameGuard clientFrameGuard) {
         this.allowedOrigins = allowedOrigins;
+        this.clientFrameGuard = clientFrameGuard;
     }
 
     @Override
@@ -42,35 +36,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new ClientSendGuard());
-    }
-
-    // 클라이언트가 /topic 으로 직접 보내는 것을 막는다
-    //
-    // SimpleBroker 는 클라이언트가 /topic 으로 보낸 SEND 프레임도 구독자에게 그대로 중계한다
-    // /app 접두사는 "여기로 보내면 @MessageMapping 이 받는다" 는 뜻일 뿐
-    // 다른 곳으로 못 보낸다는 뜻이 아니다
-    // 막지 않으면 브라우저 콘솔 한 줄로 상대 화면에 위조된 게임 상태를 띄울 수 있다
-    private static final class ClientSendGuard implements ChannelInterceptor {
-
-        @Override
-        public Message<?> preSend(Message<?> message, MessageChannel channel) {
-            StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-            if (accessor == null) {
-                return message;
-            }
-            // 클라이언트가 보낸 SEND 는 커맨드가 SEND 이거나 메시지 타입이 MESSAGE 로 들어옴
-            boolean clientSend = StompCommand.SEND.equals(accessor.getCommand())
-                    || SimpMessageType.MESSAGE.equals(accessor.getMessageType());
-            if (!clientSend) {
-                return message;
-            }
-
-            String destination = accessor.getDestination();
-            if (destination == null || !destination.startsWith(CLIENT_PREFIX)) {
-                throw new IllegalArgumentException("클라이언트는 /app 으로만 전송할 수 있음: " + destination);
-            }
-            return message;
-        }
+        registration.interceptors(clientFrameGuard);
     }
 }
