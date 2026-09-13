@@ -3,11 +3,10 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
 import { QUERY } from '~/lib/queries';
-import Logout from '~/assets/icons/logout.svg?react';
 import { useGameState, useLeaveRoom } from '~/hooks';
-import { Button } from '~/components';
-import { MoveRejected, RoomEvent } from '~/lib/types';
+import { FirstMoveRule, MoveRejected, RoomEvent } from '~/lib/types';
 import { Board } from './Board';
+import { WaitingRoom } from './WaitingRoom';
 import { Status } from './Status';
 import { WithdrawModal } from './WithdrawModal';
 import { GameResultModal } from './GameResultModal';
@@ -71,6 +70,13 @@ export function GamePage() {
     startGame,
   } = useGameState();
 
+  // 게임 시작 전에는 GameState 가 비어 있어 방장이 누구인지 알 수 없음
+  const { data: room, refetch: refetchRoom } = useQuery({
+    ...QUERY.ROOM(Number(roomId)),
+    enabled: !!roomId,
+  });
+  const isHost = !!currentUser && room?.hostId === currentUser.userId;
+
   const { data: enemy } = useQuery({
     ...QUERY.USER_NICKNAME(enemyId()),
     enabled: gameState.status !== 'WAITING' && enemyId() > 0,
@@ -78,6 +84,14 @@ export function GamePage() {
 
   const onLeaveRoom = () => {
     if (roomId) leaveRoom(Number(roomId));
+  };
+
+  const onChangeFirstMoveRule = (rule: FirstMoveRule) => {
+    if (!roomId) return;
+    client.publish({
+      destination: `/app/rooms/${roomId}/settings`,
+      body: JSON.stringify({ firstMoveRule: rule }),
+    });
   };
 
   const onResign = () => {
@@ -162,13 +176,17 @@ export function GamePage() {
           if (event.state) setGameState(event.state);
           setShowSocketErrorModal(true);
           break;
+        // 대기실 상태가 바뀌었으니 방 정보를 다시 받음
         case 'PLAYER_JOINED':
         case 'PLAYER_LEFT':
         case 'SETTINGS_CHANGED':
+          refetchRoom();
+          break;
+        case 'LOBBY_CHANGED':
           break;
       }
     },
-    [currentUser, playMoveSound, setGameState]
+    [currentUser, playMoveSound, setGameState, refetchRoom]
   );
 
   useEffect(() => {
@@ -223,8 +241,6 @@ export function GamePage() {
     if (loserId === currentUser.userId) lossSound.play();
   }, [status, winnerId, loserId, currentUser]);
 
-  const isHost = !!currentUser && gameState.status === 'WAITING';
-
   return (
     <main
       className={`transition-removing flex h-full grow flex-col justify-between overflow-hidden p-4 transition-colors duration-1000 md:gap-4 ${gameState.awaitingRemoval && 'bg-red-200'}`}
@@ -267,59 +283,56 @@ export function GamePage() {
         visible={showSocketErrorModal}
         onLeaveRoom={onLeaveRoom}
       />
-      <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
-        {gameState.status === 'WAITING' ? (
-          <div className="z-10 flex items-center gap-2">
-            <span className="animate-pulse">상대를 기다리는 중...</span>
-            {isHost && <Button slim text="게임 시작" onClick={onStart} />}
-            <Button
-              slim
-              text="나가기"
-              theme="secondary"
-              icon={<Logout />}
-              onClick={onLeaveRoom}
+      {gameState.status === 'WAITING' ? (
+        <WaitingRoom
+          room={room}
+          isHost={isHost}
+          onChangeFirstMoveRule={onChangeFirstMoveRule}
+          onStart={onStart}
+          onLeave={onLeaveRoom}
+        />
+      ) : (
+        <>
+          <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
+            <PhaseBanner phase={getPlayerPhase()} />
+            <Status
+              turn={!isPlayerTurn()}
+              color={enemyStone()}
+              inHand={getEnemyInHand()}
+              onBoard={getEnemyOnBoard()}
+              nickname={enemy?.nickname}
             />
           </div>
-        ) : (
-          <PhaseBanner phase={getPlayerPhase()} />
-        )}
-        <Status
-          turn={!isPlayerTurn()}
-          color={enemyStone()}
-          inHand={getEnemyInHand()}
-          onBoard={getEnemyOnBoard()}
-          nickname={enemy?.nickname}
-          visible={gameState.status !== 'WAITING'}
-        />
-      </div>
-      <Board
-        client={client}
-        board={gameState.board}
-        selectable={getPlayerPhase() !== 'PLACING' && isPlayerTurn()}
-        playerStoneColor={myStone()}
-        addStone={addStone}
-        moveStone={moveStone}
-        removeStone={removeStone}
-      />
-      <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
-        <Message
-          phase={getPlayerPhase()}
-          removing={gameState.awaitingRemoval}
-          error={error}
-          turn={isPlayerTurn()}
-        />
-        <Status
-          isCurrentUser
-          turn={isPlayerTurn()}
-          color={myStone()}
-          inHand={getPlayerInHand()}
-          onBoard={getPlayerOnBoard()}
-          nickname={currentUser?.nickname}
-          onShowWithdrawModal={() => setShowWithdrawModal(true)}
-          onShowRequestDrawModal={() => setShowRequestDrawModal(true)}
-          onShowHelpModal={() => setShowHelpModal(true)}
-        />
-      </div>
+          <Board
+            client={client}
+            board={gameState.board}
+            selectable={getPlayerPhase() !== 'PLACING' && isPlayerTurn()}
+            playerStoneColor={myStone()}
+            addStone={addStone}
+            moveStone={moveStone}
+            removeStone={removeStone}
+          />
+          <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
+            <Message
+              phase={getPlayerPhase()}
+              removing={gameState.awaitingRemoval}
+              error={error}
+              turn={isPlayerTurn()}
+            />
+            <Status
+              isCurrentUser
+              turn={isPlayerTurn()}
+              color={myStone()}
+              inHand={getPlayerInHand()}
+              onBoard={getPlayerOnBoard()}
+              nickname={currentUser?.nickname}
+              onShowWithdrawModal={() => setShowWithdrawModal(true)}
+              onShowRequestDrawModal={() => setShowRequestDrawModal(true)}
+              onShowHelpModal={() => setShowHelpModal(true)}
+            />
+          </div>
+        </>
+      )}
     </main>
   );
 }
