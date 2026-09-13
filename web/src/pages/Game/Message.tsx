@@ -13,10 +13,10 @@ type MessageProps = {
 // 이제 고를 수 없는 상황 자체가 없다
 export function Message({ phase, turn, error, removing }: MessageProps) {
   const guide = () => {
-    if (removing) return '상대의 돌 중 하나를 선택해 제거하세요.';
-    if (phase === 'PLACING') return '빈 지점에 돌을 배치하세요.';
-    if (phase === 'FLYING') return '돌 3개 남음: 모든 지점으로 돌을 옮기세요!';
-    return '돌을 인접한 지점으로 옮길 수 있습니다.';
+    if (removing) return '상대 돌 하나를 골라 제거하세요';
+    if (phase === 'PLACING') return '빈 지점에 돌을 놓으세요';
+    if (phase === 'FLYING') return '돌이 3개! 이제 어디로든 옮길 수 있습니다';
+    return '인접한 빈 지점으로 돌을 옮기세요';
   };
 
   return (

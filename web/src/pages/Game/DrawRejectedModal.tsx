@@ -13,7 +13,7 @@ export function DrawRejectedModal({
     <Modal visible={visible}>
       <>
         <div className="text-2xl font-semibold">알림</div>
-        <div>무승부 요청이 거절되었습니다.</div>
+        <div>상대가 무승부를 거절했습니다</div>
         <div className="flex w-full gap-4">
           <Button fullWidth text="확인" onClick={onClose} />
         </div>

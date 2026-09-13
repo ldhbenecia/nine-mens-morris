@@ -14,9 +14,9 @@ export function ResponseDrawModal({
   return (
     <Modal visible={visible}>
       <>
-        <div className="text-2xl font-semibold">상대의 무승부 요청</div>
+        <div className="text-2xl font-semibold">무승부 제안</div>
         <div className="text-center">
-          상대가 <b>무승부 요청</b>을 보냈습니다.
+          상대가 <b>무승부</b>를 제안했습니다
           <br />
           승낙하시겠습니까?
         </div>
@@ -27,7 +27,7 @@ export function ResponseDrawModal({
             text="거절"
             onClick={onRejectDraw}
           />
-          <Button fullWidth text="승낙" onClick={onAcceptDraw} />
+          <Button fullWidth text="수락" onClick={onAcceptDraw} />
         </div>
       </>
     </Modal>
