@@ -1,5 +1,11 @@
+# 로컬 개발:  docker compose up -d            -> DB 만 뜸. 앱은 IDE 에서 실행
+# 전체 구동:  docker compose --profile app up  -> 앱까지 같이 뜸
+#
+# 앱을 기본으로 두면 코드를 고칠 때마다 이미지를 다시 빌드해야 하고
+# 디버거와 핫리로드를 쓸 수 없음
 services:
   backend:
+    profiles: [app]
     container_name: morris-server
     build:
       context: .
