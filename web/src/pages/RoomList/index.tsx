@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Client } from '@stomp/stompjs';
 import { Button } from '~/components';
 import { QUERY } from '~/lib/queries';
 import Undo from '~/assets/icons/undo.svg?react';
@@ -17,6 +18,24 @@ export function RoomListPage() {
   const [refreshed, setRefreshed] = useState(true);
   const { data: rooms, refetch } = useQuery(QUERY.ROOMS);
   const { mutate: joinRoom } = useJoinRoom();
+
+  // 방이 생기거나 사라지면 서버가 로비 토픽으로 알려줌
+  // 목록 자체는 REST 로 다시 받음. 소켓으로 목록 전체를 흘리면
+  // 접속자 수만큼 같은 데이터가 반복 전송됨
+  useEffect(() => {
+    const client = new Client({
+      brokerURL: import.meta.env.VITE_SOCKET_URL,
+      reconnectDelay: 5000,
+      onConnect: () => {
+        client.subscribe('/topic/lobby', () => refetch());
+      },
+    });
+    client.activate();
+
+    return () => {
+      client.deactivate();
+    };
+  }, [refetch]);
 
   // 서버에 실제로 입장 요청을 보낸다
   // 예전에는 목록에 있는지만 확인하고 화면을 넘겨서, 방이 가득 찼거나
