@@ -4,6 +4,7 @@ import com.ninemensmorris.auth.domain.CustomOAuth2User;
 import com.ninemensmorris.user.domain.User;
 import com.ninemensmorris.user.repository.UserRepository;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -17,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private static final String KAKAO = "kakao";
+
+    // users.nickname 컬럼 길이와 같아야 함
+    private static final int MAX_NICKNAME_LENGTH = 20;
 
     private final UserRepository userRepository;
 
@@ -32,9 +36,26 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         long kakaoId = Long.parseLong(oAuth2User.getAttribute("id").toString());
-        userRepository.findById(kakaoId).orElseGet(() -> userRepository.save(toUser(oAuth2User, kakaoId)));
+        userRepository
+                .findById(kakaoId)
+                .ifPresentOrElse(
+                        user -> syncProfile(user, oAuth2User), () -> userRepository.save(toUser(oAuth2User, kakaoId)));
 
         return new CustomOAuth2User(kakaoId);
+    }
+
+    private void syncProfile(User user, OAuth2User oAuth2User) {
+        Map<String, Object> properties = oAuth2User.getAttribute("properties");
+        if (properties == null) {
+            return;
+        }
+
+        String nickname = nicknameOf((String) properties.get("nickname"), user.getUserId());
+        String imageUrl = (String) properties.get("profile_image");
+        if (nickname.equals(user.getNickname()) && Objects.equals(imageUrl, user.getImageUrl())) {
+            return;
+        }
+        user.changeProfile(nickname, imageUrl);
     }
 
     private User toUser(OAuth2User oAuth2User, long kakaoId) {
@@ -46,6 +67,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // 이메일은 동의 항목이라 없을 수 있음
         String email = account == null ? null : (String) account.get("email");
 
-        return User.ofKakao(kakaoId, email, nickname == null ? "플레이어" + kakaoId : nickname, profileImage);
+        return User.ofKakao(kakaoId, email, nicknameOf(nickname, kakaoId), profileImage);
+    }
+
+    // 닉네임 동의를 안 했으면 회원번호로 만들어 준다
+    // 컬럼이 20자라 그냥 이어 붙이면 회원번호가 길 때 저장에서 터진다
+    private String nicknameOf(String nickname, long kakaoId) {
+        if (nickname != null && !nickname.isBlank()) {
+            return nickname.length() > MAX_NICKNAME_LENGTH ? nickname.substring(0, MAX_NICKNAME_LENGTH) : nickname;
+        }
+
+        String generated = "플레이어" + kakaoId;
+        return generated.length() > MAX_NICKNAME_LENGTH ? generated.substring(0, MAX_NICKNAME_LENGTH) : generated;
     }
 }
