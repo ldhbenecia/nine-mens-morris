@@ -12,7 +12,6 @@ import com.ninemensmorris.user.domain.User;
 import com.ninemensmorris.user.repository.UserRepository;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -84,10 +83,6 @@ public class RoomService {
             case FULL -> throw new CustomException(ErrorCode.ROOM_FULL);
             case OK -> log.info("방 입장 roomId={} userId={}", command.roomId(), command.actorId());
         }
-    }
-
-    public Optional<Room> find(long roomId) {
-        return rooms.find(roomId);
     }
 
     public RoomDetailResponse findDetail(long roomId) {

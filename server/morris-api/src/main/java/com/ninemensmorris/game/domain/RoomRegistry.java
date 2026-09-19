@@ -47,10 +47,6 @@ public class RoomRegistry {
         rooms.remove(roomId);
     }
 
-    public int size() {
-        return rooms.size();
-    }
-
     // 방 하나에 대한 모든 변경은 이 메서드를 거친다
     public <R> Optional<R> mutate(long roomId, Function<Room, R> action) {
         Room room = rooms.get(roomId);

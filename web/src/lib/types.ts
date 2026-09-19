@@ -117,7 +117,6 @@ export type RoomEvent = {
   type: RoomEventType;
   state: GameState | null;
   actorId: number | null;
-  message: string | null;
 };
 
 // 규칙 위반 거절. 방이 아니라 요청자에게만 온다
