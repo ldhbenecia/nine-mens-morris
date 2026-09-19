@@ -2,14 +2,17 @@ package com.ninemensmorris.config;
 
 import com.ninemensmorris.game.domain.RoomRegistry;
 import com.ninemensmorris.security.AuthenticatedUser;
+import com.ninemensmorris.security.TokenAuthenticator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 // 클라이언트가 보낸 STOMP 프레임 검사
@@ -28,6 +31,7 @@ public class ClientFrameGuard implements ChannelInterceptor {
     private static final String USER_PREFIX = "/user/";
 
     private final RoomRegistry rooms;
+    private final TokenAuthenticator tokenAuthenticator;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -42,7 +46,7 @@ public class ClientFrameGuard implements ChannelInterceptor {
         }
 
         return switch (type) {
-            case CONNECT -> requireAuthenticated(message, accessor);
+            case CONNECT -> authenticate(message, accessor);
             case SUBSCRIBE -> authorizeSubscribe(message, accessor);
             case MESSAGE -> requireAppDestination(message, accessor);
             default -> message;
@@ -51,10 +55,18 @@ public class ClientFrameGuard implements ChannelInterceptor {
 
     // 인증 없는 소켓은 붙는 것 자체를 막음
     // 익명 연결을 허용하면 아무나 무한히 소켓을 열어 둘 수 있다
-    private Message<?> requireAuthenticated(Message<?> message, StompHeaderAccessor accessor) {
-        if (AuthenticatedUser.from(accessor.getUser()) == null) {
+    //
+    // 토큰이 CONNECT 프레임에 실려 오므로 여기서 주체를 확정한다
+    // 핸드셰이크는 그냥 HTTP 요청이라 헤더를 붙일 방법이 없고,
+    // 쿠키는 프론트가 cross-site 라 쓸 수 없음
+    private Message<?> authenticate(Message<?> message, StompHeaderAccessor accessor) {
+        Authentication authentication =
+                tokenAuthenticator.authenticate(accessor.getFirstNativeHeader(HttpHeaders.AUTHORIZATION));
+        if (authentication == null) {
             throw new IllegalArgumentException("인증되지 않은 소켓 연결");
         }
+
+        accessor.setUser(authentication);
         return message;
     }
 

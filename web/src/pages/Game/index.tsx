@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
 import { AlertModal } from '~/components';
+import { authHeaders } from '~/lib/auth';
 import { QUERY } from '~/lib/queries';
 import { useGameState, useLeaveRoom } from '~/hooks';
 import { FirstMoveRule, MoveRejected, RoomEvent } from '~/lib/types';
@@ -29,11 +30,17 @@ import {
 import { DrawRejectedModal } from './DrawRejectedModal';
 import { SocketErrorModal } from './SocketErrorModal';
 
+// 토큰은 CONNECT 프레임 헤더로 보낸다
+// 핸드셰이크는 브라우저가 보내는 HTTP 요청이라 헤더를 붙일 수 없고, 쿠키는 cross-site 라 못 쓴다
+// beforeConnect 에서 채워야 재연결 때도 최신 토큰이 실린다
 const client = new Client({
   brokerURL: import.meta.env.VITE_SOCKET_URL,
   reconnectDelay: 5000,
   heartbeatIncoming: 4000,
   heartbeatOutgoing: 4000,
+  beforeConnect: () => {
+    client.connectHeaders = authHeaders();
+  },
 });
 
 export function GamePage() {

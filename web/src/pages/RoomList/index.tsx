@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
 import { AlertModal, Button } from '~/components';
+import { authHeaders } from '~/lib/auth';
 import { QUERY } from '~/lib/queries';
 import Undo from '~/assets/icons/undo.svg?react';
 import Refresh from '~/assets/icons/refresh.svg?react';
@@ -25,6 +26,9 @@ export function RoomListPage() {
     const client = new Client({
       brokerURL: import.meta.env.VITE_SOCKET_URL,
       reconnectDelay: 5000,
+      beforeConnect: () => {
+        client.connectHeaders = authHeaders();
+      },
       onConnect: () => {
         client.subscribe('/topic/lobby', () => refetch());
       },

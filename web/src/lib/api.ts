@@ -1,10 +1,28 @@
 import axios from 'axios';
+import { clearToken, getToken } from '~/lib/auth';
 import { Rank, Room, RoomDetail, User } from '~/lib/types';
 
 export const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true,
 });
+
+client.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+client.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      clearToken();
+    }
+    return Promise.reject(error);
+  }
+);
 
 // 서버는 실패를 전부 { status, code, message } 한 가지 모양으로 보낸다
 // 그대로 두면 axios 기본 메시지("Request failed with status code 400")만 남아

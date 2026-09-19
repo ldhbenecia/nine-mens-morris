@@ -43,9 +43,10 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2.redirectionEndpoint(endpoint -> endpoint.baseUri("/api/oauth2/kakao"))
                         .userInfoEndpoint(endpoint -> endpoint.userService(oAuth2UserService))
                         .successHandler(oAuth2SuccessHandler))
+                // 토큰이 클라이언트에 있으므로 서버가 지울 것이 없다
+                // 무효화 목록을 두기 전까지 로그아웃은 클라이언트가 토큰을 버리는 것으로 끝남
                 .logout(logout -> logout.logoutUrl("/api/v1/auth/logout")
-                        .logoutSuccessHandler((request, response, authentication) -> response.setStatus(204))
-                        .deleteCookies("access_token"))
+                        .logoutSuccessHandler((request, response, authentication) -> response.setStatus(204)))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 기본을 거부로 둔다. permitAll 이 기본이면 실수로 열린 엔드포인트를 못 잡는다
                 //

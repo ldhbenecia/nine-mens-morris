@@ -7,6 +7,7 @@ import {
   leaveRoom,
   logout,
 } from '~/lib/api';
+import { clearToken } from '~/lib/auth';
 import { QUERY } from '~/lib/queries';
 
 // 실패를 화면에 보여줄 책임은 호출부에 있다
@@ -16,12 +17,12 @@ type OnFailure = (message: string) => void;
 export const useLogout = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
   const { mutate } = useMutation({
     mutationFn: logout,
-    onSuccess: () => {
-      queryClient.removeQueries({
-        queryKey: QUERY.CURRENT_USER.queryKey,
-      });
+    onSettled: () => {
+      clearToken();
+      queryClient.clear();
       navigate('/');
     },
   });

@@ -6,6 +6,7 @@ import { MainPage } from '~/pages/Main';
 import { RoomListPage } from './pages/RoomList';
 import { GamePage } from './pages/Game';
 import { RankingPage } from './pages/Ranking';
+import { AuthCallbackPage } from './pages/AuthCallback';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthGate } from './components/AuthGate';
 
@@ -36,6 +37,10 @@ const router = createBrowserRouter(
     {
       path: 'ranking',
       element: <RankingPage />,
+    },
+    {
+      path: 'auth/callback',
+      element: <AuthCallbackPage />,
     },
   ],
   { basename: import.meta.env.BASE_URL }

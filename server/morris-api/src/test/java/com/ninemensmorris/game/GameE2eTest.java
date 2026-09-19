@@ -1,6 +1,7 @@
 package com.ninemensmorris.game;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ninemensmorris.game.dto.response.MoveRejectedResponse;
 import com.ninemensmorris.game.dto.response.RoomEvent;
@@ -12,6 +13,7 @@ import com.ninemensmorris.user.repository.UserRepository;
 import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
@@ -69,14 +71,23 @@ class GameE2eTest extends IntegrationTestSupport {
         stompClient.stop();
     }
 
-    // 핸드셰이크 요청에 JWT 쿠키를 실어 서블릿 필터가 Principal 을 채우게 한다
+    // 토큰은 CONNECT 프레임 헤더로 보낸다
+    // 핸드셰이크는 그냥 HTTP 요청이라 브라우저에서 헤더를 붙일 방법이 없음
     private StompSession connect(User user) throws Exception {
-        WebSocketHttpHeaders handshake = new WebSocketHttpHeaders();
-        handshake.add(HttpHeaders.COOKIE, "access_token=" + jwtProvider.generateAccessToken(user.getUserId()));
+        StompHeaders connectHeaders = new StompHeaders();
+        connectHeaders.add(HttpHeaders.AUTHORIZATION, bearer(user));
 
         return stompClient
-                .connectAsync("ws://localhost:" + port + "/ws", handshake, new StompSessionHandlerAdapter() {})
+                .connectAsync(
+                        "ws://localhost:" + port + "/ws",
+                        new WebSocketHttpHeaders(),
+                        connectHeaders,
+                        new StompSessionHandlerAdapter() {})
                 .get(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
+    }
+
+    private String bearer(User user) {
+        return "Bearer " + jwtProvider.generateAccessToken(user.getUserId());
     }
 
     private BlockingQueue<RoomEvent> subscribe(StompSession session, String destination) {
@@ -212,12 +223,51 @@ class GameE2eTest extends IntegrationTestSupport {
         }
     }
 
+    @Test
+    @DisplayName("토큰 없이는 소켓에 붙을 수 없다")
+    void 토큰_없이는_연결되지_않는다() {
+        // given — 예전에는 익명으로 붙어 모든 방 토픽을 구독하면
+        //         진행 중인 게임의 판 전체를 실시간으로 볼 수 있었다
+        StompHeaders empty = new StompHeaders();
+
+        // when, then
+        assertThatThrownBy(() -> stompClient
+                        .connectAsync(
+                                "ws://localhost:" + port + "/ws",
+                                new WebSocketHttpHeaders(),
+                                empty,
+                                new StompSessionHandlerAdapter() {})
+                        .get(TIMEOUT.toSeconds(), TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class);
+    }
+
+    @Test
+    @DisplayName("방에 속하지 않은 사람은 그 방의 이벤트를 받지 못한다")
+    void 비멤버는_방_이벤트를_받지_못한다() throws Exception {
+        // given — 구독 인가가 없으면 아무나 남의 판을 들여다볼 수 있다
+        long roomId = createRoomAndJoin();
+        User outsider = userRepository.save(User.ofKakao(1003L, "out@test.com", "외부인", null));
+
+        StompSession hostSession = connect(host);
+        StompSession outsiderSession = connect(outsider);
+        BlockingQueue<RoomEvent> outsiderInbox = subscribe(outsiderSession, "/topic/rooms/" + roomId);
+        Thread.sleep(300);
+
+        // when — 방 안에서 게임이 시작된다
+        hostSession.send("/app/rooms/" + roomId + "/start", null);
+
+        // then
+        assertThat(outsiderInbox.poll(2, TimeUnit.SECONDS))
+                .as("비멤버에게 방 이벤트가 전달됨")
+                .isNull();
+    }
+
     private long createRoomAndJoin() {
         var rest = new org.springframework.boot.test.web.client.TestRestTemplate();
         String base = "http://localhost:" + port + "/api/v1/rooms";
 
         var createHeaders = new HttpHeaders();
-        createHeaders.add(HttpHeaders.COOKIE, "access_token=" + jwtProvider.generateAccessToken(host.getUserId()));
+        createHeaders.add(HttpHeaders.AUTHORIZATION, bearer(host));
         var created = rest.exchange(
                 base,
                 org.springframework.http.HttpMethod.POST,
@@ -227,7 +277,7 @@ class GameE2eTest extends IntegrationTestSupport {
         long roomId = created.getBody().roomId();
 
         var joinHeaders = new HttpHeaders();
-        joinHeaders.add(HttpHeaders.COOKIE, "access_token=" + jwtProvider.generateAccessToken(guest.getUserId()));
+        joinHeaders.add(HttpHeaders.AUTHORIZATION, bearer(guest));
         var joined = rest.exchange(
                 base + "/" + roomId + "/players",
                 org.springframework.http.HttpMethod.POST,
