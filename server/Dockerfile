@@ -37,4 +37,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
 
 # 프로파일은 ENTRYPOINT 에 박지 않음. 같은 이미지를 로컬/EKS 에서 재사용하려면 환경변수여야 함
 # -Xmx 고정 대신 MaxRAMPercentage 로 컨테이너 메모리 제한을 따라감
+# JVM 기본 타임존은 로그를 읽기 쉽게 KST. DB 저장은 UTC 로 따로 고정돼 있음
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=55", "-Duser.timezone=Asia/Seoul", "-jar", "app.jar"]

@@ -3,6 +3,10 @@ dependencies {
     api project(':morris-core')
     api 'org.springframework.boot:spring-boot-starter-data-jpa'
 
+    // 스키마 관리도 영속성 관심사. 마이그레이션 스크립트가 이 모듈에 있음
+    implementation 'org.flywaydb:flyway-core'
+    runtimeOnly 'org.flywaydb:flyway-mysql'
+
     // JDBC 드라이버는 영속성 관심사. runtimeOnly 도 runtimeElements 에 포함되어
     // morris-api 의 bootJar 까지 전이됨
     runtimeOnly 'com.mysql:mysql-connector-j'

@@ -8,15 +8,31 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  # 스키마는 Flyway 가 만들고 Hibernate 는 엔티티와 맞는지 검사만 한다
+  # 예전에는 ddl-auto 가 스키마를 만들어서 운영 DDL 이 어디에도 기록돼 있지 않았다
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
   jpa:
     hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:validate}
+      ddl-auto: validate
     # REST/STOMP 전용이라 뷰 렌더링 없음. 켜두면 응답 완료까지 커넥션 점유
     open-in-view: false
     properties:
       hibernate:
         jdbc:
-          time_zone: Asia/Seoul
+          # 저장은 UTC 고정. 표시 시점 변환은 클라이언트가 함
+          # 서버 지역을 옮기거나 서머타임이 있는 곳을 다루게 되면
+          # 로컬 시각으로 저장된 값은 해석이 불가능해진다
+          time_zone: UTC
+
+  # 기본 풀이 1개라 유휴 방 정리와 모든 재접속 유예 작업이 한 스레드를 공유했다
+  # 정산 하나가 DB 를 기다리면 다른 사람들의 유예가 전부 밀린다
+  task:
+    scheduling:
+      pool:
+        size: 4
 
   security:
     oauth2:
@@ -45,6 +61,10 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+  # 배포할 때 진행 중인 요청을 끊지 않고 마무리한다
+  # 게임 상태가 메모리에만 있어 어차피 재배포되면 사라지지만,
+  # 적어도 정산 트랜잭션이 중간에 잘리지는 않게 함
+  shutdown: graceful
 
 # 프론트엔드 오리진. GitHub Pages 주소는 배포마다 다르므로 하드코딩하지 않음
 cors:

@@ -1,9 +1,12 @@
 package com.ninemensmorris.match.domain;
 
+import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
+
 import com.ninemensmorris.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -36,17 +39,19 @@ public class Match {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 외래키는 DB 에 걸지 않는다. 참조 무결성은 애플리케이션에서 지킴
+    // 명시해 두지 않으면 누가 ddl-auto 를 켰을 때 제약이 생겨 스키마가 갈라진다
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "black_id", nullable = false)
+    @JoinColumn(name = "black_id", nullable = false, foreignKey = @ForeignKey(NO_CONSTRAINT))
     private User black;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "white_id", nullable = false)
+    @JoinColumn(name = "white_id", nullable = false, foreignKey = @ForeignKey(NO_CONSTRAINT))
     private User white;
 
     // null 이면 무승부
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "winner_id")
+    @JoinColumn(name = "winner_id", foreignKey = @ForeignKey(NO_CONSTRAINT))
     private User winner;
 
     @Column(nullable = false, length = 30)

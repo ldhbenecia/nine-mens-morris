@@ -6,6 +6,7 @@ import com.ninemensmorris.security.AuthenticatedUser;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.RejectedExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -65,8 +66,14 @@ public class WebSocketEventListener {
 
         long userId = departure.userId();
         long roomId = departure.roomId();
-        taskScheduler.schedule(
-                () -> settleIfStillGone(userId, roomId), Instant.now().plus(RECONNECT_GRACE));
+        try {
+            taskScheduler.schedule(
+                    () -> settleIfStillGone(userId, roomId), Instant.now().plus(RECONNECT_GRACE));
+        } catch (RejectedExecutionException rejected) {
+            // 서버가 내려가는 중. 이때 붙어 있던 사람 수만큼 예외가 터져 로그를 덮는다
+            // 어차피 프로세스가 끝나므로 정산할 방법도 없음
+            log.debug("종료 중이라 재접속 유예를 예약하지 못함 userId={} roomId={}", userId, roomId);
+        }
     }
 
     private void settleIfStillGone(long userId, long roomId) {

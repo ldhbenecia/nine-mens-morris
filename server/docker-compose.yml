@@ -14,7 +14,7 @@ services:
       - "${SERVER_PORT:-8080}:8080"
     environment:
       # 컨테이너 안에서는 서비스명으로 접근. .env 의 SPRING_DATASOURCE_URL 은 호스트 직접 실행용
-      SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/${MYSQL_DATABASE}?connectionTimeZone=UTC&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       JPA_DDL_AUTO: ${JPA_DDL_AUTO}

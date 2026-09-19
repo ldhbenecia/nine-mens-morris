@@ -1,9 +1,14 @@
 spring:
+  # 운영과 같은 마이그레이션으로 스키마를 만든다
+  # 테스트만 ddl-auto 로 만들면 운영 DDL 이 한 번도 검증되지 않는다
   jpa:
     hibernate:
-      # create-drop 은 컨텍스트 종료 시 DROP 을 시도하는데 컨테이너가 먼저 내려가 30초 타임아웃 발생
-      ddl-auto: create
+      ddl-auto: validate
     open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
   security:
     oauth2:
       client:
