@@ -2,6 +2,16 @@
 
 목표: **로그인이 진입 장벽이 되지 않게 한다.** 카카오 로그인은 유지하되, 없이도 게임이 가능해야 한다.
 
+> **구현 완료.** 아래는 설계 당시의 문서이고, 실제 구현에서 달라진 것이 네 가지 있다.
+> 각각 해당 절에 표시해 두었다.
+>
+> | 설계 | 구현 | 왜 |
+> | --- | --- | --- |
+> | `GUEST` / `ROLE_GUEST` | **`VISITOR` / `ROLE_VISITOR`** | `guest` 는 용어집에서 이미 방의 참가자다 ([ADR-12](07-architecture-decision.md)) |
+> | `nickname` 유니크 제약 | **걸지 않음** | 동명이인의 카카오 로그인이 실패한다 ([ADR-14](07-architecture-decision.md)) |
+> | Redis 레이트 리밋 | **인메모리** | Redis 는 아직 없고 서버가 한 대다 ([ADR-13](07-architecture-decision.md)) |
+> | `last_seen_at` 기준 정리 | **`created_at` 기준** | 매 요청 UPDATE 를 치는 대신 토큰 수명(7일)이 이미 수명을 정한다 |
+
 ---
 
 ## 1. 지금 구조로는 게스트를 만들 수 없다
@@ -79,49 +89,49 @@ public class User {
 }
 ```
 
-- `role`을 **`ROLE_GUEST` / `ROLE_USER`로 저장**한다.
+- `role`을 **`ROLE_VISITOR` / `ROLE_USER`로 저장**한다.
   `ROLE_` 접두사를 붙여야 `hasRole()`이 동작한다 — [01](01-code-audit.md) P1-2를 여기서 함께 고친다.
-- `nickname`에 유니크 제약을 건다. 게스트 닉네임 자동 생성 시에도 충돌을 DB가 막아준다.
-- `email` 필드는 **제거한다.** 게스트에게는 없고, 카카오도 동의 항목이라 null일 수 있으며,
+- ~~`nickname`에 유니크 제약을 건다.~~ **걸지 않기로 했다** — [ADR-14](07-architecture-decision.md).
+  카카오 닉네임을 그대로 저장하므로 제약을 걸면 동명이인의 로그인이 실패한다.
+- `email` 필드는 **제거한다.** 비로그인 사용자에게는 없고, 카카오도 동의 항목이라 null일 수 있으며,
   현재 코드에서 쓰이는 곳이 `findByEmail`(호출처 없음) 하나뿐이다.
+- 실제 구현은 PK 필드명을 `id`가 아니라 **`userId`로 유지**했다.
+  응답 DTO와 프론트가 이미 `userId`를 쓰고 있어, 리네임을 구조 변경과 같은 커밋에 섞지 않았다.
 
 ---
 
 ## 3. 게스트 발급
 
 ```
-POST /api/v1/auth/guests
+POST /api/v1/auth/visitors
 → 201 Created
-{
-  "accessToken": "eyJhbG...",
-  "user": { "id": 1042, "nickname": "조용한물맷돌4821", "role": "ROLE_GUEST", "guest": true }
-}
+{ "accessToken": "eyJhbG..." }
 ```
 
+프로필은 클라이언트가 `GET /api/v1/users/me`로 받아 간다.
+발급 응답에 프로필을 함께 실으면 같은 정보가 두 모양으로 존재하게 된다.
+
 - 서버가 `users` 행을 만들고 JWT를 발급한다. 클라이언트 입력은 **없다**(닉네임도 서버가 정한다).
-- JWT 클레임: `sub=id`, `role=ROLE_GUEST`, `guest=true`.
-  `guest` 클레임이 있으면 필터가 DB를 안 쳐도 게스트 여부를 안다
-  ([06](06-persistence-and-queries.md) 3-4).
+- JWT 클레임은 `sub` 하나만 둔다. 권한은 `TokenAuthenticator`가 DB에서 읽는다.
+  클레임에 역할을 박으면 토큰 수명(7일) 동안 서버가 역할을 바꿀 수 없다.
 - 토큰은 `Authorization: Bearer` 헤더로 주고받는다 — [07](07-architecture-decision.md) ADR-5.
 
 ### 닉네임 생성
 
 `형용사 + 명사 + 4자리 숫자` 조합 (예: `조용한물맷돌4821`).
-유니크 제약 위반 시 최대 5회 재시도 후 실패 처리.
-게스트가 닉네임을 직접 정하게 할 수도 있지만, **그 순간 진입 장벽이 다시 생긴다.**
-자동 생성 후 원하면 바꾸게 하는 편이 목적에 맞다.
+유니크 제약을 걸지 않으므로 **네 자리는 겹쳐 보일 확률을 줄이는 장치일 뿐 유일성 보장이 아니다**
+— [ADR-14](07-architecture-decision.md).
+직접 정하게 할 수도 있지만, **그 입력창이 다시 진입 장벽이 된다.**
 
 ### 남용 방지
 
-게스트 발급은 **인증 없이 호출되는 쓰기 엔드포인트**다. 막지 않으면 DB에 행이 무한 생성된다.
+발급은 **인증 없이 호출되는 쓰기 엔드포인트**다. 막지 않으면 DB에 행이 무한 생성된다.
 
-```java
-// Redis — [07](07-architecture-decision.md) ADR-6 ④
-INCR ratelimit:guest:{ip}      // 첫 호출 시 EXPIRE 3600
-// 시간당 10회 초과 → 429 Too Many Requests
-```
+**IP당 시간당 10회. 인메모리 카운터**(`VisitorIssueLimiter`) — [ADR-13](07-architecture-decision.md).
+서버가 여러 대가 되면 이 클래스의 구현만 Redis로 바꾼다.
 
-CAPTCHA는 이 규모에 과하다. IP 레이트 리밋 + 정리 배치(6절)면 충분하다.
+CAPTCHA는 이 규모에 과하고, 장벽을 없애려는 이 기능의 목적과도 어긋난다.
+IP 레이트 리밋 + 정리 배치(6절)면 충분하다.
 
 ---
 
@@ -147,9 +157,13 @@ CAPTCHA는 이 규모에 과하다. IP 레이트 리밋 + 정리 배치(6절)면
 게스트에게만 레이팅을 안 주는 것으로는 막을 수 없다 — 회원 쪽이 이득을 보기 때문이다.
 
 ```
-회원 vs 회원   →  랭크전.  Elo 변동 O, matches 기록 O
-게스트가 낀 게임 →  일반전.  Elo 변동 X, matches 기록 X
+회원 vs 회원   →  랭크전.  Elo 변동 O, matches 기록 O, 승패 집계 O
+게스트가 낀 게임 →  일반전.  Elo 변동 X, matches 기록 X, 승패 집계 X
 ```
+
+**승패 집계까지 막는 이유**: 티어는 `gamesPlayed`로 배치 완료를 판단한다.
+레이팅만 막고 승패를 남기면 게스트를 찍어내 **배치 판수를 공짜로 채울 수** 있다.
+양쪽 다 얻는 것이 없어야 몰아주기 유인 자체가 사라진다.
 
 **부수 효과가 좋다.** "랭킹에 오르려면 로그인" 이라는 자연스러운 로그인 유인이 생긴다.
 로그인을 강제하지 않으면서도 로그인할 이유를 남긴다.
@@ -176,28 +190,30 @@ UI에서는 방 목록과 게임 화면에 **`랭크전` / `일반전` 배지**�
 - **게임 진행 중에는 로그인 버튼을 막는다.** 세션 주체가 바뀌면 그 게임을 이어갈 수 없다.
 - 서버에서도 방어한다: 게임 참여 중인 사용자의 OAuth 콜백은 거절하거나, 방에서 먼저 내보낸다.
 
+> **현재 구현 상태**: 로그인 버튼은 **메인 화면에만** 두어 게임 화면에서는 누를 수 없다.
+> 카카오 로그인이 성공하면 토큰이 회원 것으로 바뀌고 게스트 행은 정리 배치가 치운다.
+> **서버 쪽 방어(게임 참여 중 OAuth 콜백 거절)는 아직 없다.**
+> 다른 탭에서 `/oauth2/...`를 직접 열면 판 도중 신원이 바뀔 수 있다.
+
 ---
 
 ## 6. 게스트 수명과 정리
 
 | 항목 | 값 | 근거 |
 | --- | --- | --- |
-| 게스트 액세스 토큰 TTL | **7일** | 짧으면 게임 도중 만료된다. 게스트는 탈취 시 피해가 거의 없어 길게 잡아도 된다 |
-| 게스트 행 보존 | **마지막 접속 후 30일** | `last_seen_at` 기준 |
-| 정리 주기 | 매일 새벽 1회 (`@Scheduled`) | |
+| 토큰 TTL | **7일** | 짧으면 게임 도중 만료된다. 탈취돼도 전적도 레이팅도 없어 길게 잡아도 된다 |
+| 행 보존 | **생성 후 30일** | `created_at` 기준 |
+| 정리 주기 | 매일 새벽 1회 (`IdleVisitorPurger`) | |
 
-```java
-@Scheduled(cron = "0 0 4 * * *")
-@Transactional
-public void purgeIdleGuests() {
-    int deleted = userRepository.deleteGuestsLastSeenBefore(Instant.now().minus(30, DAYS));
-    if (deleted > 0) log.info("유휴 게스트 정리 완료. 삭제 {}건", deleted);
-}
-```
+`last_seen_at`을 두지 않았다. 갱신하려면 **요청마다 UPDATE**를 쳐야 하는데,
+토큰 수명이 7일이라 30일이 지난 행의 토큰은 이미 만료된 지 오래다.
+즉 마지막 접속을 따로 기록하지 않아도 **살아 있는 신원을 지울 일이 없다.**
 
-**브라우저가 토큰을 잃으면(캐시 삭제, 다른 기기) 새 게스트 행이 생긴다.**
-이건 게스트 방식의 본질적 특성이므로 막을 수 없고, 정리 배치로 관리한다.
-`users(last_seen_at)` 인덱스가 필요한 이유다([06](06-persistence-and-queries.md) 4절).
+> 보존 기간은 반드시 토큰 TTL보다 충분히 길어야 한다.
+> 뒤집히면 게임 도중에 신원이 사라져 연결이 끊긴다.
+
+**브라우저가 토큰을 잃으면(캐시 삭제, 다른 기기) 새 행이 생긴다.**
+이건 이 방식의 본질적 특성이므로 막을 수 없고, 정리 배치로 관리한다.
 
 ---
 
@@ -210,14 +226,14 @@ public void purgeIdleGuests() {
 http.authorizeHttpRequests(auth -> auth
     .requestMatchers("/actuator/health").permitAll()
     .requestMatchers("/oauth2/**", "/api/oauth2/**").permitAll()
-    .requestMatchers(HttpMethod.POST, "/api/v1/auth/guests").permitAll()
+    .requestMatchers(HttpMethod.POST, "/api/v1/auth/visitors").permitAll()
     .requestMatchers(HttpMethod.GET,  "/api/v1/rankings").permitAll()
-    .requestMatchers("/api/v1/**").hasAnyRole("GUEST", "USER")   // 게스트도 신원이 있다
+    .requestMatchers("/api/v1/**").hasAnyRole("USER", "VISITOR")  // 게스트도 신원이 있다
     .anyRequest().denyAll()                                       // 기본값을 거부로
 );
 ```
 
-- `hasRole("GUEST")`가 동작하려면 권한이 `ROLE_GUEST`로 저장되어야 한다(2절).
+- `hasRole("VISITOR")`가 동작하려면 권한이 `ROLE_VISITOR`로 저장되어야 한다(2절).
 - `.anyRequest().denyAll()` — 새 엔드포인트를 추가하면 **명시적으로 열어야만** 동작한다.
   `permitAll()`이 기본이면 실수로 열린 엔드포인트를 못 잡는다.
 - `AuthenticationEntryPoint`는 **401**을 반환하도록 고친다(현재 403, [01](01-code-audit.md) P1-8).
@@ -281,16 +297,23 @@ new Client({
 게스트는 **마지막에 붙이는 기능**이다. 앞의 정리가 안 되면 붙일 곳이 없다.
 
 ```
-1. User PK 교체 (provider / providerId 도입)      ← [06](06-persistence-and-queries.md) 5절
-2. Role 을 ROLE_ 접두사로 저장                     ← P1-2 해결
-3. 토큰을 쿠키 → 헤더로 전환                        ← [07](07-architecture-decision.md) ADR-5
-4. STOMP CONNECT 인증 인터셉터                     ← P1-14, P0-12 동시 해결
-5. 서비스에서 SecurityContextHolder 직접 참조 제거   ← [03](03-layering-and-dto.md) ❷
+1. ✅ User PK 교체 (provider / providerId 도입)      ← [06](06-persistence-and-queries.md) 5절
+2. ✅ Role 을 ROLE_ 접두사로 저장                     ← P1-2 해결
+3. ✅ 토큰을 쿠키 → 헤더로 전환                        ← [07](07-architecture-decision.md) ADR-5
+4. ✅ STOMP CONNECT 인증 인터셉터                     ← P1-14, P0-12 동시 해결
+5. ✅ 서비스에서 SecurityContextHolder 직접 참조 제거   ← [03](03-layering-and-dto.md) ❷
 6. ───── 여기까지 되면 게스트는 아래 3개로 끝난다 ─────
-7. POST /api/v1/auth/guests + 닉네임 생성기 + 레이트 리밋
-8. 인가 규칙 전환 (permitAll → denyAll 기본)
-9. 랭크전/일반전 분기 + 유휴 게스트 정리 배치
+7. ✅ POST /api/v1/auth/visitors + 닉네임 생성기 + 레이트 리밋
+8. ✅ 인가 규칙 전환 (permitAll → denyAll 기본)
+9. ✅ 랭크전/일반전 분기 + 유휴 계정 정리 배치
 ```
+
+예상대로 1~5가 일의 대부분이었고, 그것이 끝난 뒤 게스트 자체는 작았다.
+
+### 남은 것
+
+- 게임 참여 중 OAuth 콜백 거절 (5절)
+- 게스트 닉네임 변경 (4절 표의 "닉네임 변경 ✅ (임시)")
 
 **1~5는 게스트 때문이 아니라 어차피 해야 하는 일**이고, 그게 끝나면 게스트 자체는 작은 작업이다.
 반대로 지금 상태에서 게스트만 먼저 넣으면

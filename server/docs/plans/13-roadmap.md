@@ -94,7 +94,7 @@
 
 | # | 작업 | 참조 |
 | --- | --- | --- |
-| 4-1 | `User` PK 교체 (`provider` / `providerId`) + `@Setter` 제거 + 정적 팩터리 | [04](04-consistency-and-naming.md) 3절, [06](06-persistence-and-queries.md) 5절 |
+| 4-1 | ✅ `User` PK 교체 (`provider` / `providerId`) + `@Setter` 제거 + 정적 팩터리 | [04](04-consistency-and-naming.md) 3절, [06](06-persistence-and-queries.md) 5절 |
 | 4-2 | `GameRoom` 테이블 삭제 (로비 인메모리화) | [06](06-persistence-and-queries.md) 1절 |
 | 4-3 | `matches` 테이블 + `@ManyToOne(LAZY)` 2개 | [09](09-ranking-design.md) 3절 |
 | 4-4 | Elo 레이팅 (`morris-core` 순수 함수) + 랭크전/일반전 분기 | [09](09-ranking-design.md) 2절 |
@@ -117,9 +117,9 @@
 | 5-1 | REST 엔드포인트 규약 적용 (`/api/v1`, 복수 명사, 동사 제거) | [05](05-api-and-protocol.md) 3절 |
 | 5-2 | STOMP 목적지 규약 적용 (`/app/rooms/{roomId}/<행위>`, 토픽 1개) | [05](05-api-and-protocol.md) 3절 |
 | 5-3 | 용어 통일 (`tie`→`draw`, `withdraw`→`resign`, `gameId`→`roomId`) | [04](04-consistency-and-naming.md) 5-2 |
-| 5-4 | `POST /api/v1/auth/guests` + 닉네임 생성기 + 레이트 리밋 | [08](08-guest-mode-design.md) 3절 |
+| 5-4 | ✅ `POST /api/v1/auth/visitors` + 닉네임 생성기 + 레이트 리밋 | [08](08-guest-mode-design.md) 3절 |
 | 5-5 | 재접속 복구 (`SNAPSHOT`) + 연결 끊김 30초 유예 | [02](02-game-rules-audit.md) H, [09](09-ranking-design.md) 2절 |
-| 5-6 | 프론트: 게스트 버튼, 헤더 토큰, `connectHeaders`, 랭크/일반전 배지 | [08](08-guest-mode-design.md) 9절 |
+| 5-6 | ✅ 프론트: 게스트 버튼, 헤더 토큰, `connectHeaders`, 랭크/일반전 배지 | [08](08-guest-mode-design.md) 9절 |
 | 5-7 | 프론트: GitHub Pages 배포 (`base`, `basename`, `404.html`) | [07](07-architecture-decision.md) ADR-4 |
 | 5-8 | 프론트: 규칙 중복 제거 — 서버가 거절하면 그대로 표시 | [01](01-code-audit.md) P0-3 |
 

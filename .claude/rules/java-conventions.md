@@ -17,9 +17,16 @@
 | 무승부 | `draw` | 무승부 | `tie` |
 | 방 / 방 식별자 | `room` / `roomId` | 방 | `game`, `gameId` |
 | 방장 / 참가자 | `host` / `guest` | 방장 / 참가자 | `playerOne` / `playerTwo` |
+| 로그인하지 않은 사용자 | `visitor` | 게스트 | `guest`, `anonymous` |
 
 **"밀(mill)"은 사용자에게 노출하지 않는다.** 한국어 사용자에게 전달되지 않는 용어라
 화면 문구·에러 메시지는 "3연속"을 쓴다. 코드 식별자만 `mill` 이다.
+
+**비로그인 사용자는 코드에서 `visitor`, 화면에서 "게스트" 다.**
+`guest` 는 이 표에서 이미 방의 참가자다. 한 낱말에 두 뜻을 얹으면
+`room.guestId()` 와 `user.isGuest()` 가 한 파일에 나란히 나와 구분할 수 없다.
+Spring Security 가 선점한 `anonymous` 도 쓰지 않는다 — 이 신원은 익명이 아니라
+서버가 발급한 것이다.
 
 ## 모듈 경계
 
