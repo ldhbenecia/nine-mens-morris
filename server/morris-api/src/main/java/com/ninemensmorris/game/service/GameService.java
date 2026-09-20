@@ -17,6 +17,7 @@ import com.ninemensmorris.game.dto.response.MoveRejectedResponse;
 import com.ninemensmorris.game.dto.response.RoomEvent;
 import com.ninemensmorris.game.dto.response.RoomEventType;
 import com.ninemensmorris.match.service.MatchResultService;
+import com.ninemensmorris.observability.GameMetrics;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -33,14 +34,17 @@ public class GameService {
 
     private final RoomRegistry rooms;
     private final MatchResultService matchResultService;
+    private final GameMetrics metrics;
     private final Duration idleTimeout;
 
     public GameService(
             RoomRegistry rooms,
             MatchResultService matchResultService,
+            GameMetrics metrics,
             @Value("${game.room.idle-timeout:30m}") Duration idleTimeout) {
         this.rooms = rooms;
         this.matchResultService = matchResultService;
+        this.metrics = metrics;
         this.idleTimeout = idleTimeout;
     }
 
@@ -70,6 +74,8 @@ public class GameService {
             }
 
             MorrisGame game = room.start();
+            // 방을 만들고 상대를 기다린 시간. 이 서비스에서 "매칭 대기" 에 해당하는 유일한 구간
+            metrics.recordRoomWait(Duration.between(room.createdAt(), Instant.now()));
             log.info(
                     "게임 시작 roomId={} black={} white={} 선공규칙={}",
                     room.roomId(),
@@ -228,17 +234,21 @@ public class GameService {
         });
     }
 
+    // 끝나는 경로가 착수·연결 끊김·유휴 정리 셋인데 전부 여기를 지난다
     private void settle(Room room, MorrisGame game, Outcome outcome) {
         Long winnerId = outcome.isDraw() ? null : room.userIdOf(outcome.winner());
         matchResultService.record(
                 room.blackId(), room.whiteId(), winnerId, outcome.reason().name(), game.totalMoves());
+        metrics.gameFinished(outcome.reason());
     }
 
     private PlayOutcome broadcast(RoomEventType type, Room room, MorrisGame game) {
         return new PlayOutcome.Broadcast(RoomEvent.of(type, GameStateResponse.of(room, game)));
     }
 
+    // 거절이 나가는 유일한 지점. 여기서 세지 않으면 경로마다 빠뜨린다
     private PlayOutcome reject(RejectReason reason) {
+        metrics.moveRejected(reason);
         return new PlayOutcome.Reject(MoveRejectedResponse.of(reason));
     }
 

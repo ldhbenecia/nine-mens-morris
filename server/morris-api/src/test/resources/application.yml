@@ -1,4 +1,14 @@
 spring:
+  # 운영과 같은 관측 설정으로 돌린다
+  # 이 파일이 메인 application.yml 을 가리므로 import 하지 않으면
+  # 프로브·메트릭 없이 테스트가 돌아 엔드포인트가 열렸는지 확인할 수 없다
+  config:
+    import: classpath:observability.yml
+
+  # 메트릭 공통 태그가 이 값을 참조한다. 없으면 치환되지 않은 문자열이 태그로 붙는다
+  application:
+    name: nine-mens-morris
+
   # 운영과 같은 마이그레이션으로 스키마를 만든다
   # 테스트만 ddl-auto 로 만들면 운영 DDL 이 한 번도 검증되지 않는다
   jpa:

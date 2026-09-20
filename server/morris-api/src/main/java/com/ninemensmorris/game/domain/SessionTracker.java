@@ -56,6 +56,12 @@ public class SessionTracker {
         return Optional.of(new Departure(userId, roomId));
     }
 
+    // 열려 있는 소켓 수. 사용자 수가 아니라 세션 수다
+    // 한 사람이 로비와 게임을 두 탭에 띄우면 2로 센다
+    public int openSessions() {
+        return userBySession.size();
+    }
+
     // 이 사용자가 해당 방에 아직 붙어 있는지
     public boolean isWatching(long userId, long roomId) {
         Set<String> sessions = sessionsByUser.get(userId);

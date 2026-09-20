@@ -1,0 +1,24 @@
+# 쿠버네티스 배포
+# 로그는 JSON(logback-spring.xml 의 k8s 블록), 엔드포인트는 공통 설정 그대로 최소한만
+
+management:
+  endpoint:
+    health:
+      show-details: never
+  metrics:
+    tags:
+      environment: k8s
+
+logging:
+  level:
+    root: INFO
+    com.ninemensmorris: INFO
+    # 운영에서 SQL 이 흐르면 로그량이 폭증하고 파라미터에 개인정보가 섞인다
+    org.hibernate.SQL: WARN
+
+# 주의: /actuator 는 인그레스에 노출하지 않는다
+# 컨테이너 포트로 직접 들어오는 프로브와 스크레이프만 닿아야 한다
+# 인그레스에는 /api 와 /ws 만 라우팅한다
+#
+# 더 강하게 가르려면 management.server.port 를 8081 로 분리하고
+# 서비스에서 8080 만 노출하면 된다. 그 경우 보안 필터 체인을 관리 포트용으로 따로 둬야 한다

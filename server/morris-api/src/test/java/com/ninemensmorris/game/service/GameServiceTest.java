@@ -18,9 +18,12 @@ import com.ninemensmorris.game.command.RoomCommand;
 import com.ninemensmorris.game.domain.FirstMoveRule;
 import com.ninemensmorris.game.domain.Room;
 import com.ninemensmorris.game.domain.RoomRegistry;
+import com.ninemensmorris.game.domain.SessionTracker;
 import com.ninemensmorris.game.dto.response.RoomEvent;
 import com.ninemensmorris.game.dto.response.RoomEventType;
 import com.ninemensmorris.match.service.MatchResultService;
+import com.ninemensmorris.observability.GameMetrics;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,13 +42,16 @@ class GameServiceTest {
 
     private RoomRegistry rooms;
     private MatchResultService matchResultService;
+    private GameMetrics metrics;
     private GameService gameService;
 
     @BeforeEach
     void setUp() {
         rooms = new RoomRegistry();
         matchResultService = mock(MatchResultService.class);
-        gameService = new GameService(rooms, matchResultService, IDLE_TIMEOUT);
+        // 메트릭은 목이 아니라 실물을 쓴다. 등록 이름이 틀리면 여기서 바로 터진다
+        metrics = new GameMetrics(new SimpleMeterRegistry(), rooms, new SessionTracker());
+        gameService = new GameService(rooms, matchResultService, metrics, IDLE_TIMEOUT);
     }
 
     private Room 시작된_방(FirstMoveRule rule) {
@@ -431,7 +437,7 @@ class GameServiceTest {
     class 유휴_방_정리 {
 
         private GameService 즉시_정리하는_서비스() {
-            return new GameService(rooms, matchResultService, Duration.ZERO);
+            return new GameService(rooms, matchResultService, metrics, Duration.ZERO);
         }
 
         @Test

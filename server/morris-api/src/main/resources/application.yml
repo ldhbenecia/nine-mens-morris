@@ -1,6 +1,14 @@
 spring:
+  # 테스트 리소스의 application.yml 이 이 파일을 가리므로 관측 설정은 따로 둔다
+  config:
+    import: classpath:observability.yml
+
   application:
     name: nine-mens-morris
+
+  # graceful shutdown 이 처리 중인 요청을 기다리는 한도. 짧으면 정산 트랜잭션이 잘린다
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
 
   datasource:
     url: ${SPRING_DATASOURCE_URL}
@@ -27,12 +35,16 @@ spring:
           # 로컬 시각으로 저장된 값은 해석이 불가능해진다
           time_zone: UTC
 
-  # 기본 풀이 1개라 유휴 방 정리와 모든 재접속 유예 작업이 한 스레드를 공유했다
-  # 정산 하나가 DB 를 기다리면 다른 사람들의 유예가 전부 밀린다
+  # 한 스레드를 공유하면 정산 하나가 DB 를 기다릴 때 다른 사람들의 유예가 전부 밀린다
+  # SchedulingConfig 가 taskScheduler 빈을 만들어야 이 설정이 적용된다
   task:
     scheduling:
       pool:
         size: 4
+      shutdown:
+        # 돌고 있던 정산을 끊지 않는다
+        await-termination: true
+        await-termination-period: 20s
 
   security:
     oauth2:

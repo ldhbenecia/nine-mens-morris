@@ -1,0 +1,29 @@
+# 관측 설정. application.yml 과 테스트 설정 양쪽에서 import 한다
+# 테스트 리소스의 application.yml 이 메인 것을 가리므로, 여기 두지 않으면 테스트에서 검증할 수 없다
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # 기본값은 health 뿐이다. env·beans 는 설정값과 내부 구조가 드러나므로 열지 않는다
+        include: health,info,prometheus
+  endpoint:
+    health:
+      # /actuator/health/liveness 와 /readiness 가 생긴다
+      probes:
+        enabled: true
+      show-details: never
+      group:
+        # 외부 의존성을 넣지 않는다. DB 가 끊겼다고 재시작해도 DB 는 돌아오지 않고
+        # 전 파드가 재시작 루프에 빠져 복구만 늦어진다
+        liveness:
+          include: livenessState
+        # 여기에는 넣는다. 끊기면 트래픽만 안 받다가 돌아오면 스스로 복귀한다
+        readiness:
+          include: readinessState,db,gameSession
+  metrics:
+    tags:
+      # 여러 환경의 메트릭이 한 Prometheus 에 모이면 이게 없으면 구분할 수 없다
+      # 버전까지 붙이려면 springBoot { buildInfo() } 를 켜고 version 태그를 추가한다
+      application: ${spring.application.name}
+      environment: ${ENVIRONMENT:local}

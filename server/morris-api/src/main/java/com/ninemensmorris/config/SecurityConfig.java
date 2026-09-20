@@ -55,7 +55,10 @@ public class SecurityConfig {
                 // 401 "로그인이 필요합니다" 로 바뀐다
                 .authorizeHttpRequests(auth -> auth.dispatcherTypeMatchers(DispatcherType.ERROR)
                         .permitAll()
-                        .requestMatchers("/actuator/health")
+                        // 프로브와 스크레이프는 인증을 붙일 수 없다
+                        // 쿠버네티스 kubelet 도 Prometheus 도 토큰을 들고 오지 않음
+                        // 대신 인그레스에서 /actuator 를 라우팅하지 않아 외부에서는 닿지 않는다
+                        .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/prometheus")
                         .permitAll()
                         .requestMatchers("/oauth2/**", "/api/oauth2/**")
                         .permitAll()

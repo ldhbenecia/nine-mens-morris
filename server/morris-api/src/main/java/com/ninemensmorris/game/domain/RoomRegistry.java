@@ -38,13 +38,17 @@ public class RoomRegistry {
                 .toList();
     }
 
-    // 사용자가 참여 중인 방. 소켓이 끊겼을 때 찾는 용도
     public Optional<Room> findByPlayer(long userId) {
         return rooms.values().stream().filter(room -> room.contains(userId)).findFirst();
     }
 
     public void remove(long roomId) {
         rooms.remove(roomId);
+    }
+
+    // 게이지와 헬스체크가 주기적으로 읽는 값이라 findAll().size() 로 정렬된 목록을 만들지 않는다
+    public int size() {
+        return rooms.size();
     }
 
     // 방 하나에 대한 모든 변경은 이 메서드를 거친다
