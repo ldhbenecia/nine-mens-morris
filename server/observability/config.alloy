@@ -1,0 +1,49 @@
+// 앱 컨테이너의 stdout 을 읽어 Loki 로 보낸다
+// 앱은 파일로 로그를 쓰지 않으므로 도커 로그가 유일한 출처다
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "morris" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/morris-server"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+
+loki.source.docker "morris" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.morris.output
+  forward_to = [loki.process.morris.receiver]
+}
+
+loki.process "morris" {
+  // level 만 라벨로 뽑는다
+  // traceId / userId 를 라벨로 만들면 값마다 스트림이 생겨 Loki 가 망가진다
+  // 그 값들은 로그 줄 안에 그대로 있으므로 | json | traceId="..." 로 질의한다
+  stage.json {
+    expressions = { level = "level" }
+  }
+
+  stage.labels {
+    values = { level = "level" }
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

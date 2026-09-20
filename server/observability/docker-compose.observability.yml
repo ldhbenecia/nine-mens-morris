@@ -1,0 +1,67 @@
+# 로컬 관측 스택 (Prometheus + Loki + Grafana + Alloy)
+# Tempo 와 Mimir 는 넣지 않는다 — docs/plans/07 ADR 참조
+#
+#   docker compose -f docker-compose.yml --profile app up -d
+#   docker compose -f observability/docker-compose.observability.yml up -d
+#
+# 앱은 SPRING_PROFILES_ACTIVE=k8s 로 띄워야 JSON 로그가 나온다
+# Grafana: http://localhost:3000 (익명 접속, 로그인 없음)
+services:
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    container_name: morris-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=24h
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    # 리눅스에는 host.docker.internal 이 없어 직접 만들어 준다 (Docker Desktop 은 기본 제공)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks: [observability]
+
+  loki:
+    image: grafana/loki:3.3.2
+    container_name: morris-loki
+    # 이미지에 들어 있는 단일 바이너리용 기본 설정을 그대로 쓴다
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    networks: [observability]
+
+  # 컨테이너 stdout 을 읽어 Loki 로 보낸다. 앱은 파일로 로그를 쓰지 않는다
+  alloy:
+    image: grafana/alloy:v1.6.1
+    container_name: morris-alloy
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      # Alloy 자체 상태 확인용 (http://localhost:12345)
+      - "12345:12345"
+    depends_on: [loki]
+    networks: [observability]
+
+  grafana:
+    image: grafana/grafana:11.5.1
+    container_name: morris-grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    volumes:
+      - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    ports:
+      - "3000:3000"
+    depends_on: [prometheus, loki]
+    networks: [observability]
+
+networks:
+  observability:
+    name: morris-observability

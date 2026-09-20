@@ -13,6 +13,8 @@ services:
     ports:
       - "${SERVER_PORT:-8080}:8080"
     environment:
+      # 프로파일은 이미지에 박지 않는다. 같은 이미지를 로컬과 배포에서 재사용하려면 환경변수여야 함
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-k8s}
       # 컨테이너 안에서는 서비스명으로 접근. .env 의 SPRING_DATASOURCE_URL 은 호스트 직접 실행용
       SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/${MYSQL_DATABASE}?connectionTimeZone=UTC&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}

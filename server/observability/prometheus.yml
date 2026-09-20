@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: morris-server
+    metrics_path: /actuator/prometheus
+    static_configs:
+      # 앱은 IDE 로 띄우든 컨테이너로 띄우든 호스트에 8080 을 연다
+      # 호스트를 거치면 두 경우 모두 같은 주소로 닿아 네트워크를 엮지 않아도 된다
+      - targets: ["host.docker.internal:8080"]
