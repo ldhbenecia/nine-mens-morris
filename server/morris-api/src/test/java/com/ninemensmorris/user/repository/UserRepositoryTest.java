@@ -7,11 +7,14 @@ import com.ninemensmorris.match.repository.MatchRepository;
 import com.ninemensmorris.support.IntegrationTestSupport;
 import com.ninemensmorris.user.domain.Provider;
 import com.ninemensmorris.user.domain.User;
+import java.time.Duration;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.annotation.Transactional;
 
 // 카카오 회원번호를 기본키로 쓰던 구조를 대체키로 바꿨다
 // 같은 계정이 두 행이 되는 것을 이제 PK 가 아니라 유니크 제약이 막으므로
@@ -44,6 +47,29 @@ class UserRepositoryTest extends IntegrationTestSupport {
         // then — 회원번호와 별개로 서비스가 발급한 식별자를 쓴다
         assertThat(found.getUserId()).isEqualTo(userId);
         assertThat(found.getProvider()).isEqualTo(Provider.KAKAO);
+    }
+
+    @Test
+    @DisplayName("정리 배치는 기간이 지난 비로그인 계정만 지운다")
+    @Transactional
+    void 오래된_비로그인_계정만_지운다() {
+        // given
+        userRepository.save(User.ofKakao("40012345", "회원", null));
+        userRepository.save(User.visitor("게스트1234"));
+
+        // when — 기준 시각이 아직 이르면 아무것도 지우지 않는다
+        int notYet = userRepository.deleteVisitorsCreatedBefore(Instant.now().minus(Duration.ofDays(1)));
+
+        // then
+        assertThat(notYet).isZero();
+
+        // when — 기준 시각을 넘기면 비로그인 계정만 지운다
+        int deleted = userRepository.deleteVisitorsCreatedBefore(Instant.now().plus(Duration.ofDays(1)));
+
+        // then — 회원은 남아야 한다
+        assertThat(deleted).isEqualTo(1);
+        assertThat(userRepository.findAll()).singleElement().satisfies(remaining -> assertThat(remaining.isVisitor())
+                .isFalse());
     }
 
     @Test
