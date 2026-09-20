@@ -1,4 +1,4 @@
-import { Avatar } from '~/components';
+import { Avatar, RatedBadge } from '~/components';
 
 type RoomItemProps = {
   roomId: number;
@@ -6,6 +6,7 @@ type RoomItemProps = {
   hostNickname: string;
   hostImageUrl: string | null;
   hostRating: number;
+  rated: boolean;
   ongoing?: boolean;
   onJoinRoom: (roomId: number) => void;
 };
@@ -16,6 +17,7 @@ export function RoomItem({
   hostNickname,
   hostImageUrl,
   hostRating,
+  rated,
   ongoing = false,
   onJoinRoom,
 }: RoomItemProps) {
@@ -26,7 +28,10 @@ export function RoomItem({
     >
       <Avatar nickname={hostNickname} imageUrl={hostImageUrl} size="lg" />
       <div className="flex grow flex-col gap-0.5">
-        <span className="font-semibold">{title}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-semibold">{title}</span>
+          <RatedBadge rated={rated} />
+        </div>
         <div className="flex gap-2 text-sm">
           {hostNickname}
           <span className="text-gray-500">MMR {hostRating}</span>

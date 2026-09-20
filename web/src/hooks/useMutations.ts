@@ -2,12 +2,13 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   createRoom,
+  createVisitor,
   errorMessageOf,
   joinRoom,
   leaveRoom,
   logout,
 } from '~/lib/api';
-import { clearToken } from '~/lib/auth';
+import { clearToken, setToken } from '~/lib/auth';
 import { QUERY } from '~/lib/queries';
 
 // 실패를 화면에 보여줄 책임은 호출부에 있다
@@ -28,6 +29,25 @@ export const useLogout = () => {
   });
 
   return { mutate };
+};
+
+// 로그인을 거치지 않고 바로 시작한다
+// 발급이 잦으면 서버가 429 로 막으므로 실패 문구를 보여줄 수 있어야 한다
+export const useStartAsVisitor = (onFailure?: OnFailure) => {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { mutate, isPending } = useMutation({
+    mutationFn: createVisitor,
+    onSuccess: ({ accessToken }) => {
+      setToken(accessToken);
+      // 신원이 바뀌었으므로 이전 신원으로 받아둔 응답은 버린다
+      queryClient.clear();
+      navigate('/rooms');
+    },
+    onError: (error) => onFailure?.(errorMessageOf(error)),
+  });
+
+  return { mutate, isPending };
 };
 
 export const useCreateRoom = (onFailure?: OnFailure) => {

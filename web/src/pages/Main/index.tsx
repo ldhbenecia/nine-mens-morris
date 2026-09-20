@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Button } from '~/components';
+import { Button, KakaoButton } from '~/components';
 import { QUERY } from '~/lib/queries';
 import { UserInfo } from './UserInfo';
 import { LoginModal } from './LoginModal';
@@ -32,6 +32,7 @@ export function MainPage() {
 
       <LogoutModal
         visible={showLogoutModal}
+        visitor={!!currentUser?.visitor}
         onLogout={onLogout}
         onClose={() => setShowLogoutModal(false)}
       />
@@ -52,6 +53,16 @@ export function MainPage() {
         <Link to="/ranking" className="flex w-full flex-col">
           <Button theme="secondary" text="랭킹 보기" onClick={() => {}} />
         </Link>
+        {/* 게스트로 놀다가 로그인할 수 있는 자리
+            게임 화면에는 두지 않는다. 판 도중에 신원이 바뀌면 그 판을 이어갈 수 없다 */}
+        {currentUser?.visitor && (
+          <div className="flex flex-col gap-2 border-t border-gray-200 pt-4">
+            <span className="text-center text-xs text-gray-500">
+              로그인하면 랭킹에 오를 수 있습니다
+            </span>
+            <KakaoButton />
+          </div>
+        )}
       </div>
     </main>
   );

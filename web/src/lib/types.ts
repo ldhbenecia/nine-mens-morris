@@ -19,6 +19,7 @@ export type Room = {
   playerCount: number;
   playing: boolean;
   firstMoveRule: FirstMoveRule;
+  rated: boolean;
 };
 
 export type User = {
@@ -31,7 +32,9 @@ export type User = {
   wins: number;
   losses: number;
   draws: number;
+  // 비로그인 사용자는 랭킹에 오르지 않으므로 등수가 없다
   rank: number | null;
+  visitor: boolean;
 };
 
 export type Rank = {
@@ -97,6 +100,7 @@ export type RoomDetail = {
   firstMoveRule: FirstMoveRule;
   playing: boolean;
   hasGame: boolean; // 끝난 판도 true. 대기실과 판 화면을 고르는 기준
+  rated: boolean; // 두 자리가 모두 회원일 때만 true
 };
 
 export type RoomEventType =

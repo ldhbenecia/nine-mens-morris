@@ -1,5 +1,5 @@
 import Logout from '~/assets/icons/logout.svg?react';
-import { Button } from '~/components';
+import { Button, RatedBadge } from '~/components';
 import { FirstMoveRule, RoomDetail } from '~/lib/types';
 
 type WaitingRoomProps = {
@@ -33,10 +33,19 @@ export function WaitingRoom({
   return (
     <div className="flex grow flex-col items-center justify-center gap-8">
       <div className="flex flex-col items-center gap-1">
-        <h1 className="text-2xl font-semibold">{room?.title ?? '　'}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-semibold">{room?.title ?? '　'}</h1>
+          {room && <RatedBadge rated={room.rated} />}
+        </div>
         <span className="text-sm text-gray-500">
           {isHost ? '내가 만든 방' : `${room?.hostNickname ?? ''} 님의 방`}
         </span>
+        {/* 상대가 들어오면서 랭크전이 일반전으로 바뀔 수 있다. 시작 전에 알아야 함 */}
+        {room && !room.rated && (
+          <span className="text-xs text-gray-500">
+            게스트가 있어 MMR 이 변하지 않습니다
+          </span>
+        )}
       </div>
 
       <div className="flex items-center gap-4">

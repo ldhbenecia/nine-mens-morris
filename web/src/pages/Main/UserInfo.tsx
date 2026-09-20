@@ -16,8 +16,9 @@ export function UserInfo({ user, onShowLogoutModal }: UserInfoProps) {
       <div className="fixed right-2 top-2 z-10 flex items-center gap-2 rounded-full bg-white py-1 pl-4 pr-1 shadow-sm">
         <div className="flex flex-col items-end leading-tight">
           <span className="font-semibold">{user.nickname}</span>
+          {/* 비로그인 사용자는 MMR 이 움직이지 않는다. 티어를 보여주면 오르는 값처럼 읽힌다 */}
           <span className="text-xs text-gray-500">
-            {TIER_LABEL[user.tier]} · {user.mmr}
+            {user.visitor ? '게스트' : `${TIER_LABEL[user.tier]} · ${user.mmr}`}
           </span>
         </div>
         <Avatar nickname={user.nickname} imageUrl={user.imageUrl} />

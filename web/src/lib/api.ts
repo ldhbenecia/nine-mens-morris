@@ -41,6 +41,13 @@ export const logout = async () => {
   return response.status === 204;
 };
 
+// 로그인 없이 신원을 받는다. 보낼 것이 없다 — 닉네임까지 서버가 정한다
+export const createVisitor = async () => {
+  const response = await client.post<{ accessToken: string }>('auth/visitors');
+
+  return response.data;
+};
+
 export const getCurrentUser = async () => {
   const response = await client.get<User>('users/me');
 
