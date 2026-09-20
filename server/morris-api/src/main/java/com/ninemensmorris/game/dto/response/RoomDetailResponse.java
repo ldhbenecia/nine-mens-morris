@@ -16,9 +16,10 @@ public record RoomDetailResponse(
         String guestNickname,
         FirstMoveRule firstMoveRule,
         boolean playing,
-        boolean hasGame) { // 끝난 판도 true. playing 만 보면 종료된 판 새로고침 때 대기실이 뜸
+        boolean hasGame, // 끝난 판도 true. playing 만 보면 종료된 판 새로고침 때 대기실이 뜸
+        boolean rated) { // 랭크전 여부. 비로그인 사용자가 들어오는 순간 꺼진다
 
-    public static RoomDetailResponse of(Room room, String hostNickname, String guestNickname) {
+    public static RoomDetailResponse of(Room room, String hostNickname, String guestNickname, boolean rated) {
         return new RoomDetailResponse(
                 room.roomId(),
                 room.title(),
@@ -28,6 +29,7 @@ public record RoomDetailResponse(
                 guestNickname,
                 room.firstMoveRule(),
                 room.isPlaying(),
-                room.hasGame());
+                room.hasGame(),
+                rated);
     }
 }

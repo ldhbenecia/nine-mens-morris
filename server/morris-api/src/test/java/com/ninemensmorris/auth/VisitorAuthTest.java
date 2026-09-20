@@ -3,7 +3,9 @@ package com.ninemensmorris.auth;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ninemensmorris.match.repository.MatchRepository;
+import com.ninemensmorris.security.JwtProvider;
 import com.ninemensmorris.support.IntegrationTestSupport;
+import com.ninemensmorris.user.domain.User;
 import com.ninemensmorris.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +32,9 @@ class VisitorAuthTest extends IntegrationTestSupport {
     @Autowired
     private MatchRepository matchRepository;
 
+    @Autowired
+    private JwtProvider jwtProvider;
+
     @BeforeEach
     void setUp() {
         matchRepository.deleteAllInBatch();
@@ -48,21 +53,14 @@ class VisitorAuthTest extends IntegrationTestSupport {
         assertThat(token).isNotBlank();
 
         // 발급받은 토큰이 실제로 인가를 통과하는지
-        var created = rest.exchange(
-                url("/api/v1/rooms"),
-                HttpMethod.POST,
-                new HttpEntity<>(new CreateRoomPayload("게스트 방"), bearer(token)),
-                CreatedRoom.class);
-        assertThat(created.getStatusCode().value()).isEqualTo(201);
+        assertThat(createRoom(token)).isPositive();
     }
 
     @Test
     @DisplayName("비로그인 계정의 프로필은 게스트로 표시되고 등수가 없다")
     void 비로그인_계정은_등수가_없다() {
         // given
-        String token = rest.exchange(url("/api/v1/auth/visitors"), HttpMethod.POST, null, VisitorToken.class)
-                .getBody()
-                .accessToken();
+        String token = issueVisitor();
 
         // when
         var profile =
@@ -76,6 +74,28 @@ class VisitorAuthTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("비로그인 사용자가 낀 방은 일반전, 회원끼리는 랭크전으로 표시된다")
+    void 비로그인_사용자가_끼면_일반전이다() {
+        // given — 회원이 만든 방은 아직 랭크전이다
+        User host = userRepository.save(User.ofKakao("7001", "회원", null));
+        String hostToken = jwtProvider.generateAccessToken(host.getUserId());
+        long roomId = createRoom(hostToken);
+        assertThat(detailOf(roomId, hostToken).rated()).isTrue();
+
+        // when — 비로그인 사용자가 들어온다
+        String visitorToken = issueVisitor();
+        var joined = rest.exchange(
+                url("/api/v1/rooms/" + roomId + "/players"),
+                HttpMethod.POST,
+                new HttpEntity<>(bearer(visitorToken)),
+                Void.class);
+        assertThat(joined.getStatusCode().value()).isEqualTo(201);
+
+        // then — 그 순간 일반전으로 바뀐다. 화면이 전환을 보여줄 수 있어야 함
+        assertThat(detailOf(roomId, hostToken).rated()).isFalse();
+    }
+
+    @Test
     @DisplayName("토큰이 없으면 401 이다")
     void 토큰이_없으면_거절한다() {
         // when — 게스트를 열었다고 해서 익명 접근이 열린 것은 아니다
@@ -83,6 +103,31 @@ class VisitorAuthTest extends IntegrationTestSupport {
 
         // then
         assertThat(profile.getStatusCode().value()).isEqualTo(401);
+    }
+
+    private String issueVisitor() {
+        return rest.exchange(url("/api/v1/auth/visitors"), HttpMethod.POST, null, VisitorToken.class)
+                .getBody()
+                .accessToken();
+    }
+
+    private long createRoom(String token) {
+        var created = rest.exchange(
+                url("/api/v1/rooms"),
+                HttpMethod.POST,
+                new HttpEntity<>(new CreateRoomPayload("게스트 방"), bearer(token)),
+                CreatedRoom.class);
+        assertThat(created.getStatusCode().value()).isEqualTo(201);
+        return created.getBody().roomId();
+    }
+
+    private RoomDetail detailOf(long roomId, String token) {
+        return rest.exchange(
+                        url("/api/v1/rooms/" + roomId),
+                        HttpMethod.GET,
+                        new HttpEntity<>(bearer(token)),
+                        RoomDetail.class)
+                .getBody();
     }
 
     private String url(String path) {
@@ -102,4 +147,6 @@ class VisitorAuthTest extends IntegrationTestSupport {
     private record CreateRoomPayload(String title) {}
 
     private record CreatedRoom(long roomId, String title) {}
+
+    private record RoomDetail(long roomId, boolean rated) {}
 }

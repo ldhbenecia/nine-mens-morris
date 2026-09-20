@@ -12,11 +12,12 @@ public record RoomSummaryResponse(
         int hostRating,
         int playerCount,
         boolean playing,
-        FirstMoveRule firstMoveRule) {
+        FirstMoveRule firstMoveRule,
+        boolean rated) {
 
     // 방장 정보는 방에 스냅샷으로 복사하지 않고 조회 시점에 채운다
     // 기존 GameRoom 은 hostScore 를 방 생성 시점 값으로 박아둬서 점수가 올라도 목록이 옛값이었다
-    public static RoomSummaryResponse of(Room room, String nickname, String imageUrl, int rating) {
+    public static RoomSummaryResponse of(Room room, String nickname, String imageUrl, int rating, boolean rated) {
         return new RoomSummaryResponse(
                 room.roomId(),
                 room.title(),
@@ -26,6 +27,7 @@ public record RoomSummaryResponse(
                 rating,
                 room.playerCount(),
                 room.isPlaying(),
-                room.firstMoveRule());
+                room.firstMoveRule(),
+                rated);
     }
 }
