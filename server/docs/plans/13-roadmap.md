@@ -136,8 +136,8 @@
 | 6-3 | nginx 재작성 (`map` upgrade, `proxy_read_timeout`, `X-Forwarded-Proto`) | [07](07-architecture-decision.md) ADR-4 |
 | 6-4 | CloudFront 배포 + 보안그룹을 CloudFront 프리픽스로 제한 | [07](07-architecture-decision.md) ADR-4 |
 | 6-5 | 카카오 Redirect URI 재등록 | [07](07-architecture-decision.md) ADR-4 |
-| 6-6 | Actuator + 헬스체크 연결, Docker 로그 로테이션 | [10](10-logging-and-observability.md) 6절 |
-| 6-7 | 게임 도메인 INFO 로그 + MDC + JSON 로깅 | [10](10-logging-and-observability.md) 3·4·5절 |
+| 6-6 | ✅ Actuator + 헬스체크 연결 (로그 로테이션은 남음) | [10](10-logging-and-observability.md) 6절 |
+| 6-7 | ✅ 게임 도메인 INFO 로그 + MDC + JSON 로깅 | [10](10-logging-and-observability.md) 3·4·5절 |
 | 6-8 | Grafana Cloud 무료 티어 연결 + 커스텀 메트릭 5개 | [10](10-logging-and-observability.md) 7절 |
 | 6-9 | `mysqldump` 백업 cron | [07](07-architecture-decision.md) ADR-3 |
 

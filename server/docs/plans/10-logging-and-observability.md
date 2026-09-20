@@ -367,19 +367,38 @@ Timer   "morris.move.duration"                                                 /
 
 ## 8. 정리 작업 목록
 
-| # | 작업 |
-| --- | --- |
-| 1 | `MorrisStatus`의 `System.out.println` 제거 (클래스 자체가 데드코드) |
-| 2 | `JwtProvider` / `JwtAuthenticationFilter`의 중복 ERROR → 한 곳에서 `debug` 1회로 |
-| 3 | `CustomOAuth2UserService`의 주석을 감싼 try/catch 삭제 |
-| 4 | 소켓 연결/해제 로그 `info` → `debug`. **단, 게임 중 끊김은 `warn`으로 남긴다** |
-| 5 | `MorrisService`에 게임 시작·종료 INFO 2줄 추가 (3절) |
-| 6 | 규칙 위반 거절 WARN 추가 |
-| 7 | MDC 필터 (HTTP + STOMP) |
-| 8 | `CustomErrorResponse`에 `traceId` 추가 |
-| 9 | `logback-spring.xml` 추가 (local/prod) |
-| 10 | Actuator 추가 + 헬스체크 연결 |
-| 11 | Docker 로그 로테이션 설정 |
+| # | 작업 | 상태 |
+| --- | --- | --- |
+| 1 | `MorrisStatus`의 `System.out.println` 제거 (클래스 자체가 데드코드) | ✅ |
+| 2 | `JwtProvider` / `JwtAuthenticationFilter`의 중복 ERROR → 한 곳에서 `debug` 1회로 | ✅ |
+| 3 | `CustomOAuth2UserService`의 주석을 감싼 try/catch 삭제 | ✅ |
+| 4 | 소켓 연결/해제 로그 `info` → `debug`. **단, 게임 중 끊김은 `warn`으로 남긴다** | ✅ |
+| 5 | `MorrisService`에 게임 시작·종료 INFO 2줄 추가 (3절) | ✅ |
+| 6 | 규칙 위반 거절 WARN 추가 | ✅ |
+| 7 | MDC 필터 (HTTP + STOMP **+ 스케줄러**) | ✅ |
+| 8 | `ErrorResponse`에 `traceId` 추가 | ✅ |
+| 9 | `logback-spring.xml` 추가 (프로파일별) | ✅ |
+| 10 | Actuator 추가 + 헬스체크 연결 | ✅ |
+| 11 | Docker 로그 로테이션 설정 | ☐ |
+
+### 구현하면서 설계에서 달라진 것
+
+| 설계 | 구현 | 왜 |
+| --- | --- | --- |
+| MDC 는 HTTP + STOMP 두 곳 | **세 곳** (+ 스케줄러) | 게임 정산이 스케줄러 스레드에서 돈다. 그 INFO 2줄이 종료 기록의 전부다 |
+| 프로파일 `local` / `prod` | **`local` / `k8s`** | 배포 대상이 로컬 쿠버네티스다 |
+| JSON 로깅 라이브러리 | **Boot 3.4+ 내장** `StructuredLogEncoder` | logstash-logback-encoder 의존성이 필요 없다 |
+| 커스텀 메트릭에 `move.duration` | **제외** | 인메모리 연산이라 값이 의미 없다. 대신 `room.wait`(매칭 대기) |
+
+### 작업 중 발견한 결함 두 가지
+
+- **`@Scheduled` 가 STOMP 브로커 하트비트 스케줄러에서 돌고 있었다.**
+  `TaskScheduler` 빈이 `messageBrokerTaskScheduler` 하나뿐이라 Boot 자동 설정이 물러났다.
+  정산이 DB 를 기다리면 하트비트가 밀려 멀쩡한 연결이 끊길 수 있었고,
+  `spring.task.scheduling.pool.size` 도 적용되지 않았다
+- **프로퍼티 키가 환경변수와 이름이 같아 순환 참조가 됐다.**
+  `${X}` 가 자기 자신을 가리켜, 환경변수가 없으면 기본값 대신 기동이 실패했다.
+  `jwt.*` / `app.frontend-url` 로 분리
 
 **1~4는 지우거나 레벨만 바꾸는 작업**이라 즉시 할 수 있다.
 5~6이 실질적으로 가장 값어치가 큰 작업이다.
