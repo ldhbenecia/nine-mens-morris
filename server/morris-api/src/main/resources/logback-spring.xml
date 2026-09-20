@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  stdout 으로만 내보낸다. 컨테이너에서 파일로 쓰면 디스크를 채우고 재시작하면 사라진다
+  MDC 의 traceId / userId 는 LogContext 가 채운다
+-->
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <springProfile name="k8s">
+        <!--
+          Boot 3.4+ 내장 구조화 로깅이라 logstash-logback-encoder 가 필요 없다
+          logstash 형식은 필드가 평평해서(MDC 도 최상위) Loki 에서 | json 한 번으로 질의된다
+        -->
+        <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="org.springframework.boot.logging.logback.StructuredLogEncoder">
+                <format>logstash</format>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="JSON"/>
+        </root>
+    </springProfile>
+
+    <!-- local 과 테스트(프로파일 없음) -->
+    <springProfile name="!k8s">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <!-- MDC 가 비면 - 로 채운다. 자리가 고정돼야 눈으로 훑을 수 있다 -->
+                <pattern>
+                    %clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%X{traceId:--}]){faint} %clr([%X{userId:--}]){faint} %clr(%logger{20}){cyan} - %msg%n%wEx
+                </pattern>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+</configuration>

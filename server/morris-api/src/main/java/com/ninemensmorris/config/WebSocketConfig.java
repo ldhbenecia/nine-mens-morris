@@ -1,5 +1,6 @@
 package com.ninemensmorris.config;
 
+import com.ninemensmorris.observability.StompLogContextInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -14,11 +15,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final String[] allowedOrigins;
     private final ClientFrameGuard clientFrameGuard;
+    private final StompLogContextInterceptor logContextInterceptor;
 
     public WebSocketConfig(
-            @Value("${cors.allowed-origins}") String[] allowedOrigins, ClientFrameGuard clientFrameGuard) {
+            @Value("${cors.allowed-origins}") String[] allowedOrigins,
+            ClientFrameGuard clientFrameGuard,
+            StompLogContextInterceptor logContextInterceptor) {
         this.allowedOrigins = allowedOrigins;
         this.clientFrameGuard = clientFrameGuard;
+        this.logContextInterceptor = logContextInterceptor;
     }
 
     @Override
@@ -34,8 +39,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setUserDestinationPrefix("/user");
     }
 
+    // 인증·인가를 먼저 걸고 그 결과(주체)를 로그 컨텍스트가 읽는다
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(clientFrameGuard);
+        registration.interceptors(clientFrameGuard, logContextInterceptor);
     }
 }
