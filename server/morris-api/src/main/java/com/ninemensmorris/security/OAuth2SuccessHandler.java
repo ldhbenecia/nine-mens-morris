@@ -25,7 +25,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final JwtProvider jwtProvider;
 
-    @Value("${DOMAIN}")
+    @Value("${app.frontend-url}")
     private String domainUrl;
 
     @Override

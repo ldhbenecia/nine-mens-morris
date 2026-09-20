@@ -17,13 +17,13 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class JwtProvider {
 
-    @Value("${JWT_SECRET_KEY}")
+    @Value("${jwt.secret-key}")
     private String secretKey;
 
-    @Value("${ACCESS_TOKEN_EXPIRATION}")
+    @Value("${jwt.access-token-expiration}")
     private Long accessTokenExpirationPeriod;
 
-    @Value("${VISITOR_TOKEN_EXPIRATION}")
+    @Value("${jwt.visitor-token-expiration}")
     private Long visitorTokenExpirationPeriod;
 
     private SecretKey signingKey;
