@@ -5,19 +5,28 @@
 --
 -- 외래키는 걸지 않는다. 참조 무결성은 애플리케이션에서 지킨다
 
+-- 식별자는 서비스가 발급한다
+-- 카카오 회원번호를 기본키로 쓰면 회원번호가 없는 비로그인 사용자를 만들 수 없다
 create table users
 (
-    user_id   bigint       not null,
-    email     varchar(255) null,
-    nickname  varchar(20)  not null,
-    image_url varchar(500) null,
-    role      varchar(20)  not null,
-    mmr       int          not null,
-    peak_mmr  int          not null,
-    wins      int          not null,
-    losses    int          not null,
-    draws     int          not null,
+    user_id     bigint       not null auto_increment,
+    provider    varchar(20)  not null,
+    -- 카카오 회원번호. 비로그인 사용자는 null
+    provider_id varchar(64)  null,
+    nickname    varchar(20)  not null,
+    image_url   varchar(500) null,
+    role        varchar(20)  not null,
+    mmr         int          not null,
+    peak_mmr    int          not null,
+    wins        int          not null,
+    losses      int          not null,
+    draws       int          not null,
+    created_at  datetime(6)  not null,
     primary key (user_id),
+    -- 같은 카카오 계정이 두 행이 되는 것을 막는다
+    -- MySQL 은 유니크 인덱스에서 null 을 서로 다른 값으로 보므로
+    -- provider_id 가 없는 비로그인 사용자 행은 여기 걸리지 않는다
+    unique key uk_users_provider (provider, provider_id),
     -- 랭킹 정렬과 내 등수 계산이 여기에 걸린다. 없으면 매번 풀스캔
     key idx_users_mmr (mmr)
 ) engine = InnoDB

@@ -31,8 +31,8 @@ class UserServiceTest extends IntegrationTestSupport {
         userRepository.deleteAllInBatch();
     }
 
-    private void 사용자(long userId, int mmr) {
-        User user = User.ofKakao(userId, userId + "@test.com", "u" + userId, null);
+    private void 사용자(long seq, int mmr) {
+        User user = User.ofKakao(String.valueOf(seq), "u" + seq, null);
         // 초기값에서 목표 MMR 까지 한 번에 이동
         user.applyMatchResult(mmr - user.getMmr(), MatchOutcome.DRAW);
         userRepository.save(user);

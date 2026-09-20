@@ -59,8 +59,8 @@ class GameE2eTest extends IntegrationTestSupport {
         // matches 가 users 를 참조하므로 먼저 지운다
         matchRepository.deleteAll();
         userRepository.deleteAll();
-        host = userRepository.save(User.ofKakao(1001L, "host@test.com", "방장", null));
-        guest = userRepository.save(User.ofKakao(1002L, "guest@test.com", "참가자", null));
+        host = userRepository.save(User.ofKakao("1001", "방장", null));
+        guest = userRepository.save(User.ofKakao("1002", "참가자", null));
 
         stompClient = new WebSocketStompClient(new StandardWebSocketClient());
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
@@ -246,7 +246,7 @@ class GameE2eTest extends IntegrationTestSupport {
     void 비멤버는_방_이벤트를_받지_못한다() throws Exception {
         // given — 구독 인가가 없으면 아무나 남의 판을 들여다볼 수 있다
         long roomId = createRoomAndJoin();
-        User outsider = userRepository.save(User.ofKakao(1003L, "out@test.com", "외부인", null));
+        User outsider = userRepository.save(User.ofKakao("1003", "외부인", null));
 
         StompSession hostSession = connect(host);
         StompSession outsiderSession = connect(outsider);

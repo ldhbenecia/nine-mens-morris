@@ -1,6 +1,7 @@
 package com.ninemensmorris.auth.service;
 
 import com.ninemensmorris.auth.domain.CustomOAuth2User;
+import com.ninemensmorris.user.domain.Provider;
 import com.ninemensmorris.user.domain.User;
 import com.ninemensmorris.user.repository.UserRepository;
 import java.util.Map;
@@ -30,27 +31,28 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         // getClientName 은 표시 이름이라 설정에서 바뀔 수 있음. 등록 ID 로 판별함
-        String provider = userRequest.getClientRegistration().getRegistrationId();
-        if (!KAKAO.equals(provider)) {
-            throw new OAuth2AuthenticationException("지원하지 않는 OAuth2 프로바이더: " + provider);
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+        if (!KAKAO.equals(registrationId)) {
+            throw new OAuth2AuthenticationException("지원하지 않는 OAuth2 프로바이더: " + registrationId);
         }
 
-        long kakaoId = Long.parseLong(oAuth2User.getAttribute("id").toString());
-        userRepository
-                .findById(kakaoId)
-                .ifPresentOrElse(
-                        user -> syncProfile(user, oAuth2User), () -> userRepository.save(toUser(oAuth2User, kakaoId)));
+        String providerId = oAuth2User.getAttribute("id").toString();
+        User user = userRepository
+                .findByProviderAndProviderId(Provider.KAKAO, providerId)
+                .orElseGet(() -> userRepository.save(toUser(oAuth2User, providerId)));
+        syncProfile(user, oAuth2User, providerId);
 
-        return new CustomOAuth2User(kakaoId);
+        // 토큰 subject 는 카카오 회원번호가 아니라 서비스가 발급한 식별자다
+        return new CustomOAuth2User(user.getUserId());
     }
 
-    private void syncProfile(User user, OAuth2User oAuth2User) {
+    private void syncProfile(User user, OAuth2User oAuth2User, String providerId) {
         Map<String, Object> properties = oAuth2User.getAttribute("properties");
         if (properties == null) {
             return;
         }
 
-        String nickname = nicknameOf((String) properties.get("nickname"), user.getUserId());
+        String nickname = nicknameOf((String) properties.get("nickname"), providerId);
         String imageUrl = (String) properties.get("profile_image");
         if (nickname.equals(user.getNickname()) && Objects.equals(imageUrl, user.getImageUrl())) {
             return;
@@ -58,26 +60,25 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         user.changeProfile(nickname, imageUrl);
     }
 
-    private User toUser(OAuth2User oAuth2User, long kakaoId) {
+    private User toUser(OAuth2User oAuth2User, String providerId) {
         Map<String, Object> properties = oAuth2User.getAttribute("properties");
-        Map<String, Object> account = oAuth2User.getAttribute("kakao_account");
 
         String nickname = properties == null ? null : (String) properties.get("nickname");
         String profileImage = properties == null ? null : (String) properties.get("profile_image");
-        // 이메일은 동의 항목이라 없을 수 있음
-        String email = account == null ? null : (String) account.get("email");
 
-        return User.ofKakao(kakaoId, email, nicknameOf(nickname, kakaoId), profileImage);
+        return User.ofKakao(providerId, nicknameOf(nickname, providerId), profileImage);
     }
 
     // 닉네임 동의를 안 했으면 회원번호로 만들어 준다
     // 컬럼이 20자라 그냥 이어 붙이면 회원번호가 길 때 저장에서 터진다
-    private String nicknameOf(String nickname, long kakaoId) {
+    private String nicknameOf(String nickname, String providerId) {
         if (nickname != null && !nickname.isBlank()) {
-            return nickname.length() > MAX_NICKNAME_LENGTH ? nickname.substring(0, MAX_NICKNAME_LENGTH) : nickname;
+            return truncate(nickname);
         }
+        return truncate("플레이어" + providerId);
+    }
 
-        String generated = "플레이어" + kakaoId;
-        return generated.length() > MAX_NICKNAME_LENGTH ? generated.substring(0, MAX_NICKNAME_LENGTH) : generated;
+    private String truncate(String value) {
+        return value.length() > MAX_NICKNAME_LENGTH ? value.substring(0, MAX_NICKNAME_LENGTH) : value;
     }
 }
