@@ -63,8 +63,14 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/rankings")
                         .permitAll()
+                        // 비로그인 계정 발급은 신원이 없는 상태에서 부르는 것이라 열어 둔다
+                        // 대신 IP 당 한도를 둔다
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/visitors")
+                        .permitAll()
+                        // 로그인 여부가 아니라 권한으로 본다
+                        // 나중에 정지 계정 같은 역할이 생겨도 명시적으로 열어야 들어온다
                         .requestMatchers("/api/v1/**")
-                        .authenticated()
+                        .hasAnyRole("USER", "VISITOR")
                         .anyRequest()
                         .denyAll())
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(unauthorizedEntryPoint))

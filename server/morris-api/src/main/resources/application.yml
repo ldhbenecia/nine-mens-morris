@@ -61,6 +61,12 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+  # X-Forwarded-* 를 반영해 getRemoteAddr 이 프록시가 아니라 실제 호출자를 돌려주게 한다
+  # 이게 없으면 IP 당 발급 한도가 nginx IP 하나로 집계돼 모든 사용자가 한 카운터를 공유한다
+  #
+  # 헤더는 위조할 수 있으므로 앱이 프록시를 거치지 않고 직접 닿으면 한도를 우회당한다
+  # 보안그룹으로 프록시만 앱에 닿게 막혀 있다는 전제 위에서만 맞는 설정
+  forward-headers-strategy: framework
   # 배포할 때 진행 중인 요청을 끊지 않고 마무리한다
   # 게임 상태가 메모리에만 있어 어차피 재배포되면 사라지지만,
   # 적어도 정산 트랜잭션이 중간에 잘리지는 않게 함
@@ -74,9 +80,12 @@ cors:
 JWT_SECRET_KEY: ${JWT_SECRET_KEY}
 
 # 밀리초 단위. JwtProvider 가 now.getTime() + 이 값으로 만료 시각 계산
-# 주의: OAuth2SuccessHandler 가 이 값을 Cookie.setMaxAge(초) 에 그대로 전달해
-#       현재 쿠키가 JWT 보다 1000배 오래 삶
 ACCESS_TOKEN_EXPIRATION: ${ACCESS_TOKEN_EXPIRATION:3600000}
+
+# 비로그인 사용자 토큰. 7일
+# 토큰을 잃으면 그 신원으로 돌아올 방법이 없어 짧게 잡으면 게임 도중 끊긴다
+# 탈취돼도 전적도 레이팅도 없어 잃을 것이 없다
+VISITOR_TOKEN_EXPIRATION: ${VISITOR_TOKEN_EXPIRATION:604800000}
 
 # 로그인 성공 후 리다이렉트할 프론트엔드 주소
 DOMAIN: ${DOMAIN:http://localhost:5173}

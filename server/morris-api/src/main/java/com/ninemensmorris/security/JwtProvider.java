@@ -23,6 +23,9 @@ public class JwtProvider {
     @Value("${ACCESS_TOKEN_EXPIRATION}")
     private Long accessTokenExpirationPeriod;
 
+    @Value("${VISITOR_TOKEN_EXPIRATION}")
+    private Long visitorTokenExpirationPeriod;
+
     private SecretKey signingKey;
     private JwtParser parser;
 
@@ -46,6 +49,12 @@ public class JwtProvider {
 
     public String generateAccessToken(Long userId) {
         return generateToken(userId, accessTokenExpirationPeriod);
+    }
+
+    // 비로그인 사용자는 토큰을 잃으면 그 신원으로 돌아올 방법이 없다
+    // 짧게 잡으면 게임 도중 만료되고, 탈취돼도 전적도 레이팅도 없어 잃을 것이 없으므로 길게 둔다
+    public String generateVisitorToken(Long userId) {
+        return generateToken(userId, visitorTokenExpirationPeriod);
     }
 
     public boolean validateToken(String token) {
