@@ -31,9 +31,9 @@ public final class RatingPolicy {
     }
 
     // 레이팅에 반영할 판인지
-    // guestInvolved 는 게스트가 낀 경우. 게스트는 무한히 만들 수 있어 랭크전이 될 수 없음
-    public static boolean isRated(int totalMoves, boolean guestInvolved) {
-        return !guestInvolved && totalMoves >= MIN_RATED_MOVES;
+    // 비로그인 계정이 낀 판은 아예 기록되지 않으므로 여기까지 오지 않음
+    public static boolean isRated(int totalMoves) {
+        return totalMoves >= MIN_RATED_MOVES;
     }
 
     // 감쇠를 적용한 최종 변동값

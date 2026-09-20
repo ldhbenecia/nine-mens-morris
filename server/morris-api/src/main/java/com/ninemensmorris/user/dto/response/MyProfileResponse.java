@@ -13,7 +13,9 @@ public record MyProfileResponse(
         int wins,
         int losses,
         int draws,
-        Integer rank) {
+        Integer rank,
+        // 화면에서 "게스트" 로 보여주고 로그인 유도를 띄우는 기준
+        boolean visitor) {
 
     public static MyProfileResponse of(User user, Integer rank) {
         return new MyProfileResponse(
@@ -26,6 +28,7 @@ public record MyProfileResponse(
                 user.getWins(),
                 user.getLosses(),
                 user.getDraws(),
-                rank);
+                rank,
+                user.isVisitor());
     }
 }

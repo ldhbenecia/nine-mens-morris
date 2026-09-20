@@ -165,6 +165,28 @@ class MatchResultServiceTest extends IntegrationTestSupport {
     }
 
     @Nested
+    class 비로그인_계정 {
+
+        @Test
+        @DisplayName("비로그인 계정이 끼면 MMR 도 전적도 원장도 남지 않는다")
+        void 비로그인_계정이_끼면_기록하지_않는다() {
+            // given — 새 계정을 찍어내 본계정에 점수를 몰아줄 수 있으면 안 된다
+            long visitorId = userRepository.save(User.visitor("게스트1234")).getUserId();
+            int before = reload(blackId).getMmr();
+
+            // when — 랭크전 조건을 충족하는 길이로 끝낸다
+            matchResultService.record(blackId, visitorId, blackId, "RESIGN", RATED_MOVES);
+
+            // then — 이긴 쪽도 얻는 것이 없어야 몰아주기 유인이 사라진다
+            User black = reload(blackId);
+            assertThat(black.getMmr()).isEqualTo(before);
+            assertThat(black.getWins()).isZero();
+            assertThat(black.gamesPlayed()).isZero();
+            assertThat(matchRepository.findAll()).isEmpty();
+        }
+    }
+
+    @Nested
     class 배치_기간 {
 
         @Test

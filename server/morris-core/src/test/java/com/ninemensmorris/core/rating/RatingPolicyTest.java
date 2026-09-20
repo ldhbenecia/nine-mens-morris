@@ -8,9 +8,6 @@ import org.junit.jupiter.api.Test;
 
 class RatingPolicyTest {
 
-    private static final boolean NO_GUEST = false;
-    private static final boolean WITH_GUEST = true;
-
     @Nested
     class 반복_대전_감쇠 {
 
@@ -74,24 +71,15 @@ class RatingPolicyTest {
         @DisplayName("너무 일찍 끝난 판은 반영하지 않는다")
         void 조기_종료는_반영하지_않는다() {
             // then — 붙자마자 기권을 반복하는 파밍을 막는다
-            assertThat(RatingPolicy.isRated(0, NO_GUEST)).isFalse();
-            assertThat(RatingPolicy.isRated(RatingPolicy.MIN_RATED_MOVES - 1, NO_GUEST))
-                    .isFalse();
+            assertThat(RatingPolicy.isRated(0)).isFalse();
+            assertThat(RatingPolicy.isRated(RatingPolicy.MIN_RATED_MOVES - 1)).isFalse();
         }
 
         @Test
         @DisplayName("최소 수를 채우면 반영한다")
         void 최소_수를_채우면_반영한다() {
             // then
-            assertThat(RatingPolicy.isRated(RatingPolicy.MIN_RATED_MOVES, NO_GUEST))
-                    .isTrue();
-        }
-
-        @Test
-        @DisplayName("게스트가 끼면 판 길이와 무관하게 반영하지 않는다")
-        void 게스트가_끼면_반영하지_않는다() {
-            // then — 게스트는 무한히 만들 수 있어 랭크전이 될 수 없다
-            assertThat(RatingPolicy.isRated(100, WITH_GUEST)).isFalse();
+            assertThat(RatingPolicy.isRated(RatingPolicy.MIN_RATED_MOVES)).isTrue();
         }
     }
 }

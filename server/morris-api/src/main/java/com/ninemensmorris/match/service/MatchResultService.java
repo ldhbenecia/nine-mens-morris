@@ -36,6 +36,14 @@ public class MatchResultService {
             return;
         }
 
+        // 비로그인 계정은 얼마든지 새로 만들 수 있다
+        // 레이팅만 막고 전적을 남기면 배치 판수를 공짜로 채워 티어를 받을 수 있으므로
+        // 그런 판은 아예 기록하지 않는다. 양쪽 다 잃는 것이 없어야 몰아주기 유인이 생기지 않는다
+        if (black.isVisitor() || white.isVisitor()) {
+            log.info("비로그인 계정이 낀 판이라 기록하지 않음 black={} white={} 사유={} 수={}", blackId, whiteId, endReason, moveCount);
+            return;
+        }
+
         User winner = winnerId == null ? null : (winnerId == blackId ? black : white);
         Match match = Match.of(black, white, winner, endReason, moveCount);
 
@@ -43,7 +51,7 @@ public class MatchResultService {
         int whiteDelta = 0;
 
         // 조기 종료나 반복 대전이면 레이팅을 건드리지 않고 기록만 남긴다
-        if (RatingPolicy.isRated(moveCount, false)) {
+        if (RatingPolicy.isRated(moveCount)) {
             double factor = repeatFactor(blackId, whiteId);
             blackDelta = RatingPolicy.applyFactor(rawDelta(black, white, winner), factor);
             whiteDelta = RatingPolicy.applyFactor(rawDelta(white, black, winner), factor);

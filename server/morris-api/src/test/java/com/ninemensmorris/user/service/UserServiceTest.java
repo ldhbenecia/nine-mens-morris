@@ -73,6 +73,27 @@ class UserServiceTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("비로그인 계정은 랭킹 목록에도 내 등수 계산에도 들어가지 않는다")
+    void 비로그인_계정은_랭킹에_없다() {
+        // given — MMR 이 가장 높아도 등재되면 안 된다
+        사용자(1L, 1200);
+        User visitor = User.visitor("게스트1234");
+        visitor.applyMatchResult(2000 - visitor.getMmr(), MatchOutcome.DRAW);
+        long visitorId = userRepository.save(visitor).getUserId();
+
+        // when
+        List<RankingResponse> rankings = userService.findRankings(10);
+
+        // then — 목록에서 빠지고, 남은 회원의 등수도 비로그인 계정 때문에 밀리지 않는다
+        assertThat(rankings).extracting(RankingResponse::userId).doesNotContain(visitorId);
+        assertThat(rankings).hasSize(1);
+        assertThat(rankings.get(0).rank()).isEqualTo(1);
+        // 본인 프로필에도 등수가 없다
+        assertThat(userService.findMe(visitorId).rank()).isNull();
+        assertThat(userService.findMe(visitorId).visitor()).isTrue();
+    }
+
+    @Test
     @DisplayName("동점자 순서가 호출마다 바뀌지 않는다")
     void 동점자_순서가_고정된다() {
         // given — 정렬에 타이브레이커가 없으면 순서가 비결정적이다

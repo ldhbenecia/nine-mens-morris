@@ -38,6 +38,7 @@ import lombok.NoArgsConstructor;
 public class User {
 
     private static final String ROLE_USER = "ROLE_USER";
+    private static final String ROLE_VISITOR = "ROLE_VISITOR";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -93,6 +94,15 @@ public class User {
 
     public static User ofKakao(String providerId, String nickname, String imageUrl) {
         return new User(Provider.KAKAO, providerId, nickname, imageUrl, ROLE_USER);
+    }
+
+    // 로그인하지 않은 사용자. 닉네임은 서버가 정하고 프로필 이미지는 없다
+    public static User visitor(String nickname) {
+        return new User(Provider.VISITOR, null, nickname, null, ROLE_VISITOR);
+    }
+
+    public boolean isVisitor() {
+        return provider == Provider.VISITOR;
     }
 
     public int gamesPlayed() {
