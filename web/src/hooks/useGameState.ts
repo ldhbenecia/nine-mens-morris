@@ -25,16 +25,9 @@ const initialGameState: GameState = {
 
 let errorTimerId = 0;
 
-/**
- * 규칙 판단은 하지 않는다.
- *
- * 예전에는 턴 / 인접 / 3연속 / 빈 칸을 여기서 검사한 뒤에야 서버로 보냈다.
- * 서버에는 같은 검사가 아예 없어서 규칙 강제가 사실상 프론트에만 있었고,
- * 규칙 표(인접·3연속)가 양쪽에 복제되어 한쪽만 고치면 어긋났다.
- *
- * 이제 서버가 판정하고 거절 사유를 개인 큐로 보내준다.
- * 여기서는 "화면상 명백히 누를 수 없는 것"만 막고 나머지는 서버에 맡긴다.
- */
+// 규칙 판단은 하지 않음. 서버가 판정하고 거절 사유를 개인 큐로 보내줌
+// 여기서 턴·빈 칸·단계를 미리 막으면 서버에 가지 않아 거절 문구도 효과음도 없이 무반응이 됨
+// 끝난 판처럼 보낼 이유가 아예 없는 것만 막음
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [error, setError] = useState('');
@@ -78,13 +71,6 @@ export function useGameState() {
 
   const enemyId = () => (isBlack() ? gameState.whiteId : gameState.blackId);
 
-  const isEmptyPoint = (index: number) => gameState.board[index] === 'EMPTY';
-
-  const isPlayerPoint = (index: number) => gameState.board[index] === myStone();
-
-  const isEnemyPoint = (index: number) =>
-    gameState.board[index] === enemyStone();
-
   const showError = (message: string) => {
     if (errorTimerId) {
       clearTimeout(errorTimerId);
@@ -106,36 +92,22 @@ export function useGameState() {
     });
   };
 
-  // 손에 든 돌이 없는데 놓으려 하거나 이미 찬 자리를 누른 것은
-  // 서버에 물어볼 것도 없이 화면에서 막는다
   const addStone = (client: Client, roomId: number, index: number) => {
-    if (isGameOver() || gameState.awaitingRemoval || !isPlayerTurn()) return;
-    if (getPlayerPhase() !== 'PLACING' || !isEmptyPoint(index)) return;
-
-    send(client, roomId, 'place', { to: index });
+    if (!isGameOver()) send(client, roomId, 'place', { to: index });
   };
 
-  // 인접 여부는 검사하지 않는다. FLYING 인지까지 따지면 규칙이 다시 복제된다
   const moveStone = (
     client: Client,
     roomId: number,
     from: number,
     to: number
   ) => {
-    if (isGameOver() || gameState.awaitingRemoval || !isPlayerTurn()) return;
-    if (getPlayerPhase() === 'PLACING') return;
-    if (!isPlayerPoint(from) || !isEmptyPoint(to)) return;
-
-    send(client, roomId, 'move', { from, to });
+    if (!isGameOver()) send(client, roomId, 'move', { from, to });
   };
 
-  // 3연속에 속한 돌인지도 서버가 판단한다.
-  // 상대 돌이 전부 3연속이면 그마저 제거할 수 있다는 예외가 있어
-  // 프론트에서 판단하면 틀린다
+  // 3연속 보호 여부도 서버가 판단함. 상대 돌이 전부 3연속이면 그마저 제거 가능한 예외가 있음
   const removeStone = (client: Client, roomId: number, index: number) => {
-    if (isGameOver() || !gameState.awaitingRemoval || !isPlayerTurn()) return;
-    if (!isEnemyPoint(index)) return;
-
+    if (isGameOver()) return;
     send(client, roomId, 'remove', { at: index });
     setError('');
   };
@@ -182,9 +154,6 @@ export function useGameState() {
     getPlayerOnBoard,
     getEnemyOnBoard,
     getPlayerPhase,
-    isEmptyPoint,
-    isPlayerPoint,
-    isEnemyPoint,
     addStone,
     moveStone,
     removeStone,
