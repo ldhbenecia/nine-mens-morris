@@ -1,4 +1,7 @@
-# 로컬 개발:  docker compose up -d            -> DB 만 뜸. 앱은 IDE 에서 실행
+# 프로젝트 이름을 고정. 없으면 실행한 디렉터리 이름이 붙어 같은 서비스가 프로젝트 여러 개로 갈라짐
+name: nine-mens-morris
+
+# 로컬 개발:  docker compose up -d            -> DB·Redis 만 뜸. 앱은 IDE 에서 실행
 # 전체 구동:  docker compose --profile app up  -> 앱까지 같이 뜸
 #
 # 앱을 기본으로 두면 코드를 고칠 때마다 이미지를 다시 빌드해야 하고
@@ -81,3 +84,5 @@ networks:
 
 volumes:
   mysql-data:
+    # 리포지터리를 합치기 전에 만든 볼륨을 그대로 씀. 이름이 바뀌면 빈 DB 로 새로 뜸
+    name: ninemensmorris_backend_mysql-data
