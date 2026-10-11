@@ -136,6 +136,13 @@ export function GamePage() {
     setShowResponseDrawModal(false);
   };
 
+  // 화면에서 먼저 알아챈 거절도 서버 거절과 같은 문구 자리·소리로
+  const onReject = (message: string) => {
+    showError(message);
+    errorSound.currentTime = 0;
+    errorSound.play();
+  };
+
   const onStart = () => {
     if (roomId) startGame(client, Number(roomId));
   };
@@ -380,6 +387,7 @@ export function GamePage() {
               addStone={addStone}
               moveStone={moveStone}
               removeStone={removeStone}
+              onReject={onReject}
             />
           </div>
           <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">

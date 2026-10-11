@@ -23,6 +23,7 @@ type BoardProps = {
   addStone: (client: Client, roomId: number, index: number) => void;
   moveStone: (client: Client, roomId: number, from: number, to: number) => void;
   removeStone: (client: Client, roomId: number, index: number) => void;
+  onReject: (message: string) => void;
 };
 
 export function Board({
@@ -38,6 +39,7 @@ export function Board({
   addStone,
   moveStone,
   removeStone,
+  onReject,
 }: BoardProps) {
   const { roomId } = useParams();
   const [selectedStone, setSelectedStone] = useState<number | null>(null);
@@ -92,13 +94,22 @@ export function Board({
         }
         addStone(client, Number(roomId), idx);
         break;
-      case playerStoneColor:
-        if (selectable) {
-          setSelectedStone(selectedStone === idx ? null : idx);
-        }
-        break;
       default:
-        removeStone(client, Number(roomId), idx);
+        // 제거 차례면 어느 돌이든 서버로. 보호 여부·자기 돌 여부는 서버가 답함
+        if (removableStone !== 'EMPTY') {
+          removeStone(client, Number(roomId), idx);
+        } else if (points[idx].stone === playerStoneColor && selectable) {
+          setSelectedStone(selectedStone === idx ? null : idx);
+        } else if (placeable) {
+          // 서버가 "이미 돌이 놓인 지점" 으로 답함
+          addStone(client, Number(roomId), idx);
+        } else if (selectable) {
+          onReject('자기 돌만 옮길 수 있습니다.');
+        } else {
+          // 이동 단계의 돌 고르기는 화면에서만 일어나 서버가 답할 기회가 없음
+          // 그냥 두면 상대 차례에 내 돌을 눌러도 아무 반응이 없음
+          onReject('상대 차례입니다.');
+        }
         break;
     }
   };
