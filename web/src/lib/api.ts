@@ -2,7 +2,7 @@ import axios from 'axios';
 import { clearToken, getToken } from '~/lib/auth';
 import { Rank, Room, RoomDetail, User } from '~/lib/types';
 
-export const client = axios.create({
+const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 

@@ -133,19 +133,12 @@ export function useGameState() {
     send(client, roomId, 'start');
   };
 
-  // 새로고침 후 판을 되찾는다
-  const requestSync = (client: Client, roomId: number) => {
-    send(client, roomId, 'sync');
-  };
-
   return {
     gameState,
     error,
     setGameState,
     showError,
-    isBlack,
     isPlayerTurn,
-    isGameOver,
     myStone,
     enemyStone,
     enemyId,
@@ -162,6 +155,5 @@ export function useGameState() {
     acceptDraw,
     declineDraw,
     startGame,
-    requestSync,
   };
 }
