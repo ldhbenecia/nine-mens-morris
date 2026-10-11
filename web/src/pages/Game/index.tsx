@@ -26,6 +26,7 @@ import {
   whiteStoneSound,
   startSound,
   explosionSound,
+  errorSound,
   notificationSound,
 } from '~/lib/sounds';
 import { DrawRejectedModal } from './DrawRejectedModal';
@@ -53,6 +54,7 @@ export function GamePage() {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [endNotice, setEndNotice] = useState('');
   const [disconnected, setDisconnected] = useState(false);
+  const [lastPoint, setLastPoint] = useState<number | null>(null);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
   const { mutate: leaveRoom } = useLeaveRoom();
   const {
@@ -139,9 +141,7 @@ export function GamePage() {
   // 착수 효과음. 예전에는 클라이언트가 /topic 으로 직접 발행해 서로에게 알렸는데
   // 서버가 그 경로를 막았고, 애초에 착수 결과가 브로드캐스트되므로 필요 없다
   const playMoveSound = useCallback((before: string[], after: string[]) => {
-    const added = after.findIndex(
-      (stone, idx) => stone !== 'EMPTY' && before[idx] === 'EMPTY'
-    );
+    const added = addedPoint(before, after);
     const removed = after.findIndex(
       (stone, idx) => stone === 'EMPTY' && before[idx] !== 'EMPTY'
     );
@@ -165,18 +165,24 @@ export function GamePage() {
     switch (event.type) {
       case 'STARTED':
         if (event.state) setGameState(event.state);
+        setLastPoint(null);
         startSound.play();
         break;
       case 'SNAPSHOT':
         if (event.state) setGameState(event.state);
+        setLastPoint(null);
         break;
-      case 'STATE_CHANGED':
+      case 'STATE_CHANGED': {
         if (!event.state) break;
+        // 제거만 일어난 수는 새로 생긴 돌이 없어 표시를 그대로 둠
+        const added = addedPoint(gameState.board, event.state.board);
+        if (added !== -1) setLastPoint(added);
         setGameState((previous) => {
           playMoveSound(previous.board, event.state!.board);
           return event.state!;
         });
         break;
+      }
       case 'FINISHED':
         if (event.state) setGameState(event.state);
         break;
@@ -222,8 +228,9 @@ export function GamePage() {
       client.subscribe('/user/queue/errors', (message) => {
         const rejected = JSON.parse(message.body) as MoveRejected;
         onError(rejected.message);
-        explosionSound.currentTime = 0;
-        explosionSound.play();
+        // 폭발음은 3연속 전용. 거절에까지 쓰면 둘을 소리로 구분할 수 없음
+        errorSound.currentTime = 0;
+        errorSound.play();
       });
 
       // 새로고침 후 판 복구
@@ -333,6 +340,13 @@ export function GamePage() {
             client={client}
             board={gameState.board}
             selectable={getPlayerPhase() !== 'PLACING' && isPlayerTurn()}
+            placeable={getPlayerPhase() === 'PLACING' && isPlayerTurn()}
+            removableStone={
+              gameState.awaitingRemoval && isPlayerTurn()
+                ? enemyStone()
+                : 'EMPTY'
+            }
+            lastPoint={lastPoint}
             playerStoneColor={myStone()}
             addStone={addStone}
             moveStone={moveStone}
@@ -360,6 +374,13 @@ export function GamePage() {
         </>
       )}
     </main>
+  );
+}
+
+// 이번 수로 새로 생긴 돌의 자리. 이동이면 도착 지점, 제거만 했으면 -1
+function addedPoint(before: string[], after: string[]) {
+  return after.findIndex(
+    (stone, idx) => stone !== 'EMPTY' && before[idx] === 'EMPTY'
   );
 }
 

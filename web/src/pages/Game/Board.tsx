@@ -10,6 +10,9 @@ type BoardProps = {
   board: StoneType[];
   playerStoneColor: StoneType;
   selectable: boolean;
+  placeable: boolean; // 내 차례의 배치 단계. 빈 지점에 내 돌을 미리 보여줌
+  removableStone: StoneType; // 3연속 뒤 제거할 수 있는 색. 보호 여부는 서버가 판단
+  lastPoint: number | null;
   addStone: (client: Client, roomId: number, index: number) => void;
   moveStone: (client: Client, roomId: number, from: number, to: number) => void;
   removeStone: (client: Client, roomId: number, index: number) => void;
@@ -20,6 +23,9 @@ export function Board({
   board,
   playerStoneColor,
   selectable,
+  placeable,
+  removableStone,
+  lastPoint,
   addStone,
   moveStone,
   removeStone,
@@ -33,6 +39,11 @@ export function Board({
     () => board.map((stone, index) => ({ ...STONE_POSITION[index], stone })),
     [board]
   );
+
+  const preview =
+    removableStone === 'EMPTY' && (placeable || selectedStone !== null)
+      ? playerStoneColor
+      : 'EMPTY';
 
   const onClickPoint = (idx: number) => {
     if (!roomId) return;
@@ -60,19 +71,26 @@ export function Board({
   return (
     <div className="absolute top-0 left-0 flex h-full w-full items-center justify-center overflow-hidden">
       <div className="h-[480px] w-[480px] scale-50 xs:scale-75 md:scale-90 lg:scale-100">
+        <div className="absolute -inset-10 rounded-4xl bg-stone-50 shadow-xl ring-1 ring-stone-200" />
         <div className="absolute z-10">
           {points.map((point, idx) => (
-            <div key={idx} onClick={() => onClickPoint(idx)}>
-              <Point
-                top={point.top}
-                left={point.left}
-                stone={point.stone}
-                selected={idx === selectedStone}
-              />
-            </div>
+            <Point
+              key={idx}
+              point={idx}
+              top={point.top}
+              left={point.left}
+              stone={point.stone}
+              selected={idx === selectedStone}
+              preview={preview}
+              removable={
+                removableStone !== 'EMPTY' && point.stone === removableStone
+              }
+              last={idx === lastPoint}
+              onClick={() => onClickPoint(idx)}
+            />
           ))}
         </div>
-        <div className="flex h-[480px] w-[480px] items-center justify-center border border-gray-400">
+        <div className="relative flex h-[480px] w-[480px] items-center justify-center border border-gray-400">
           <div className="flex h-[320px] w-[320px] items-center justify-center border border-gray-400">
             <div className="h-[160px] w-[160px] border border-gray-400" />
           </div>
