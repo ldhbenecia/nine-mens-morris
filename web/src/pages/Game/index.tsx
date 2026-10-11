@@ -272,6 +272,7 @@ export function GamePage() {
     >
       <WithdrawModal
         visible={showWithdrawModal}
+        rated={room?.rated ?? false}
         onWithdraw={onResign}
         onClose={() => setShowWithdrawModal(false)}
       />
@@ -321,7 +322,7 @@ export function GamePage() {
           <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
             <PhaseBanner phase={getPlayerPhase()} />
             <Status
-              turn={!isPlayerTurn()}
+              turn={gameState.status === 'PLAYING' && !isPlayerTurn()}
               color={enemyStone()}
               inHand={getEnemyInHand()}
               onBoard={getEnemyOnBoard()}
@@ -342,11 +343,11 @@ export function GamePage() {
               phase={getPlayerPhase()}
               removing={gameState.awaitingRemoval}
               error={error}
-              turn={isPlayerTurn()}
+              turn={gameState.status === 'PLAYING' && isPlayerTurn()}
             />
             <Status
               isCurrentUser
-              turn={isPlayerTurn()}
+              turn={gameState.status === 'PLAYING' && isPlayerTurn()}
               color={myStone()}
               inHand={getPlayerInHand()}
               onBoard={getPlayerOnBoard()}

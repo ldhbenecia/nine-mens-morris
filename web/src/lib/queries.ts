@@ -5,15 +5,19 @@ import {
   getRooms,
   getUserNickname,
 } from './api';
+import { getToken } from './auth';
 
 export const QUERY = {
   ROOMS: {
     queryKey: ['rooms'],
     queryFn: getRooms,
   },
+  // 토큰이 없으면 묻지 않음. 물으면 비로그인 접속마다 401 이 콘솔에 남음
+  // 함수로 둬야 게스트 발급·로그인 직후 다시 평가됨
   CURRENT_USER: {
     queryKey: ['currentUser'],
     queryFn: getCurrentUser,
+    enabled: () => !!getToken(),
     retry: false,
   },
   RANKS: {

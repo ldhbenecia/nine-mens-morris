@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getToken } from '~/lib/auth';
 import { QUERY } from '~/lib/queries';
 
 type AuthGateProps = {
@@ -17,8 +18,9 @@ export function AuthGate({ children }: AuthGateProps) {
   } = useQuery(QUERY.CURRENT_USER);
   const navigate = useNavigate();
 
+  // 토큰이 없으면 신원 조회 자체를 하지 않아 isError 가 오지 않음. 따로 확인해 돌려보냄
   useEffect(() => {
-    if (!isLoading && isError) {
+    if (!getToken() || (!isLoading && isError)) {
       navigate('/', { replace: true });
     }
   }, [isLoading, isError, navigate]);

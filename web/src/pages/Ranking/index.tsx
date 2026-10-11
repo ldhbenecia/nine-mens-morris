@@ -17,6 +17,17 @@ export function RankingPage() {
             <Button theme="secondary" slim text="이전으로" icon={<Undo />} />
           </Link>
         </div>
+        {/* 회원끼리 판을 둬야 랭킹이 생김. 게스트는 랭킹에 오르지 않음 */}
+        {ranks?.length === 0 && (
+          <div className="flex w-full flex-col items-center gap-1 rounded-xl border border-dashed border-gray-300 py-12 text-center">
+            <span className="font-semibold">
+              아직 랭킹에 오른 사람이 없습니다
+            </span>
+            <span className="text-sm text-gray-500">
+              카카오로 로그인해 랭크전을 두면 이곳에 이름이 오릅니다
+            </span>
+          </div>
+        )}
         <div className="flex w-full flex-col gap-2">
           {ranks &&
             ranks.map((entry) => (
