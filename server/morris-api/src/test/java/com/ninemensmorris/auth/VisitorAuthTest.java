@@ -7,6 +7,7 @@ import com.ninemensmorris.security.JwtProvider;
 import com.ninemensmorris.support.IntegrationTestSupport;
 import com.ninemensmorris.user.domain.User;
 import com.ninemensmorris.user.repository.UserRepository;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,8 @@ import org.springframework.http.HttpMethod;
 // 로그인 없이 신원을 받아 게임까지 갈 수 있어야 한다
 // 인가 규칙을 denyAll 기본으로 두고 있어 실제로 요청을 보내 봐야 열렸는지 알 수 있다
 class VisitorAuthTest extends IntegrationTestSupport {
+
+    private static final AtomicInteger NEXT_IP = new AtomicInteger();
 
     private final TestRestTemplate rest = new TestRestTemplate();
 
@@ -45,7 +48,7 @@ class VisitorAuthTest extends IntegrationTestSupport {
     @DisplayName("로그인 없이 신원을 받고 그 토큰으로 방을 만들 수 있다")
     void 로그인_없이_방을_만든다() {
         // given / when — 요청 본문도 인증도 없다
-        var issued = rest.exchange(url("/api/v1/auth/visitors"), HttpMethod.POST, null, VisitorToken.class);
+        var issued = rest.exchange(url("/api/v1/auth/visitors"), HttpMethod.POST, fromNewIp(), VisitorToken.class);
 
         // then
         assertThat(issued.getStatusCode().value()).isEqualTo(201);
@@ -172,9 +175,17 @@ class VisitorAuthTest extends IntegrationTestSupport {
     }
 
     private String issueVisitor() {
-        return rest.exchange(url("/api/v1/auth/visitors"), HttpMethod.POST, null, VisitorToken.class)
+        return rest.exchange(url("/api/v1/auth/visitors"), HttpMethod.POST, fromNewIp(), VisitorToken.class)
                 .getBody()
                 .accessToken();
+    }
+
+    // 발급 한도는 IP 별이고 컨텍스트를 공유하는 테스트끼리 카운터도 공유함
+    // 같은 IP 로 몰아 발급하면 테스트 순서에 따라 429 가 남
+    private HttpEntity<Void> fromNewIp() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Forwarded-For", "10.9.0." + NEXT_IP.incrementAndGet());
+        return new HttpEntity<>(headers);
     }
 
     private long createRoom(String token) {

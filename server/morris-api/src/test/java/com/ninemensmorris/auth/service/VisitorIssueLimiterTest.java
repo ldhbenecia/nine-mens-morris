@@ -28,10 +28,10 @@ class VisitorIssueLimiterTest {
     }
 
     @Test
-    @DisplayName("한 IP 가 한도를 넘으면 거절한다")
+    @DisplayName("한 IP 가 짧은 시간에 한도를 넘으면 거절한다")
     void 한도를_넘으면_거절한다() {
         // given
-        발급(10);
+        발급(5);
 
         // when / then
         assertThatThrownBy(() -> limiter.check(IP))
@@ -43,20 +43,30 @@ class VisitorIssueLimiterTest {
     @DisplayName("한도는 IP 마다 따로 센다")
     void 한도는_IP_마다_따로_센다() {
         // given
-        발급(10);
+        발급(5);
 
         // when / then
         assertThatCode(() -> limiter.check("10.0.0.2")).doesNotThrowAnyException();
     }
 
     @Test
-    @DisplayName("창의 경계를 넘어도 최근 1시간 안의 발급이 한도면 거절한다")
-    void 경계_직후에도_막는다() {
-        // given — 1시간 창의 끝자락에 한도를 채운다
-        clock.move(Duration.ofMinutes(59).plusSeconds(59));
-        발급(10);
+    @DisplayName("몰아치지 않으면 발급 횟수에 상한이 없다")
+    void 천천히_발급하면_막지_않는다() {
+        // when / then — 15초 간격이면 1분 창 안에 4건뿐
+        for (int i = 0; i < 20; i++) {
+            assertThatCode(() -> limiter.check(IP)).doesNotThrowAnyException();
+            clock.move(Duration.ofSeconds(15));
+        }
+    }
 
-        // when — 정각을 2초 넘김. 고정 창이었다면 여기서 새로 10건이 통과
+    @Test
+    @DisplayName("창의 경계를 넘어도 최근 1분 안의 발급이 한도면 거절한다")
+    void 경계_직후에도_막는다() {
+        // given — 1분 창의 끝자락에 한도를 채운다
+        clock.move(Duration.ofSeconds(59));
+        발급(5);
+
+        // when — 분이 바뀌고 2초. 고정 창이었다면 여기서 새로 5건이 통과
         clock.move(Duration.ofSeconds(2));
 
         // then
@@ -64,28 +74,28 @@ class VisitorIssueLimiterTest {
     }
 
     @Test
-    @DisplayName("발급한 지 1시간이 지나면 다시 허용한다")
-    void 한시간이_지나면_풀린다() {
+    @DisplayName("발급한 지 1분이 지나면 다시 허용한다")
+    void 일분이_지나면_풀린다() {
         // given
-        발급(10);
+        발급(5);
 
         // when
-        clock.move(Duration.ofHours(1).plusSeconds(1));
+        clock.move(Duration.ofMinutes(1).plusSeconds(1));
 
         // then
         assertThatCode(() -> limiter.check(IP)).doesNotThrowAnyException();
     }
 
     @Test
-    @DisplayName("정리 배치는 1시간이 지난 IP 만 지운다")
+    @DisplayName("정리 배치는 1분이 지난 IP 만 지운다")
     void 오래된_IP_만_정리한다() {
         // given
         limiter.check("10.0.0.1");
-        clock.move(Duration.ofMinutes(50));
+        clock.move(Duration.ofSeconds(50));
         limiter.check("10.0.0.2");
 
-        // when — 첫 IP 만 1시간을 넘김
-        clock.move(Duration.ofMinutes(11));
+        // when — 첫 IP 만 1분을 넘김
+        clock.move(Duration.ofSeconds(11));
         limiter.purgeExpired();
 
         // then

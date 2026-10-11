@@ -42,6 +42,10 @@ spring:
 cors:
   allowed-origins: http://localhost:5173
 
+# 운영과 같게 X-Forwarded-For 로 호출자 IP 를 정함. 발급 한도 테스트가 사용자마다 다른 IP 를 흉내 냄
+server:
+  forward-headers-strategy: framework
+
 # 테스트 전용 더미 값. 실제 키가 아님
 jwt:
   secret-key: dGVzdC1vbmx5LXNlY3JldC1rZXktMzJieXRlcy1sb25nISE=

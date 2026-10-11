@@ -127,7 +127,8 @@ POST /api/v1/auth/visitors
 
 발급은 **인증 없이 호출되는 쓰기 엔드포인트**다. 막지 않으면 DB에 행이 무한 생성된다.
 
-**IP당 시간당 10회. 인메모리 카운터**(`VisitorIssueLimiter`) — [ADR-13](07-architecture-decision.md).
+**IP당 분당 5회. 인메모리 카운터**(`VisitorIssueLimiter`) — [ADR-13](07-architecture-decision.md), 기준은 ADR-15.
+짧은 시간에 몰아치는 발급만 막는다. 천천히 쌓이는 행은 정리 배치가 지운다.
 서버가 여러 대가 되면 이 클래스의 구현만 Redis로 바꾼다.
 
 CAPTCHA는 이 규모에 과하고, 장벽을 없애려는 이 기능의 목적과도 어긋난다.
