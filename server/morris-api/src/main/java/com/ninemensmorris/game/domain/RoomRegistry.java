@@ -38,10 +38,6 @@ public class RoomRegistry {
                 .toList();
     }
 
-    public Optional<Room> findByPlayer(long userId) {
-        return rooms.values().stream().filter(room -> room.contains(userId)).findFirst();
-    }
-
     public void remove(long roomId) {
         rooms.remove(roomId);
     }

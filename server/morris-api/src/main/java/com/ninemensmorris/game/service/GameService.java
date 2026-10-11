@@ -134,8 +134,7 @@ public class GameService {
 
     // 소켓이 끊긴 사용자를 방에서 내보냄
     // 어느 방이었는지는 호출자가 알려줘야 함
-    // 예전에는 findByPlayer 로 찾았는데 한 사용자가 여러 방에 속할 수 있어
-    // 임의의 방이 뽑히고 진행 중인 판이 방치됐다
+    // 사용자로 방을 찾으면 여러 방에 속한 경우 임의의 방이 뽑혀 진행 중인 판이 방치됨
     public Optional<RoomBroadcast> handleDisconnect(long userId, long roomId) {
         return exit(roomId, userId, ExitCause.DISCONNECT);
     }
