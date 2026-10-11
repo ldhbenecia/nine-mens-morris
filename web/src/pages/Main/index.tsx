@@ -7,6 +7,7 @@ import { UserInfo } from './UserInfo';
 import { LoginModal } from './LoginModal';
 import { LogoutModal } from './LogoutModal';
 import { useLogout } from '~/hooks';
+import { TIER_LABEL } from '~/lib/tier';
 
 export function MainPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -48,6 +49,24 @@ export function MainPage() {
           나인 멘스 모리스
         </h2>
       </div>
+      {/* 게스트는 점수가 움직이지 않아 보여줄 기록이 없음 */}
+      {currentUser && !currentUser.visitor && (
+        <div className="flex animate-modal-background flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-gray-500">
+          <span className="font-semibold text-gray-800">
+            {TIER_LABEL[currentUser.tier]} · {currentUser.mmr.toLocaleString()}
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>
+            {currentUser.wins}승 {currentUser.losses}패 {currentUser.draws}무
+          </span>
+          {currentUser.rank !== null && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>랭킹 {currentUser.rank}위</span>
+            </>
+          )}
+        </div>
+      )}
       <div className="flex w-60 flex-col gap-4">
         <Button text="게임 시작" onClick={onClickStart} />
         <Link to="/ranking" className="flex w-full flex-col">
