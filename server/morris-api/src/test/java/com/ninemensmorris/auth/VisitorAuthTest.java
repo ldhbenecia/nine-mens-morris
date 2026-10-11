@@ -105,6 +105,31 @@ class VisitorAuthTest extends IntegrationTestSupport {
         assertThat(profile.getStatusCode().value()).isEqualTo(401);
     }
 
+    @Test
+    @DisplayName("남의 방 상세는 볼 수 없고 방이 있는지도 드러나지 않는다")
+    void 남의_방은_404_다() {
+        // given
+        long roomId = createRoom(issueVisitor());
+        String outsider = issueVisitor();
+
+        // when
+        var detail = rest.exchange(
+                url("/api/v1/rooms/" + roomId), HttpMethod.GET, new HttpEntity<>(bearer(outsider)), String.class);
+
+        // then — 403 이면 그 번호의 방이 있다는 것이 드러난다
+        assertThat(detail.getStatusCode().value()).isEqualTo(404);
+    }
+
+    @Test
+    @DisplayName("없는 주소는 500 이 아니라 404 다")
+    void 없는_주소는_404_다() {
+        // when — 인가에서 열려 있지만 처리할 곳이 없는 경로
+        var response = rest.exchange(url("/ws/nowhere"), HttpMethod.GET, null, String.class);
+
+        // then
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
+    }
+
     private String issueVisitor() {
         return rest.exchange(url("/api/v1/auth/visitors"), HttpMethod.POST, null, VisitorToken.class)
                 .getBody()

@@ -43,8 +43,8 @@ public class RoomController {
     }
 
     @GetMapping("/{roomId}")
-    public RoomDetailResponse findOne(@PathVariable long roomId) {
-        return roomService.findDetail(roomId);
+    public RoomDetailResponse findOne(AuthenticatedUser actor, @PathVariable long roomId) {
+        return roomService.findDetail(roomId, actor.id());
     }
 
     @PostMapping

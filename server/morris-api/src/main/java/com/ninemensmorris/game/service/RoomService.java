@@ -85,8 +85,12 @@ public class RoomService {
         }
     }
 
-    public RoomDetailResponse findDetail(long roomId) {
-        Room room = rooms.find(roomId).orElseThrow(() -> new CustomException(ErrorCode.ROOM_NOT_FOUND));
+    // 그 방 사람만 볼 수 있음. 참가자 id·닉네임까지 나가므로 방 토픽 구독과 같은 기준
+    // 남이면 403 이 아니라 404. 방 번호가 순증이라 403 이면 그 번호의 방이 있다는 것이 드러남
+    public RoomDetailResponse findDetail(long roomId, long actorId) {
+        Room room = rooms.find(roomId)
+                .filter(found -> found.contains(actorId))
+                .orElseThrow(() -> new CustomException(ErrorCode.ROOM_NOT_FOUND));
         Map<Long, User> players = findPlayers(playerIdsOf(room));
         return RoomDetailResponse.of(
                 room, nicknameOf(players, room.hostId()), nicknameOf(players, room.guestId()), isRated(room, players));

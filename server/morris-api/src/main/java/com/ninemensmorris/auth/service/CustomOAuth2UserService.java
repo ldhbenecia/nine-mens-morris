@@ -16,11 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private static final String KAKAO = "kakao";
 
-    // users.nickname 컬럼 길이와 같아야 함
     private static final int MAX_NICKNAME_LENGTH = 20;
 
     private final UserRepository userRepository;
