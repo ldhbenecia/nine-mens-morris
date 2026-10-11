@@ -10,9 +10,9 @@
 | 판 위의 자리 (0~23) | `point` | 지점 | `position`, `index`, `cell` |
 | 돌 | `stone` | 돌 | `piece` |
 | 인접 | `adjacent` / `Adjacency` | | `neighbor` 단독 |
-| 1단계 (돌 놓기) | `PLACING` | 배치 | `phase 1` |
-| 2단계 (인접 이동) | `MOVING` | 이동 | `phase 2` |
-| 3단계 (자유 이동) | `FLYING` | 날기 | `phase 3` |
+| 1단계 (돌 놓기) | `PLACING` | Phase 1 · 돌 배치 단계 | 코드에서 `phase1` |
+| 2단계 (인접 이동) | `MOVING` | Phase 2 · 돌 이동 단계 | 코드에서 `phase2` |
+| 3단계 (자유 이동) | `FLYING` | Phase 3 · 자유 이동 단계 | 코드에서 `phase3` |
 | 기권 | `resign` | 기권 | `withdraw` |
 | 무승부 | `draw` | 무승부 | `tie` |
 | 방 / 방 식별자 | `room` / `roomId` | 방 | `game`, `gameId` |
