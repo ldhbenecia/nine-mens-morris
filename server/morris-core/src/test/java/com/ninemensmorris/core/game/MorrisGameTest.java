@@ -709,4 +709,56 @@ class MorrisGameTest {
             assertThat(game.movesSinceRemoval()).isZero();
         }
     }
+
+    @Nested
+    class 시간_초과 {
+
+        @Test
+        @DisplayName("제한 시간을 넘기면 차례인 쪽이 진다")
+        void 차례인_쪽이_진다() {
+            // given — 흑 차례
+            MorrisGame game = new MorrisGame(Stone.BLACK);
+
+            // when
+            MoveResult result = game.timeout();
+
+            // then
+            assertThat(result).isInstanceOf(MoveResult.Finished.class);
+            assertThat(game.outcome().winner()).isEqualTo(Stone.WHITE);
+            assertThat(game.outcome().reason()).isEqualTo(EndReason.TIMEOUT);
+        }
+
+        @Test
+        @DisplayName("제거할 차례에 시간을 넘겨도 그 사람이 진다")
+        void 제거_차례에도_진다() {
+            // given — 흑이 0,1 에 두고 2 로 밀을 만들어 제거 대기
+            MorrisGame game = new MorrisGame(Stone.BLACK);
+            game.apply(Stone.BLACK, new Move.Place(0));
+            game.apply(Stone.WHITE, new Move.Place(9));
+            game.apply(Stone.BLACK, new Move.Place(1));
+            game.apply(Stone.WHITE, new Move.Place(10));
+            assertThat(game.apply(Stone.BLACK, new Move.Place(2))).isInstanceOf(MoveResult.MillFormed.class);
+
+            // when
+            game.timeout();
+
+            // then
+            assertThat(game.outcome().winner()).isEqualTo(Stone.WHITE);
+        }
+
+        @Test
+        @DisplayName("끝난 판은 시간 초과로 다시 끝나지 않는다")
+        void 끝난_판은_그대로다() {
+            // given
+            MorrisGame game = new MorrisGame(Stone.BLACK);
+            game.apply(Stone.BLACK, new Move.Resign());
+
+            // when
+            MoveResult result = game.timeout();
+
+            // then — 기권으로 정해진 결과가 바뀌면 안 됨
+            assertThat(reasonOf(result)).isEqualTo(RejectReason.GAME_NOT_IN_PROGRESS);
+            assertThat(game.outcome().reason()).isEqualTo(EndReason.RESIGN);
+        }
+    }
 }

@@ -78,7 +78,8 @@ export type EndReason =
   | 'DRAW_AGREED'
   | 'THREEFOLD_REPETITION'
   | 'FIFTY_MOVE_RULE'
-  | 'ABANDONED';
+  | 'ABANDONED'
+  | 'TIMEOUT';
 
 // 서버가 흑/백 기준으로 내려준다
 // 방장이 항상 흑이라는 전제가 사라져서 host/guest 로는 표현할 수 없다
@@ -98,6 +99,8 @@ export type GameState = {
   winnerId: number | null;
   loserId: number | null;
   endReason: EndReason | null;
+  // 차례인 쪽에 남은 시간. 받은 순간부터 세야 서버와 시계가 어긋나도 맞음. 판이 끝났으면 null
+  turnRemainingMillis: number | null;
 };
 
 export type RoomDetail = {

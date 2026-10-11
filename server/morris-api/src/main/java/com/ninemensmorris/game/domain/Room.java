@@ -34,6 +34,9 @@ public final class Room {
 
     private volatile Instant lastActivityAt = Instant.now();
 
+    // 차례인 쪽이 둬야 하는 시각. 만료 확인이 락 밖에서 목록을 훑으므로 volatile
+    private volatile Instant turnDeadline;
+
     public Room(long roomId, String title, long hostId) {
         this.roomId = roomId;
         this.title = title;
@@ -152,5 +155,17 @@ public final class Room {
 
     public Instant lastActivityAt() {
         return lastActivityAt;
+    }
+
+    public void restartTurnClock(Instant deadline) {
+        this.turnDeadline = deadline;
+    }
+
+    public Instant turnDeadline() {
+        return turnDeadline;
+    }
+
+    public boolean isTurnExpired(Instant now) {
+        return isPlaying() && turnDeadline != null && !now.isBefore(turnDeadline);
     }
 }

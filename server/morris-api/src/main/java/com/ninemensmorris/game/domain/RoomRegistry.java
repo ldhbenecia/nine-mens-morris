@@ -62,6 +62,14 @@ public class RoomRegistry {
 
     // 주어진 시각보다 오래 방치된 방. 얼마나 방치돼야 정리 대상인지는 호출자가 정함
     // 여기서 바로 지우지 않는 이유는 진행 중인 판을 정산할 수 있는 곳이 아니어서다
+    // 락 없이 훑어 후보만 고름. 고른 뒤 락 안에서 다시 확인해야 함
+    public List<Long> findTurnExpired(Instant now) {
+        return rooms.values().stream()
+                .filter(room -> room.isTurnExpired(now))
+                .map(Room::roomId)
+                .toList();
+    }
+
     public List<Long> findIdle(Instant threshold) {
         return rooms.values().stream()
                 .filter(room -> room.lastActivityAt().isBefore(threshold))

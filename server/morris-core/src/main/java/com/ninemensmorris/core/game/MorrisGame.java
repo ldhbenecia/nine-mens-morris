@@ -83,6 +83,15 @@ public final class MorrisGame {
         return finish(Outcome.draw(EndReason.ABANDONED));
     }
 
+    // 차례인 쪽이 제한 시간을 넘김. 시간은 이 클래스가 모름. 재는 것은 호출자 몫
+    // 제거할 차례도 그 사람의 차례라 같은 사람이 짐
+    public MoveResult timeout() {
+        if (status != GameStatus.PLAYING) {
+            return reject(RejectReason.GAME_NOT_IN_PROGRESS);
+        }
+        return finish(Outcome.win(currentTurn.opponent(), EndReason.TIMEOUT));
+    }
+
     // 1단계. 손에 든 돌을 빈 지점에 놓음
     // 이미 돌이 있는 자리에 덮어쓰는 것을 막는다. 기존에는 검사 없이 배열에 대입했음
     private MoveResult place(Stone actor, int to) {

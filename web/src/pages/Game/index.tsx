@@ -6,7 +6,7 @@ import { AlertModal } from '~/components';
 import { authHeaders } from '~/lib/auth';
 import { resultOf } from '~/lib/gameResult';
 import { QUERY } from '~/lib/queries';
-import { useGameState, useLeaveRoom } from '~/hooks';
+import { useCountdown, useGameState, useLeaveRoom } from '~/hooks';
 import { FirstMoveRule, MoveRejected, RoomEvent } from '~/lib/types';
 import { Board, StoneMotion } from './Board';
 import { WaitingRoom } from './WaitingRoom';
@@ -58,6 +58,8 @@ export function GamePage() {
   const [lastPoint, setLastPoint] = useState<number | null>(null);
   const [motion, setMotion] = useState<StoneMotion | null>(null);
   const [roomLost, setRoomLost] = useState(false);
+  const [turnDeadline, setTurnDeadline] = useState<number | null>(null);
+  const secondsLeft = useCountdown(turnDeadline);
   const { data: currentUser, isFetching: fetchingUser } = useQuery(
     QUERY.CURRENT_USER
   );
@@ -171,6 +173,11 @@ export function GamePage() {
   // 일반 함수를 넘기면 연결 시점 값을 계속 붙잡아, 무승부를 신청한 사람이 자기 신청 창을 받음
   // useEffectEvent 로 감싸면 등록된 콜백이 호출될 때마다 최신 값을 봄
   const onRoomEvent = useEffectEvent((event: RoomEvent) => {
+    // 남은 시간은 받은 순간부터 셈. 서버 시각과 내 시계가 어긋나도 마감이 맞음
+    if (event.state) {
+      const remaining = event.state.turnRemainingMillis;
+      setTurnDeadline(remaining === null ? null : Date.now() + remaining);
+    }
     switch (event.type) {
       case 'STARTED':
         if (event.state) setGameState(event.state);
@@ -388,6 +395,7 @@ export function GamePage() {
             <PhaseBanner key={getPlayerPhase()} phase={getPlayerPhase()} />
             <Status
               turn={gameState.status === 'PLAYING' && !isPlayerTurn()}
+              secondsLeft={secondsLeft}
               color={enemyStone()}
               inHand={getEnemyInHand()}
               onBoard={getEnemyOnBoard()}
@@ -427,6 +435,7 @@ export function GamePage() {
             <Status
               isCurrentUser
               turn={gameState.status === 'PLAYING' && isPlayerTurn()}
+              secondsLeft={secondsLeft}
               color={myStone()}
               inHand={getPlayerInHand()}
               onBoard={getPlayerOnBoard()}

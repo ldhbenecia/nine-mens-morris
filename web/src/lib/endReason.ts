@@ -11,4 +11,5 @@ export const END_REASON_LABEL: Record<EndReason, string> = {
   THREEFOLD_REPETITION: '같은 국면이 3번 반복되어 무승부입니다',
   FIFTY_MOVE_RULE: '50수 동안 돌이 제거되지 않아 무승부입니다',
   ABANDONED: '양쪽 모두 오래 두지 않아 판을 접었습니다',
+  TIMEOUT: '제한 시간 안에 두지 않아 승부가 났습니다',
 };

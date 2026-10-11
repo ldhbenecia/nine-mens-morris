@@ -26,8 +26,11 @@ import com.ninemensmorris.game.dto.response.RoomEvent;
 import com.ninemensmorris.game.dto.response.RoomEventType;
 import com.ninemensmorris.match.service.MatchResultService;
 import com.ninemensmorris.observability.GameMetrics;
+import com.ninemensmorris.support.MutableClock;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,7 +46,9 @@ class GameServiceTest {
 
     // 30분짜리 실제 값을 쓰면 유휴 정리를 검증할 수 없다
     private static final Duration IDLE_TIMEOUT = Duration.ofMinutes(30);
+    private static final Duration TURN_LIMIT = Duration.ofSeconds(60);
 
+    private final MutableClock clock = new MutableClock(Instant.parse("2026-10-11T00:00:00Z"));
     private RoomRegistry rooms;
     private MatchResultService matchResultService;
     private GameMetrics metrics;
@@ -55,7 +60,7 @@ class GameServiceTest {
         matchResultService = mock(MatchResultService.class);
         // 메트릭은 목이 아니라 실물을 쓴다. 등록 이름이 틀리면 여기서 바로 터진다
         metrics = new GameMetrics(new SimpleMeterRegistry(), rooms, new SessionTracker());
-        gameService = new GameService(rooms, matchResultService, metrics, IDLE_TIMEOUT);
+        gameService = new GameService(rooms, matchResultService, metrics, IDLE_TIMEOUT, TURN_LIMIT, clock);
     }
 
     private Room 시작된_방(FirstMoveRule rule) {
@@ -462,7 +467,7 @@ class GameServiceTest {
     class 유휴_방_정리 {
 
         private GameService 즉시_정리하는_서비스() {
-            return new GameService(rooms, matchResultService, metrics, Duration.ZERO);
+            return new GameService(rooms, matchResultService, metrics, Duration.ZERO, TURN_LIMIT, clock);
         }
 
         @Test
@@ -555,6 +560,88 @@ class GameServiceTest {
             assertThatThrownBy(() -> gameService.snapshot(12345L, HOST))
                     .isInstanceOf(CustomException.class)
                     .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ROOM_NOT_FOUND);
+        }
+    }
+
+    @Nested
+    class 시간_제한 {
+
+        @Test
+        @DisplayName("제한 시간이 지나면 차례인 쪽이 지고 전적이 기록된다")
+        void 시간이_지나면_진다() {
+            // given — 방장이 흑이라 방장 차례
+            Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
+
+            // when
+            clock.move(TURN_LIMIT.plusSeconds(1));
+            List<RoomBroadcast> expired = gameService.expireTurns();
+
+            // then
+            assertThat(expired).singleElement().satisfies(broadcast -> {
+                assertThat(broadcast.roomId()).isEqualTo(room.roomId());
+                assertThat(broadcast.event().type()).isEqualTo(RoomEventType.FINISHED);
+                assertThat(broadcast.event().state().winnerId()).isEqualTo(GUEST);
+                assertThat(broadcast.event().state().endReason()).isEqualTo("TIMEOUT");
+            });
+            verify(matchResultService).record(eq(HOST), eq(GUEST), eq(GUEST), eq("TIMEOUT"), anyInt());
+        }
+
+        @Test
+        @DisplayName("제한 시간 전에는 끝나지 않는다")
+        void 시간_전에는_그대로다() {
+            // given
+            시작된_방(FirstMoveRule.HOST_FIRST);
+
+            // when
+            clock.move(TURN_LIMIT.minusSeconds(1));
+
+            // then
+            assertThat(gameService.expireTurns()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("수를 두면 상대의 시간이 처음부터 다시 흐른다")
+        void 수를_두면_다시_흐른다() {
+            // given — 방장이 50초를 쓰고 둠
+            Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
+            clock.move(Duration.ofSeconds(50));
+            착수(HOST, room.roomId(), new Move.Place(0));
+
+            // when — 시작부터는 100초, 참가자 차례가 된 뒤로는 50초
+            clock.move(Duration.ofSeconds(50));
+
+            // then
+            assertThat(gameService.expireTurns()).isEmpty();
+            assertThat(room.game().currentTurn()).isEqualTo(Stone.WHITE);
+        }
+
+        @Test
+        @DisplayName("무승부 제안으로는 시간을 되돌릴 수 없다")
+        void 무승부_제안은_시간을_되돌리지_않는다() {
+            // given — 시간 끌기용으로 제안을 반복하는 경우
+            Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
+            clock.move(Duration.ofSeconds(50));
+            착수(HOST, room.roomId(), new Move.OfferDraw());
+
+            // when
+            clock.move(Duration.ofSeconds(11));
+
+            // then
+            assertThat(gameService.expireTurns()).singleElement();
+        }
+
+        @Test
+        @DisplayName("판 상태에 남은 시간이 실린다")
+        void 남은_시간이_실린다() {
+            // given
+            Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
+
+            // when
+            clock.move(Duration.ofSeconds(15));
+            RoomEvent snapshot = gameService.snapshot(room.roomId(), HOST).orElseThrow();
+
+            // then — 절대 시각이 아니라 남은 양을 줘야 클라이언트 시계가 틀려도 맞게 보임
+            assertThat(snapshot.state().turnRemainingMillis()).isEqualTo(45_000L);
         }
     }
 }

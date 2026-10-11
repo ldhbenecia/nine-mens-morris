@@ -12,6 +12,7 @@ type StatusProps = {
   color: StoneType;
   inHand: number;
   onBoard: number;
+  secondsLeft?: number | null; // 차례인 쪽의 남은 초. 차례가 아니면 보이지 않음
   player?: Pick<
     UserProfile,
     'nickname' | 'imageUrl' | 'mmr' | 'tier' | 'visitor'
@@ -27,6 +28,7 @@ export function Status({
   color,
   inHand,
   onBoard,
+  secondsLeft = null,
   player,
   onShowResignModal,
   onShowRequestDrawModal,
@@ -89,7 +91,14 @@ export function Status({
               />
             ))}
           </div>
-          <span className="text-xs font-semibold text-nowrap text-gray-600">
+          <span className="flex items-center gap-2 text-xs font-semibold text-nowrap text-gray-600">
+            {turn && secondsLeft !== null && (
+              <span
+                className={`tabular-nums ${secondsLeft <= 10 ? 'animate-pulse text-red-600' : 'text-gray-800'}`}
+              >
+                {secondsLeft}초
+              </span>
+            )}
             손 {inHand} / 판 {onBoard}
           </span>
         </div>

@@ -17,12 +17,14 @@ import com.ninemensmorris.game.dto.response.RoomEvent;
 import com.ninemensmorris.game.dto.response.RoomEventType;
 import com.ninemensmorris.match.service.MatchResultService;
 import com.ninemensmorris.observability.GameMetrics;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -35,16 +37,33 @@ public class GameService {
     private final MatchResultService matchResultService;
     private final GameMetrics metrics;
     private final Duration idleTimeout;
+    private final Duration turnTimeLimit;
+    private final Clock clock; // 한 수 제한 시간 계산에만 씀
 
+    @Autowired
     public GameService(
             RoomRegistry rooms,
             MatchResultService matchResultService,
             GameMetrics metrics,
-            @Value("${game.room.idle-timeout:30m}") Duration idleTimeout) {
+            @Value("${game.room.idle-timeout:30m}") Duration idleTimeout,
+            @Value("${game.turn-time-limit:60s}") Duration turnTimeLimit) {
+        this(rooms, matchResultService, metrics, idleTimeout, turnTimeLimit, Clock.systemUTC());
+    }
+
+    // 테스트에서 시간을 옮겨 제한 시간 경계를 확인하는 용도
+    GameService(
+            RoomRegistry rooms,
+            MatchResultService matchResultService,
+            GameMetrics metrics,
+            Duration idleTimeout,
+            Duration turnTimeLimit,
+            Clock clock) {
         this.rooms = rooms;
         this.matchResultService = matchResultService;
         this.metrics = metrics;
         this.idleTimeout = idleTimeout;
+        this.turnTimeLimit = turnTimeLimit;
+        this.clock = clock;
     }
 
     // 선공 방식 변경. 방장만, 시작 전에만
@@ -73,6 +92,7 @@ public class GameService {
             }
 
             MorrisGame game = room.start();
+            restartTurnClock(room);
             // 방을 만들고 상대를 기다린 시간. 이 서비스에서 "매칭 대기" 에 해당하는 유일한 구간
             metrics.recordRoomWait(Duration.between(room.createdAt(), Instant.now()));
             log.info(
@@ -81,7 +101,7 @@ public class GameService {
                     room.blackId(),
                     room.whiteId(),
                     room.firstMoveRule());
-            return RoomEvent.of(RoomEventType.STARTED, GameStateResponse.of(room, game));
+            return RoomEvent.of(RoomEventType.STARTED, stateOf(room, game));
         });
     }
 
@@ -116,8 +136,16 @@ public class GameService {
                 LockedResult.of(new PlayOutcome.Broadcast(RoomEvent.by(RoomEventType.DRAW_OFFERED, actorId)));
             case MoveResult.DrawDeclined ignored ->
                 LockedResult.of(new PlayOutcome.Broadcast(RoomEvent.by(RoomEventType.DRAW_DECLINED, actorId)));
-            case MoveResult.MillFormed ignored -> LockedResult.of(broadcast(RoomEventType.STATE_CHANGED, room, game));
-            case MoveResult.Applied ignored -> LockedResult.of(broadcast(RoomEventType.STATE_CHANGED, room, game));
+            // 판이 바뀐 수만 시계를 새로 돌림. 무승부 제안은 위에서 따로 끝나 시간 끌기에 못 씀
+            // 3연속 뒤 제거도 한 번의 행동이라 새 시간을 줌
+            case MoveResult.MillFormed ignored -> {
+                restartTurnClock(room);
+                yield LockedResult.of(broadcast(RoomEventType.STATE_CHANGED, room, game));
+            }
+            case MoveResult.Applied ignored -> {
+                restartTurnClock(room);
+                yield LockedResult.of(broadcast(RoomEventType.STATE_CHANGED, room, game));
+            }
         };
     }
 
@@ -169,7 +197,7 @@ public class GameService {
                     RoomEventType type = cause == ExitCause.DISCONNECT
                             ? RoomEventType.OPPONENT_DISCONNECTED
                             : RoomEventType.FINISHED;
-                    RoomEvent event = RoomEvent.of(type, GameStateResponse.of(room, game));
+                    RoomEvent event = RoomEvent.of(type, stateOf(room, game));
                     removeFromRoom(room, userId);
                     return LockedResult.settled(new RoomBroadcast(roomId, event), settlement);
                 })
@@ -186,6 +214,44 @@ public class GameService {
             room.leaveGuest();
             log.info("방 퇴장 roomId={} userId={}", room.roomId(), userId);
         }
+    }
+
+    // 제한 시간을 넘긴 판을 끝냄. 차례인 쪽의 패배로 기록하고 알림
+    public List<RoomBroadcast> expireTurns() {
+        Instant now = clock.instant();
+        List<RoomBroadcast> broadcasts = new ArrayList<>();
+        for (long roomId : rooms.findTurnExpired(now)) {
+            rooms.mutate(roomId, room -> expireIfDue(room, now))
+                    .map(this::afterUnlock)
+                    .ifPresent(broadcasts::add);
+        }
+        return broadcasts;
+    }
+
+    // 목록을 뜬 뒤 락을 잡기 전에 수가 들어왔을 수 있어 락 안에서 다시 확인함
+    private LockedResult<RoomBroadcast> expireIfDue(Room room, Instant now) {
+        if (!room.isTurnExpired(now)) {
+            return null;
+        }
+        MorrisGame game = room.game();
+        if (!(game.timeout() instanceof MoveResult.Finished finished)) {
+            return null;
+        }
+        log.info(
+                "시간 초과 roomId={} 진 쪽={}",
+                room.roomId(),
+                room.userIdOf(finished.outcome().winner().opponent()));
+        RoomEvent event = RoomEvent.of(RoomEventType.FINISHED, stateOf(room, game));
+        return LockedResult.settled(
+                new RoomBroadcast(room.roomId(), event), Settlement.of(room, game, finished.outcome()));
+    }
+
+    private void restartTurnClock(Room room) {
+        room.restartTurnClock(clock.instant().plus(turnTimeLimit));
+    }
+
+    private GameStateResponse stateOf(Room room, MorrisGame game) {
+        return GameStateResponse.of(room, game, clock.instant());
     }
 
     // 방치된 방 정리. 진행 중이던 판은 무승부로 기록하고 알림
@@ -227,7 +293,7 @@ public class GameService {
             settlement = Settlement.of(room, game, finished.outcome());
             log.warn("장시간 방치로 무승부 처리 roomId={}", room.roomId());
         }
-        RoomEvent event = RoomEvent.of(RoomEventType.FINISHED, GameStateResponse.of(room, game));
+        RoomEvent event = RoomEvent.of(RoomEventType.FINISHED, stateOf(room, game));
         return LockedResult.settled(new RoomBroadcast(room.roomId(), event), settlement);
     }
 
@@ -248,7 +314,7 @@ public class GameService {
             if (!room.contains(actorId) || !room.hasGame()) {
                 return null;
             }
-            return RoomEvent.of(RoomEventType.SNAPSHOT, GameStateResponse.of(room, room.game()));
+            return RoomEvent.of(RoomEventType.SNAPSHOT, stateOf(room, room.game()));
         });
     }
 
@@ -269,7 +335,7 @@ public class GameService {
     }
 
     private PlayOutcome broadcast(RoomEventType type, Room room, MorrisGame game) {
-        return new PlayOutcome.Broadcast(RoomEvent.of(type, GameStateResponse.of(room, game)));
+        return new PlayOutcome.Broadcast(RoomEvent.of(type, stateOf(room, game)));
     }
 
     // 거절이 나가는 유일한 지점. 여기서 세지 않으면 경로마다 빠뜨린다
