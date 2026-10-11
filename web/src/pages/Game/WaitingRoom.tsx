@@ -67,9 +67,7 @@ export function WaitingRoom({
                 type="button"
                 disabled={!isHost}
                 onClick={() => onChangeFirstMoveRule(rule)}
-                className={`grow rounded-lg border px-2 py-2 text-sm transition-colors
-                  ${selected ? 'border-gray-800 bg-gray-800 font-semibold text-white' : 'border-gray-300 bg-white'}
-                  ${isHost ? 'cursor-pointer hover:border-gray-500' : 'cursor-default opacity-70'}`}
+                className={`grow rounded-lg border px-2 py-2 text-sm transition-colors ${selected ? 'border-gray-800 bg-gray-800 font-semibold text-white' : 'border-gray-300 bg-white'} ${isHost ? 'cursor-pointer hover:border-gray-500' : 'cursor-default opacity-70'}`}
               >
                 {RULE_LABEL[rule]}
               </button>
@@ -109,8 +107,7 @@ export function WaitingRoom({
 function PlayerSlot({ name, role }: { name?: string | null; role: string }) {
   return (
     <div
-      className={`flex h-24 w-40 flex-col items-center justify-center gap-1 rounded-xl border
-        ${name ? 'border-gray-300 bg-gray-50' : 'border-dashed border-gray-300 bg-white'}`}
+      className={`flex h-24 w-40 flex-col items-center justify-center gap-1 rounded-xl border ${name ? 'border-gray-300 bg-gray-50' : 'border-dashed border-gray-300 bg-white'}`}
     >
       <span className="text-xs text-gray-500">{role}</span>
       <span className={`font-semibold ${name ? '' : 'text-gray-400'}`}>

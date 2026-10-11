@@ -40,7 +40,7 @@ export function Status({
       </div>
       <div className="flex w-56 flex-col gap-1">
         <div
-          className={`flex items-center justify-between  ${turn ? '' : 'opacity-50'}`}
+          className={`flex items-center justify-between ${turn ? '' : 'opacity-50'}`}
         >
           <span className="text-lg font-semibold">{nickname}</span>
           <div
@@ -64,7 +64,7 @@ export function Status({
               />
             ))}
           </div>
-          <span className="text-nowrap px-1 text-sm font-semibold">
+          <span className="px-1 text-sm font-semibold text-nowrap">
             손 {inHand} / 판 {onBoard}
           </span>
         </div>

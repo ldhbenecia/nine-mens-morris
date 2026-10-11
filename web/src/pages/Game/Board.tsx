@@ -58,7 +58,7 @@ export function Board({
   };
 
   return (
-    <div className="absolute left-0 top-0 flex h-full w-full items-center justify-center overflow-hidden">
+    <div className="absolute top-0 left-0 flex h-full w-full items-center justify-center overflow-hidden">
       <div className="h-[480px] w-[480px] scale-50 xs:scale-75 md:scale-90 lg:scale-100">
         <div className="absolute z-10">
           {points.map((point, idx) => (
@@ -77,10 +77,10 @@ export function Board({
             <div className="h-[160px] w-[160px] border border-gray-400" />
           </div>
         </div>
-        <div className="absolute left-[240px] top-0 h-[160px] border-l border-gray-400" />
+        <div className="absolute top-0 left-[240px] h-[160px] border-l border-gray-400" />
         <div className="absolute bottom-0 left-[240px] h-[160px] border-l border-gray-400" />
-        <div className="absolute left-0 top-[240px] w-[160px] border-t border-gray-400" />
-        <div className="absolute right-0 top-[240px] w-[160px] border-t border-gray-400" />
+        <div className="absolute top-[240px] left-0 w-[160px] border-t border-gray-400" />
+        <div className="absolute top-[240px] right-0 w-[160px] border-t border-gray-400" />
       </div>
     </div>
   );

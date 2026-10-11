@@ -1,7 +1,162 @@
-@import './reset.css';
-@import './font.css';
-@import './global.css';
+@import './reset.css' layer(base);
+@import './global.css' layer(base);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --font-default: Pretendard;
+  --font-title: Kumbh Sans;
+  --font-phase: Big Shoulders Text;
+
+  --background-image-white-stone: radial-gradient(
+    circle,
+    #ffffff 25%,
+    #e5e7eb 100%
+  );
+  --background-image-black-stone: radial-gradient(
+    circle,
+    #4b5563 25%,
+    #1f2937 100%
+  );
+  --background-image-selected-stone: conic-gradient(
+    transparent 180deg,
+    #ff0000 360deg
+  );
+  --background-image-phase: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(31, 41, 55, 1) 20%,
+    rgba(31, 41, 55, 1) 80%,
+    rgba(255, 255, 255, 0) 100%
+  );
+
+  --shadow-stone: 0 4px 4px rgba(0, 0, 0, 0.25);
+
+  --animate-modal-background: fade-in 0.25s ease forwards;
+  --animate-modal: move-up 0.25s ease forwards;
+  --animate-stone-set: stone-set 0.25s ease-out forwards;
+  --animate-stone-set-effect: stone-set-effect 0.75s ease-out forwards;
+  --animate-stone-selected-effect: stone-selected-effect 1s linear infinite;
+  --animate-shaking: shaking 0.5s linear forwards;
+  --animate-blinking: blinking 2s linear forwards;
+  --animate-refresh: refresh 0.5s ease-out forwards;
+
+  --breakpoint-xs: 430px;
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes move-up {
+    0% {
+      transform: translateY(5%);
+    }
+    100% {
+      transform: translateY(0%);
+    }
+  }
+  @keyframes stone-set {
+    0% {
+      transform: scale(105%);
+    }
+    100% {
+      transform: scale(100%);
+    }
+  }
+  @keyframes stone-set-effect {
+    0% {
+      transform: scale(100%);
+      opacity: 0.2;
+    }
+    100% {
+      transform: scale(400%);
+      opacity: 0;
+    }
+  }
+  @keyframes stone-selected-effect {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes shaking {
+    0% {
+      transform: translateX(-8px);
+    }
+    10% {
+      transform: translateX(7px);
+    }
+    20% {
+      transform: translateX(-6px);
+    }
+    30% {
+      transform: translateX(5px);
+    }
+    40% {
+      transform: translateX(-4px);
+    }
+    50% {
+      transform: translateX(3px);
+    }
+    60% {
+      transform: translateX(-2px);
+    }
+    70% {
+      transform: translateX(1px);
+    }
+    80% {
+      transform: translateX(0);
+    }
+  }
+  @keyframes blinking {
+    0% {
+      opacity: 1;
+    }
+    10% {
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    30% {
+      opacity: 0;
+    }
+    40% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+    60% {
+      opacity: 1;
+    }
+  }
+  @keyframes refresh {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+/*
+  Tailwind 4 는 border 기본 색이 currentcolor 로 바뀜. 3 과 같은 회색을 유지하려고 둠
+  지우려면 border 만 쓰고 색을 안 정한 곳마다 border-gray-200 을 직접 붙여야 함
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}

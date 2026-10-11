@@ -17,7 +17,7 @@ export function Point({ stone = 'EMPTY', top, left, selected }: PointProps) {
         <div
           className={`flex h-[60px] w-[60px] items-center justify-center rounded-full transition-colors hover:bg-[rgba(107,114,128,0.1)]`}
         >
-          <div className="h-[8px] w-[8px] rounded-full bg-gray-400 " />
+          <div className="h-[8px] w-[8px] rounded-full bg-gray-400" />
         </div>
       ) : (
         <div

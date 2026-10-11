@@ -10,7 +10,7 @@ export function RankingPage() {
 
   return (
     <main className="flex grow items-center justify-center p-4 leading-tight">
-      <div className="flex max-w-[40rem] grow flex-col items-center gap-6">
+      <div className="flex max-w-160 grow flex-col items-center gap-6">
         <h1 className="text-2xl font-semibold">사용자 랭킹</h1>
         <div className="flex w-full justify-between gap-4">
           <Link to="/">

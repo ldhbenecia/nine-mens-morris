@@ -30,7 +30,7 @@ export function Button({
   return (
     <button
       disabled={disabled}
-      className={`flex items-center justify-center gap-1 rounded-lg font-semibold leading-tight ${fullWidth ? 'w-full' : ''} ${small ? 'text-sm' : ''} ${slim ? 'px-2 py-1.5' : 'p-3'} ${disabled ? 'cursor-not-allowed border border-gray-300 bg-gray-200 text-gray-500' : theme === 'primary' ? 'cursor-pointer border border-gray-800 bg-gray-800 text-white hover:bg-gray-700 active:bg-gray-900' : 'cursor-pointer border border-gray-300 bg-gray-50 text-black hover:bg-white active:bg-gray-100'}`}
+      className={`flex items-center justify-center gap-1 rounded-lg leading-tight font-semibold ${fullWidth ? 'w-full' : ''} ${small ? 'text-sm' : ''} ${slim ? 'px-2 py-1.5' : 'p-3'} ${disabled ? 'cursor-not-allowed border border-gray-300 bg-gray-200 text-gray-500' : theme === 'primary' ? 'cursor-pointer border border-gray-800 bg-gray-800 text-white hover:bg-gray-700 active:bg-gray-900' : 'cursor-pointer border border-gray-300 bg-gray-50 text-black hover:bg-white active:bg-gray-100'}`}
       onClick={onClickWithSound}
     >
       {icon}
