@@ -41,10 +41,10 @@ importers:
         version: 4.4.12(@types/react@18.3.31)
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.18.0
-        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.9.3)
+        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@6.0.3))(eslint@8.57.1)(typescript@6.0.3)
       '@typescript-eslint/parser':
         specifier: ^7.18.0
-        version: 7.18.0(eslint@8.57.1)(typescript@5.9.3)
+        version: 7.18.0(eslint@8.57.1)(typescript@6.0.3)
       '@vitejs/plugin-react':
         specifier: ^4.7.0
         version: 4.7.0(vite@5.4.21)
@@ -82,14 +82,14 @@ importers:
         specifier: ^3.4.19
         version: 3.4.19
       typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
+        specifier: ^6.0.3
+        version: 6.0.3
       vite:
         specifier: ^5.4.21
         version: 5.4.21
       vite-plugin-svgr:
         specifier: ^4.5.0
-        version: 4.5.0(rollup@4.64.5)(typescript@5.9.3)(vite@5.4.21)
+        version: 4.5.0(rollup@4.64.5)(typescript@6.0.3)(vite@5.4.21)
 
 packages:
 
@@ -2040,8 +2040,8 @@ packages:
     resolution: {integrity: sha512-phPGCwqr2+Qo0fwniCE8e4pKnGu/yFb5nD5Y8bf0EEeiI5GklnACYA9GFy/DrAeRrKHXvHn+1SUsOWgJp6RO+g==}
     engines: {node: '>= 0.4'}
 
-  typescript@5.9.3:
-    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+  typescript@6.0.3:
+    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -2523,12 +2523,12 @@ snapshots:
       '@svgr/babel-plugin-transform-react-native-svg': 8.1.0(@babel/core@7.29.7)
       '@svgr/babel-plugin-transform-svg-component': 8.0.0(@babel/core@7.29.7)
 
-  '@svgr/core@8.1.0(typescript@5.9.3)':
+  '@svgr/core@8.1.0(typescript@6.0.3)':
     dependencies:
       '@babel/core': 7.29.7
       '@svgr/babel-preset': 8.1.0(@babel/core@7.29.7)
       camelcase: 6.3.0
-      cosmiconfig: 8.3.6(typescript@5.9.3)
+      cosmiconfig: 8.3.6(typescript@6.0.3)
       snake-case: 3.0.4
     transitivePeerDependencies:
       - supports-color
@@ -2539,11 +2539,11 @@ snapshots:
       '@babel/types': 7.29.8
       entities: 4.5.0
 
-  '@svgr/plugin-jsx@8.1.0(@svgr/core@8.1.0(typescript@5.9.3))':
+  '@svgr/plugin-jsx@8.1.0(@svgr/core@8.1.0(typescript@6.0.3))':
     dependencies:
       '@babel/core': 7.29.7
       '@svgr/babel-preset': 8.1.0(@babel/core@7.29.7)
-      '@svgr/core': 8.1.0(typescript@5.9.3)
+      '@svgr/core': 8.1.0(typescript@6.0.3)
       '@svgr/hast-util-to-babel-ast': 8.0.0
       svg-parser: 2.1.0
     transitivePeerDependencies:
@@ -2594,34 +2594,34 @@ snapshots:
       '@types/prop-types': 15.7.15
       csstype: 3.2.3
 
-  '@typescript-eslint/eslint-plugin@7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.9.3)':
+  '@typescript-eslint/eslint-plugin@7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@6.0.3))(eslint@8.57.1)(typescript@6.0.3)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
-      '@typescript-eslint/parser': 7.18.0(eslint@8.57.1)(typescript@5.9.3)
+      '@typescript-eslint/parser': 7.18.0(eslint@8.57.1)(typescript@6.0.3)
       '@typescript-eslint/scope-manager': 7.18.0
-      '@typescript-eslint/type-utils': 7.18.0(eslint@8.57.1)(typescript@5.9.3)
-      '@typescript-eslint/utils': 7.18.0(eslint@8.57.1)(typescript@5.9.3)
+      '@typescript-eslint/type-utils': 7.18.0(eslint@8.57.1)(typescript@6.0.3)
+      '@typescript-eslint/utils': 7.18.0(eslint@8.57.1)(typescript@6.0.3)
       '@typescript-eslint/visitor-keys': 7.18.0
       eslint: 8.57.1
       graphemer: 1.4.0
       ignore: 5.3.2
       natural-compare: 1.4.0
-      ts-api-utils: 1.4.3(typescript@5.9.3)
+      ts-api-utils: 1.4.3(typescript@6.0.3)
     optionalDependencies:
-      typescript: 5.9.3
+      typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.9.3)':
+  '@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@6.0.3)':
     dependencies:
       '@typescript-eslint/scope-manager': 7.18.0
       '@typescript-eslint/types': 7.18.0
-      '@typescript-eslint/typescript-estree': 7.18.0(typescript@5.9.3)
+      '@typescript-eslint/typescript-estree': 7.18.0(typescript@6.0.3)
       '@typescript-eslint/visitor-keys': 7.18.0
       debug: 4.4.3
       eslint: 8.57.1
     optionalDependencies:
-      typescript: 5.9.3
+      typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
 
@@ -2630,21 +2630,21 @@ snapshots:
       '@typescript-eslint/types': 7.18.0
       '@typescript-eslint/visitor-keys': 7.18.0
 
-  '@typescript-eslint/type-utils@7.18.0(eslint@8.57.1)(typescript@5.9.3)':
+  '@typescript-eslint/type-utils@7.18.0(eslint@8.57.1)(typescript@6.0.3)':
     dependencies:
-      '@typescript-eslint/typescript-estree': 7.18.0(typescript@5.9.3)
-      '@typescript-eslint/utils': 7.18.0(eslint@8.57.1)(typescript@5.9.3)
+      '@typescript-eslint/typescript-estree': 7.18.0(typescript@6.0.3)
+      '@typescript-eslint/utils': 7.18.0(eslint@8.57.1)(typescript@6.0.3)
       debug: 4.4.3
       eslint: 8.57.1
-      ts-api-utils: 1.4.3(typescript@5.9.3)
+      ts-api-utils: 1.4.3(typescript@6.0.3)
     optionalDependencies:
-      typescript: 5.9.3
+      typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
 
   '@typescript-eslint/types@7.18.0': {}
 
-  '@typescript-eslint/typescript-estree@7.18.0(typescript@5.9.3)':
+  '@typescript-eslint/typescript-estree@7.18.0(typescript@6.0.3)':
     dependencies:
       '@typescript-eslint/types': 7.18.0
       '@typescript-eslint/visitor-keys': 7.18.0
@@ -2653,18 +2653,18 @@ snapshots:
       is-glob: 4.0.3
       minimatch: 9.0.9
       semver: 7.8.5
-      ts-api-utils: 1.4.3(typescript@5.9.3)
+      ts-api-utils: 1.4.3(typescript@6.0.3)
     optionalDependencies:
-      typescript: 5.9.3
+      typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/utils@7.18.0(eslint@8.57.1)(typescript@5.9.3)':
+  '@typescript-eslint/utils@7.18.0(eslint@8.57.1)(typescript@6.0.3)':
     dependencies:
       '@eslint-community/eslint-utils': 4.10.1(eslint@8.57.1)
       '@typescript-eslint/scope-manager': 7.18.0
       '@typescript-eslint/types': 7.18.0
-      '@typescript-eslint/typescript-estree': 7.18.0(typescript@5.9.3)
+      '@typescript-eslint/typescript-estree': 7.18.0(typescript@6.0.3)
       eslint: 8.57.1
     transitivePeerDependencies:
       - supports-color
@@ -2896,14 +2896,14 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  cosmiconfig@8.3.6(typescript@5.9.3):
+  cosmiconfig@8.3.6(typescript@6.0.3):
     dependencies:
       import-fresh: 3.3.1
       js-yaml: 4.3.2
       parse-json: 5.2.0
       path-type: 4.0.0
     optionalDependencies:
-      typescript: 5.9.3
+      typescript: 6.0.3
 
   cross-spawn@7.0.6:
     dependencies:
@@ -4185,9 +4185,9 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  ts-api-utils@1.4.3(typescript@5.9.3):
+  ts-api-utils@1.4.3(typescript@6.0.3):
     dependencies:
-      typescript: 5.9.3
+      typescript: 6.0.3
 
   ts-interface-checker@0.1.13: {}
 
@@ -4231,7 +4231,7 @@ snapshots:
       possible-typed-array-names: 1.1.0
       reflect.getprototypeof: 1.0.10
 
-  typescript@5.9.3: {}
+  typescript@6.0.3: {}
 
   unbox-primitive@1.1.0:
     dependencies:
@@ -4252,11 +4252,11 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  vite-plugin-svgr@4.5.0(rollup@4.64.5)(typescript@5.9.3)(vite@5.4.21):
+  vite-plugin-svgr@4.5.0(rollup@4.64.5)(typescript@6.0.3)(vite@5.4.21):
     dependencies:
       '@rollup/pluginutils': 5.4.0(rollup@4.64.5)
-      '@svgr/core': 8.1.0(typescript@5.9.3)
-      '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0(typescript@5.9.3))
+      '@svgr/core': 8.1.0(typescript@6.0.3)
+      '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0(typescript@6.0.3))
       vite: 5.4.21
     transitivePeerDependencies:
       - rollup
