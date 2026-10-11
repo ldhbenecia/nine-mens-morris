@@ -27,3 +27,46 @@ jobs:
       # -x test 를 붙이지 않음. 테스트를 건너뛰는 빌드는 CI 로서 의미가 없음
       # Testcontainers 통합 테스트도 같이 돈다
       - run: ./gradlew build --no-daemon
+
+  # 테스트가 통과한 main 커밋만 이미지로 만듦. PR 에서는 build 까지만 돌고 여기는 건너뜀
+  image:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # 노드가 arm64(OrbStack, Graviton). amd64 러너에서 QEMU 로 빌드하면 Gradle 이 몇 배 느려짐
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # GITHUB_TOKEN 은 워크플로마다 자동 발급되는 단기 토큰. 저장해 둔 비밀이 없음
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 매니페스트는 sha- 태그만 가리킴. latest 는 사람이 pull 할 때 쓰는 편의 태그
+      # latest 를 매니페스트에 쓰면 문자열이 안 바뀌어 ArgoCD 가 새 이미지를 감지하지 못함
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/nine-mens-morris
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      # uses 단계에는 defaults.run.working-directory 가 적용되지 않아 context 를 직접 줘야 함
+      - uses: docker/build-push-action@v6
+        with:
+          context: server
+          platforms: linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
