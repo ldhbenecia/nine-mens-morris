@@ -19,6 +19,7 @@ import com.ninemensmorris.core.game.GameStatus;
 import com.ninemensmorris.core.move.Move;
 import com.ninemensmorris.game.command.RoomCommand;
 import com.ninemensmorris.game.domain.FirstMoveRule;
+import com.ninemensmorris.game.domain.InMemoryRoomRegistry;
 import com.ninemensmorris.game.domain.Room;
 import com.ninemensmorris.game.domain.RoomRegistry;
 import com.ninemensmorris.game.domain.SessionTracker;
@@ -56,7 +57,7 @@ class GameServiceTest {
 
     @BeforeEach
     void setUp() {
-        rooms = new RoomRegistry();
+        rooms = new InMemoryRoomRegistry();
         matchResultService = mock(MatchResultService.class);
         // 메트릭은 목이 아니라 실물을 쓴다. 등록 이름이 틀리면 여기서 바로 터진다
         metrics = new GameMetrics(new SimpleMeterRegistry(), rooms, new SessionTracker());

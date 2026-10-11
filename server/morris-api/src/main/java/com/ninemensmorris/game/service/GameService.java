@@ -208,7 +208,7 @@ public class GameService {
     // 정산 후에도 방을 남겨 두면 로비에 계속 뜨고, 방장이 없는 상대와 새 게임을 시작할 수 있다
     private void removeFromRoom(Room room, long userId) {
         if (room.hostId() == userId) {
-            rooms.remove(room.roomId());
+            room.close();
             log.info("방 삭제 roomId={} 방장 퇴장", room.roomId());
         } else {
             room.leaveGuest();
@@ -282,7 +282,7 @@ public class GameService {
         if (!room.lastActivityAt().isBefore(threshold)) {
             return null;
         }
-        rooms.remove(room.roomId());
+        room.close();
         if (!room.isPlaying()) {
             return LockedResult.of(null);
         }

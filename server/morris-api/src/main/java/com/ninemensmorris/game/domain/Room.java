@@ -8,9 +8,8 @@ import java.util.Random;
 
 // 방 하나의 상태. 대기 중이면 game 이 null 이고 시작하면 채워짐
 //
-// 로비와 게임 상태를 DB 가 아니라 메모리에 둔다
-// 방의 수명이 수십 초인데 서버가 죽으면 정리되지 않아 고아 행이 쌓였고,
-// 진행 중인 판은 어차피 메모리에만 있어 복구할 수도 없었다
+// DB 가 아니라 RoomRegistry(Redis) 에 둠. 방의 수명이 수십 초라 DB 행으로 두면 고아 행이 쌓임
+// 저장소에서 꺼낸 사본이므로 고쳐도 RoomRegistry.mutate 를 거쳐야 저장됨
 public final class Room {
 
     private static final Random RANDOM = new Random();
@@ -18,7 +17,7 @@ public final class Room {
     private final long roomId;
     private final String title;
     private final long hostId;
-    private final Instant createdAt = Instant.now();
+    private final Instant createdAt;
 
     // 변경은 전부 RoomRegistry.mutate 의 방 단위 락 안에서 일어나지만
     // 로비 목록·방 상세·유휴 정리는 락 없이 읽는다
@@ -37,10 +36,56 @@ public final class Room {
     // 차례인 쪽이 둬야 하는 시각. 만료 확인이 락 밖에서 목록을 훑으므로 volatile
     private volatile Instant turnDeadline;
 
+    // 변경 중에 방을 없애기로 했다는 표시. 저장소가 저장 대신 삭제함
+    // 변경 안에서 저장소를 직접 지우면 "읽고 고쳐 쓰는" 저장소에서는 끝에 다시 써져 방이 되살아남
+    private boolean closed;
+
     public Room(long roomId, String title, long hostId) {
         this.roomId = roomId;
         this.title = title;
         this.hostId = hostId;
+        this.createdAt = Instant.now();
+    }
+
+    private Room(RoomSnapshot snapshot) {
+        this.roomId = snapshot.roomId();
+        this.title = snapshot.title();
+        this.hostId = snapshot.hostId();
+        this.createdAt = snapshot.createdAt();
+        this.guestId = snapshot.guestId();
+        this.firstMoveRule = snapshot.firstMoveRule();
+        this.blackId = snapshot.blackId();
+        this.whiteId = snapshot.whiteId();
+        this.lastActivityAt = snapshot.lastActivityAt();
+        this.turnDeadline = snapshot.turnDeadline();
+        this.game = snapshot.game() == null ? null : MorrisGame.restore(snapshot.game());
+    }
+
+    public static Room restore(RoomSnapshot snapshot) {
+        return new Room(snapshot);
+    }
+
+    public RoomSnapshot snapshot() {
+        return new RoomSnapshot(
+                roomId,
+                title,
+                hostId,
+                createdAt,
+                guestId,
+                firstMoveRule,
+                blackId,
+                whiteId,
+                lastActivityAt,
+                turnDeadline,
+                game == null ? null : game.snapshot());
+    }
+
+    public void close() {
+        this.closed = true;
+    }
+
+    public boolean isClosed() {
+        return closed;
     }
 
     public boolean isFull() {
