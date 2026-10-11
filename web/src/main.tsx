@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom';
 import '~/styles/index.css';
 import { MainPage } from '~/pages/Main';
-import { RoomListPage } from './pages/RoomList';
-import { GamePage } from './pages/Game';
-import { RankingPage } from './pages/Ranking';
-import { AuthCallbackPage } from './pages/AuthCallback';
 import { ErrorPage, NotFoundPage } from './pages/Error';
+import {
+  AuthCallbackPage,
+  GamePage,
+  RankingPage,
+  RoomListPage,
+} from './pages/lazy';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthGate } from './components/AuthGate';
 
@@ -20,6 +22,11 @@ const router = createBrowserRouter(
   [
     {
       errorElement: <ErrorPage />,
+      element: (
+        <Suspense fallback={null}>
+          <Outlet />
+        </Suspense>
+      ),
       children: [
         {
           path: '/',
