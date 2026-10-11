@@ -59,6 +59,13 @@ export function MainPage() {
           <span>
             {currentUser.wins}승 {currentUser.losses}패 {currentUser.draws}무
           </span>
+          {/* 지금이 최고점이면 같은 숫자를 두 번 보여줄 뿐 */}
+          {currentUser.peakMmr > currentUser.mmr && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>최고 {currentUser.peakMmr.toLocaleString()}</span>
+            </>
+          )}
           {currentUser.rank !== null && (
             <>
               <span aria-hidden="true">·</span>
