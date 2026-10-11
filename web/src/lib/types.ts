@@ -68,7 +68,8 @@ export type EndReason =
   | 'RESIGN'
   | 'DRAW_AGREED'
   | 'THREEFOLD_REPETITION'
-  | 'FIFTY_MOVE_RULE';
+  | 'FIFTY_MOVE_RULE'
+  | 'ABANDONED';
 
 // 서버가 흑/백 기준으로 내려준다
 // 방장이 항상 흑이라는 전제가 사라져서 host/guest 로는 표현할 수 없다

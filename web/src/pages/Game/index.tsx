@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
 import { AlertModal } from '~/components';
 import { authHeaders } from '~/lib/auth';
+import { resultOf } from '~/lib/gameResult';
 import { QUERY } from '~/lib/queries';
 import { useGameState, useLeaveRoom } from '~/hooks';
 import { FirstMoveRule, MoveRejected, RoomEvent } from '~/lib/types';
@@ -267,9 +268,7 @@ export function GamePage() {
     }
   }, [gameState.awaitingRemoval, myTurn]);
 
-  // 어떤 이벤트로 끝났든 결과 화면은 떠야 한다
-  // 예전에는 FINISHED 이벤트에서만 열어서, 끝난 판에 새로고침해 SNAPSHOT 으로
-  // 복구되면 결과도 나가기 버튼도 없는 화면에 갇혔다
+  // 상태로 판단해야 FINISHED 이벤트를 놓치고 SNAPSHOT 으로 복구한 경우에도 결과 화면이 뜸
   const { status, winnerId, loserId } = gameState;
   useEffect(() => {
     if (status !== 'FINISHED') return;
@@ -288,18 +287,16 @@ export function GamePage() {
         onWithdraw={onResign}
         onClose={() => setShowWithdrawModal(false)}
       />
-      <GameResultModal
-        visible={showGameResultModal}
-        result={
-          gameState.winnerId === currentUser?.userId
-            ? 'WIN'
-            : gameState.loserId === currentUser?.userId
-              ? 'LOSS'
-              : 'DRAW'
-        }
-        notice={endNotice}
-        onLeaveRoom={onLeaveRoom}
-      />
+      {/* 내 정보가 오기 전에 판정하면 승자·패자 비교가 둘 다 거짓이라 무승부로 보임 */}
+      {currentUser && (
+        <GameResultModal
+          visible={showGameResultModal}
+          result={resultOf(gameState, currentUser.userId)}
+          endReason={gameState.endReason}
+          notice={endNotice}
+          onLeaveRoom={onLeaveRoom}
+        />
+      )}
       <HelpModal
         visible={showHelpModal}
         onClose={() => setShowHelpModal(false)}
