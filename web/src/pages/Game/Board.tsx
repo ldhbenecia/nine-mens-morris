@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import { PointType, StoneType } from '~/lib/types';
@@ -25,11 +25,17 @@ export function Board({
   removeStone,
 }: BoardProps) {
   const { roomId } = useParams();
-  const [points, setPoints] = useState<PointType[] | null>(null);
   const [selectedStone, setSelectedStone] = useState<number | null>(null);
 
+  // board 에서 계산되는 값이라 state 로 복사하지 않음
+  // 복사하면 착수마다 렌더가 한 번 더 일어나고 그 사이 한 프레임은 이전 판이 보임
+  const points = useMemo<PointType[]>(
+    () => board.map((stone, index) => ({ ...STONE_POSITION[index], stone })),
+    [board]
+  );
+
   const onClickPoint = (idx: number) => {
-    if (!points || !roomId) return;
+    if (!roomId) return;
 
     switch (points[idx].stone) {
       case 'EMPTY':
@@ -51,20 +57,11 @@ export function Board({
     }
   };
 
-  useEffect(() => {
-    setPoints(
-      board.map((stone, index) => ({
-        ...STONE_POSITION[index],
-        stone,
-      }))
-    );
-  }, [board]);
-
   return (
     <div className="absolute left-0 top-0 flex h-full w-full items-center justify-center overflow-hidden">
       <div className="h-[480px] w-[480px] scale-50 xs:scale-75 md:scale-90 lg:scale-100">
         <div className="absolute z-10">
-          {points?.map((point, idx) => (
+          {points.map((point, idx) => (
             <div key={idx} onClick={() => onClickPoint(idx)}>
               <Point
                 top={point.top}

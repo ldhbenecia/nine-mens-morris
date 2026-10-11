@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
@@ -51,7 +51,6 @@ export function GamePage() {
   const [showResponseDrawModal, setShowResponseDrawModal] = useState(false);
   const [showDrawRejectedModal, setShowDrawRejectedModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
-  const [showGameResultModal, setShowGameResultModal] = useState(false);
   const [endNotice, setEndNotice] = useState('');
   const [disconnected, setDisconnected] = useState(false);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
@@ -159,61 +158,55 @@ export function GamePage() {
     sound.play();
   }, []);
 
-  const handleEvent = useCallback(
-    (event: RoomEvent) => {
-      switch (event.type) {
-        case 'STARTED':
-          if (event.state) setGameState(event.state);
-          startSound.play();
-          break;
-        case 'SNAPSHOT':
-          if (event.state) setGameState(event.state);
-          break;
-        case 'STATE_CHANGED':
-          if (!event.state) break;
-          setGameState((previous) => {
-            playMoveSound(previous.board, event.state!.board);
-            return event.state!;
-          });
-          break;
-        case 'FINISHED':
-          if (event.state) setGameState(event.state);
-          break;
-        case 'DRAW_OFFERED':
-          if (event.actorId !== currentUser?.userId) {
-            setShowResponseDrawModal(true);
-            notificationSound.play();
-          }
-          break;
-        case 'DRAW_DECLINED':
-          if (event.actorId !== currentUser?.userId) {
-            setShowDrawRejectedModal(true);
-          }
-          break;
-        case 'OPPONENT_DISCONNECTED':
-          if (event.state) setGameState(event.state);
-          setEndNotice('상대방의 연결이 끊겼습니다.');
-          break;
-        // 대기실 상태가 바뀌었으니 방 정보를 다시 받음
-        case 'PLAYER_JOINED':
-        case 'PLAYER_LEFT':
-        case 'SETTINGS_CHANGED':
-          refetchRoom();
-          break;
-        case 'LOBBY_CHANGED':
-          break;
-      }
-    },
-    [currentUser, playMoveSound, setGameState, refetchRoom]
-  );
+  // 소켓 구독 콜백은 연결 때 한 번 등록되지만 안에서 쓰는 currentUser 는 나중에 도착함
+  // 일반 함수를 넘기면 연결 시점 값을 계속 붙잡아, 무승부를 신청한 사람이 자기 신청 창을 받음
+  // useEffectEvent 로 감싸면 등록된 콜백이 호출될 때마다 최신 값을 봄
+  const onRoomEvent = useEffectEvent((event: RoomEvent) => {
+    switch (event.type) {
+      case 'STARTED':
+        if (event.state) setGameState(event.state);
+        startSound.play();
+        break;
+      case 'SNAPSHOT':
+        if (event.state) setGameState(event.state);
+        break;
+      case 'STATE_CHANGED':
+        if (!event.state) break;
+        setGameState((previous) => {
+          playMoveSound(previous.board, event.state!.board);
+          return event.state!;
+        });
+        break;
+      case 'FINISHED':
+        if (event.state) setGameState(event.state);
+        break;
+      case 'DRAW_OFFERED':
+        if (event.actorId !== currentUser?.userId) {
+          setShowResponseDrawModal(true);
+          notificationSound.play();
+        }
+        break;
+      case 'DRAW_DECLINED':
+        if (event.actorId !== currentUser?.userId) {
+          setShowDrawRejectedModal(true);
+        }
+        break;
+      case 'OPPONENT_DISCONNECTED':
+        if (event.state) setGameState(event.state);
+        setEndNotice('상대방의 연결이 끊겼습니다.');
+        break;
+      // 대기실 상태가 바뀌었으니 방 정보를 다시 받음
+      case 'PLAYER_JOINED':
+      case 'PLAYER_LEFT':
+      case 'SETTINGS_CHANGED':
+        refetchRoom();
+        break;
+      case 'LOBBY_CHANGED':
+        break;
+    }
+  });
 
-  // onConnect 는 한 번만 불리는데 구독 콜백은 그때의 handleEvent 를 영구히 붙잡는다
-  // 그 안의 currentUser 가 아직 undefined 이면, 무승부를 신청한 사람이
-  // 자기 신청 모달을 받는 식으로 어긋난다. ref 로 항상 최신 것을 부른다
-  const handleEventRef = useRef(handleEvent);
-  handleEventRef.current = handleEvent;
-  const showErrorRef = useRef(showError);
-  showErrorRef.current = showError;
+  const onError = useEffectEvent((message: string) => showError(message));
 
   useEffect(() => {
     if (!roomId) return;
@@ -221,23 +214,21 @@ export function GamePage() {
     client.onConnect = () => {
       setDisconnected(false);
 
-      // 방 토픽 하나만 구독하면 된다. 예전에는 토픽이 둘로 나뉘어 있었고
-      // 그중 하나는 아무도 구독하지 않았다
       client.subscribe(`/topic/rooms/${roomId}`, (message) => {
-        handleEventRef.current(JSON.parse(message.body) as RoomEvent);
+        onRoomEvent(JSON.parse(message.body) as RoomEvent);
       });
 
-      // 규칙 위반 거절과 권한 오류는 방이 아니라 나에게만 온다
+      // 규칙 위반 거절과 권한 오류는 방이 아니라 나에게만 옴
       client.subscribe('/user/queue/errors', (message) => {
         const rejected = JSON.parse(message.body) as MoveRejected;
-        showErrorRef.current(rejected.message);
+        onError(rejected.message);
         explosionSound.currentTime = 0;
         explosionSound.play();
       });
 
       // 새로고침 후 판 복구
       client.subscribe('/user/queue/sync', (message) => {
-        handleEventRef.current(JSON.parse(message.body) as RoomEvent);
+        onRoomEvent(JSON.parse(message.body) as RoomEvent);
       });
 
       // 구독 직후 진행 중인 판이 있는지 물어본다. 새로고침해도 판을 잃지 않는다
@@ -248,9 +239,7 @@ export function GamePage() {
     // 끊긴 상태에서 publish 하면 stompjs 가 throw 하므로 화면에 알려야 한다
     client.onWebSocketClose = () => setDisconnected(true);
     client.onStompError = (frame) =>
-      showErrorRef.current(
-        frame.headers.message ?? '서버와 통신에 실패했습니다.'
-      );
+      onError(frame.headers.message ?? '서버와 통신에 실패했습니다.');
 
     client.activate();
 
@@ -268,12 +257,11 @@ export function GamePage() {
     }
   }, [gameState.awaitingRemoval, myTurn]);
 
-  // 상태로 판단해야 FINISHED 이벤트를 놓치고 SNAPSHOT 으로 복구한 경우에도 결과 화면이 뜸
+  // 결과 화면은 상태에서 바로 계산. FINISHED 이벤트를 놓치고 SNAPSHOT 으로 복구해도 뜸
   const { status, winnerId, loserId } = gameState;
+  const finished = status === 'FINISHED';
   useEffect(() => {
-    if (status !== 'FINISHED') return;
-    setShowGameResultModal(true);
-    if (!currentUser) return;
+    if (status !== 'FINISHED' || !currentUser) return;
     if (winnerId === currentUser.userId) winSound.play();
     if (loserId === currentUser.userId) lossSound.play();
   }, [status, winnerId, loserId, currentUser]);
@@ -290,7 +278,7 @@ export function GamePage() {
       {/* 내 정보가 오기 전에 판정하면 승자·패자 비교가 둘 다 거짓이라 무승부로 보임 */}
       {currentUser && (
         <GameResultModal
-          visible={showGameResultModal}
+          visible={finished}
           result={resultOf(gameState, currentUser.userId)}
           endReason={gameState.endReason}
           notice={endNotice}
