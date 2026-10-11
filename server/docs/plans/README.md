@@ -71,7 +71,7 @@
 | [11. 테스트 전략](11-testing-strategy.md) | 규칙 테스트 24개 목록 · Testcontainers · ArchUnit |
 | [12. 의존성 업그레이드](12-dependency-upgrade.md) | Boot 3.2.4 → 4.1.1 · Java 21 · Dockerfile 재작성 |
 | [13. 실행 로드맵](13-roadmap.md) | **Phase 0~9. 여기서 시작한다** |
-| [17. 성능 점검과 개선](17-performance.md) | 인증 쿼리 1→0 · 랭킹 12ms→0.14ms · 정산 lost update · STOMP 하트비트 |
+| [17. 성능 점검과 개선](17-performance.md) | 인증 쿼리 1→0 · 랭킹 12ms→0.14ms · 정산 lost update · STOMP 하트비트 · 웹 첫 접속 2.4MB→0.3MB |
 
 ---
 
