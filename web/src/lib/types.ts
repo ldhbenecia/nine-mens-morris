@@ -10,6 +10,7 @@ export type Room = {
   hostNickname: string;
   hostImageUrl: string | null;
   hostRating: number;
+  hostVisitor: boolean;
   playerCount: number;
   playing: boolean;
   firstMoveRule: FirstMoveRule;

@@ -94,8 +94,10 @@ export function RoomListPage() {
                   hostNickname={room.hostNickname}
                   hostImageUrl={room.hostImageUrl}
                   hostRating={room.hostRating}
+                  hostVisitor={room.hostVisitor}
                   rated={room.rated}
-                  ongoing={room.playing || room.playerCount >= 2}
+                  playing={room.playing}
+                  full={room.playerCount >= 2}
                   onJoinRoom={onJoinRoom}
                 />
               ))}

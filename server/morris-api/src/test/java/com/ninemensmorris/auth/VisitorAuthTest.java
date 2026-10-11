@@ -74,6 +74,26 @@ class VisitorAuthTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("방 목록은 방장이 게스트인지 알려준다")
+    void 방_목록에_게스트_방장이_표시된다() {
+        // given
+        String token = issueVisitor();
+        long roomId = createRoom(token);
+
+        // when
+        RoomSummary[] rooms = rest.exchange(
+                        url("/api/v1/rooms"), HttpMethod.GET, new HttpEntity<>(bearer(token)), RoomSummary[].class)
+                .getBody();
+
+        // then — 게스트의 MMR 은 움직이지 않는 값이라 화면이 숨길 수 있어야 함
+        assertThat(rooms)
+                .filteredOn(room -> room.roomId() == roomId)
+                .singleElement()
+                .extracting(RoomSummary::hostVisitor)
+                .isEqualTo(true);
+    }
+
+    @Test
     @DisplayName("비로그인 사용자가 낀 방은 일반전, 회원끼리는 랭크전으로 표시된다")
     void 비로그인_사용자가_끼면_일반전이다() {
         // given — 회원이 만든 방은 아직 랭크전이다
@@ -174,4 +194,6 @@ class VisitorAuthTest extends IntegrationTestSupport {
     private record CreatedRoom(long roomId, String title) {}
 
     private record RoomDetail(long roomId, boolean rated) {}
+
+    private record RoomSummary(long roomId, boolean hostVisitor) {}
 }

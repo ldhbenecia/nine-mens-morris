@@ -40,20 +40,12 @@ public class RoomService {
             return List.of();
         }
 
-        // 방마다 사람을 조회하면 N+1 이 된다. 한 번에 가져와 맞춘다
-        // 랭크전 여부를 알려면 방장뿐 아니라 참가자도 회원인지 봐야 한다
+        // 방마다 사람을 조회하면 N+1. 한 번에 가져와 맞춤
+        // 랭크전 여부를 알려면 방장뿐 아니라 참가자도 회원인지 봐야 함
         Map<Long, User> players = findPlayers(found.stream().flatMap(RoomService::playerIdsOf));
 
         return found.stream()
-                .map(room -> {
-                    User host = players.get(room.hostId());
-                    return RoomSummaryResponse.of(
-                            room,
-                            host == null ? "알 수 없음" : host.getNickname(),
-                            host == null ? null : host.getImageUrl(),
-                            host == null ? 0 : host.getMmr(),
-                            isRated(room, players));
-                })
+                .map(room -> RoomSummaryResponse.of(room, players.get(room.hostId()), isRated(room, players)))
                 .toList();
     }
 
