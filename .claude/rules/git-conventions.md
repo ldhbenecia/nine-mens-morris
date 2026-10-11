@@ -40,12 +40,12 @@
 ./gradlew build            # 컴파일 + 테스트
 ```
 
-프론트를 고쳤으면 `web/` 에서 (Node 22. 24 에서는 Yarn PnP 가 깨진다)
+프론트를 고쳤으면 `web/` 에서
 
 ```bash
-yarn tsc --noEmit
-yarn lint --fix
-yarn build
+pnpm exec tsc --noEmit
+pnpm lint --fix
+pnpm build
 ```
 
 **빌드를 돌리지 않고 커밋하지 않는다.** "될 것 같다"는 근거가 아니다.

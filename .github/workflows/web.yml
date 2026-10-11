@@ -23,16 +23,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Yarn 4 PnP 는 Node 24 에서 EBADF 로 깨진다
+      # 버전은 package.json 의 packageManager 에서 읽음
+      # uses 단계에는 working-directory 가 적용되지 않아 경로를 직접 줘야 함
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
 
-      - run: corepack enable
-      - run: yarn install --immutable
-      - run: yarn tsc --noEmit
-      - run: yarn lint
-      - run: yarn build
+      # lockfile 과 package.json 이 어긋나면 실패시킴. CI 에서 조용히 다른 버전을 깔지 않게
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec tsc --noEmit
+      - run: pnpm lint
+      - run: pnpm build
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
           VITE_SOCKET_URL: ${{ vars.VITE_SOCKET_URL }}

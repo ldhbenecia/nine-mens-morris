@@ -30,12 +30,13 @@ docker compose up -d          # MySQL 만 (앱까지 띄우려면 --profile app)
 ./gradlew bootRun
 ```
 
-**웹** — Node 22 를 쓴다 (24 에서는 Yarn PnP 가 깨진다)
+**웹** — Node 22 이상, pnpm
 
 ```bash
 cd web
-yarn install
-yarn dev
+corepack enable               # 처음 한 번. package.json 에 적힌 pnpm 버전을 맞춰 줌
+pnpm install
+pnpm dev
 ```
 
 <br />

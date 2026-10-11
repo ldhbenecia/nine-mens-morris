@@ -99,7 +99,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 | 인증 | 카카오 OAuth2 + 자체 JWT (jjwt) |
 | 빌드 | Gradle (Wrapper 8.14.x), Spotless |
 | 프론트엔드 | `web/` — React 18 + Vite + @stomp/stompjs + TanStack Query + Tailwind |
-| 프론트 패키지 | Yarn 4 PnP. **Node 22 를 쓴다** (24 에서는 PnP 가 EBADF 로 깨진다) |
+| 프론트 패키지 | pnpm (버전은 `package.json` 의 `packageManager`). Node 22 이상 |
 
 ## 명령어
 
