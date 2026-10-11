@@ -6,20 +6,33 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ninemensmorris.common.exception.CustomException;
 import com.ninemensmorris.common.response.ErrorCode;
-import java.time.Clock;
+import com.ninemensmorris.support.IntegrationTestSupport;
+import com.ninemensmorris.support.MutableClock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
-class VisitorIssueLimiterTest {
+// 카운터가 Redis 에 있어 실제 Redis 로 돌림. 시간은 시계를 옮겨 창 경계를 확인
+class VisitorIssueLimiterTest extends IntegrationTestSupport {
 
     private static final String IP = "10.0.0.1";
 
-    private final MovableClock clock = new MovableClock(Instant.parse("2026-10-11T00:00:00Z"));
-    private final VisitorIssueLimiter limiter = new VisitorIssueLimiter(clock);
+    @Autowired
+    private StringRedisTemplate redis;
+
+    private MutableClock clock;
+    private VisitorIssueLimiter limiter;
+
+    @BeforeEach
+    void setUp() {
+        redis.delete(redis.keys("limit:visitor:*"));
+        clock = new MutableClock(Instant.parse("2026-10-11T00:00:00Z"));
+        limiter = new VisitorIssueLimiter(redis, clock);
+    }
 
     private void 발급(int count) {
         for (int i = 0; i < count; i++) {
@@ -47,6 +60,19 @@ class VisitorIssueLimiterTest {
 
         // when / then
         assertThatCode(() -> limiter.check("10.0.0.2")).doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("서버가 여러 대여도 같은 IP 의 발급을 합쳐서 센다")
+    void 서버가_달라도_합쳐서_센다() {
+        // given — 서버 A 에서 3번, 서버 B 에서 2번. 메모리 카운터였다면 각자 5번까지 통과
+        VisitorIssueLimiter otherServer = new VisitorIssueLimiter(redis, clock);
+        발급(3);
+        otherServer.check(IP);
+        otherServer.check(IP);
+
+        // when / then
+        assertThatThrownBy(() -> otherServer.check(IP)).isInstanceOf(CustomException.class);
     }
 
     @Test
@@ -87,46 +113,13 @@ class VisitorIssueLimiterTest {
     }
 
     @Test
-    @DisplayName("정리 배치는 1분이 지난 IP 만 지운다")
-    void 오래된_IP_만_정리한다() {
-        // given
-        limiter.check("10.0.0.1");
-        clock.move(Duration.ofSeconds(50));
-        limiter.check("10.0.0.2");
+    @DisplayName("기록에는 만료가 걸려 들른 IP 가 쌓이지 않는다")
+    void 기록은_스스로_사라진다() {
+        // when
+        limiter.check(IP);
 
-        // when — 첫 IP 만 1분을 넘김
-        clock.move(Duration.ofSeconds(11));
-        limiter.purgeExpired();
-
-        // then
-        assertThat(limiter.trackedIps()).isEqualTo(1);
-    }
-
-    private static final class MovableClock extends Clock {
-
-        private Instant now;
-
-        private MovableClock(Instant now) {
-            this.now = now;
-        }
-
-        private void move(Duration duration) {
-            now = now.plus(duration);
-        }
-
-        @Override
-        public Instant instant() {
-            return now;
-        }
-
-        @Override
-        public ZoneId getZone() {
-            return ZoneOffset.UTC;
-        }
-
-        @Override
-        public Clock withZone(ZoneId zone) {
-            return this;
-        }
+        // then — 메모리 카운터 때는 1분마다 정리 배치를 돌려야 했음
+        Long ttl = redis.getExpire("limit:visitor:" + IP);
+        assertThat(ttl).isPositive().isLessThanOrEqualTo(60);
     }
 }
