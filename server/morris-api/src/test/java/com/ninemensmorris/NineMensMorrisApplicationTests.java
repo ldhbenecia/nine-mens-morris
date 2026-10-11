@@ -1,20 +1,11 @@
 package com.ninemensmorris;
 
+import com.ninemensmorris.support.IntegrationTestSupport;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest
-@Testcontainers
-class NineMensMorrisApplicationTests {
-
-    // H2 로 대체하면 방언 차이로 운영에서만 터지는 문제가 생김
-    @Container
-    @ServiceConnection
-    static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4");
+// 다른 통합 테스트와 같은 MySQL·Redis 컨테이너로 뜸
+// 따로 MySQL 만 띄우면 Redis 를 기본 주소(localhost:6379)로 찾아, 개발 기기에 Redis 가 떠 있을 때만 통과함
+class NineMensMorrisApplicationTests extends IntegrationTestSupport {
 
     @Test
     void contextLoads() {}

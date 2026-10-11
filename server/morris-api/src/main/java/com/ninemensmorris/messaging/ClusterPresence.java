@@ -32,7 +32,7 @@ public class ClusterPresence {
     public ClusterPresence(StringRedisTemplate redis, @Value("${HOSTNAME:}") String hostname) {
         this.redis = redis;
         this.instanceId = hostname.isBlank() ? UUID.randomUUID().toString() : hostname;
-        heartbeat();
+        // 첫 생존 신호는 스케줄러가 기동 직후 보냄. 여기서 Redis 를 부르면 기동 순간 Redis 가 없을 때 앱이 아예 뜨지 않음
     }
 
     public void enter(long userId, long roomId, String sessionId) {
@@ -61,9 +61,14 @@ public class ClusterPresence {
     }
 
     // 정상 종료면 TTL 을 기다리지 않고 바로 빠짐
+    // 종료 순서상 Redis 연결이 먼저 닫혀 있을 수 있음. 못 지워도 TTL 이 지나면 사라지므로 넘어감
     @PreDestroy
     public void retire() {
-        redis.delete(aliveKey(instanceId));
+        try {
+            redis.delete(aliveKey(instanceId));
+        } catch (RuntimeException exception) {
+            log.debug("종료 중 생존 키를 지우지 못함. TTL 로 사라짐: {}", exception.getMessage());
+        }
     }
 
     public String instanceId() {

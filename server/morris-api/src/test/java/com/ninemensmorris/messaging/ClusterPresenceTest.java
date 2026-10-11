@@ -28,6 +28,9 @@ class ClusterPresenceTest extends IntegrationTestSupport {
         redis.delete(redis.keys("presence:*"));
         serverA = new ClusterPresence(redis, "server-a");
         serverB = new ClusterPresence(redis, "server-b");
+        // 운영에서는 스케줄러가 기동 직후부터 보냄
+        serverA.heartbeat();
+        serverB.heartbeat();
     }
 
     @Test
