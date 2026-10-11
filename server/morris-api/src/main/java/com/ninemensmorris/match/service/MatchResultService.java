@@ -48,18 +48,20 @@ public class MatchResultService {
         Match match = Match.of(black, white, winner, endReason, moveCount);
 
         int blackDelta = 0;
-        int whiteDelta = 0;
 
-        // 조기 종료나 반복 대전이면 레이팅을 건드리지 않고 기록만 남긴다
+        // 조기 종료면 원장만 남기고 승패 수도 올리지 않음
+        // 승패 수가 오르면 즉시 기권 반복으로 배치 판수를 채울 수 있음
         if (RatingPolicy.isRated(moveCount)) {
+            Rating.Player blackPlayer = new Rating.Player(black.getMmr(), black.gamesPlayed());
+            Rating.Player whitePlayer = new Rating.Player(white.getMmr(), white.gamesPlayed());
             double factor = repeatFactor(blackId, whiteId);
-            blackDelta = RatingPolicy.applyFactor(rawDelta(black, white, winner), factor);
-            whiteDelta = RatingPolicy.applyFactor(rawDelta(white, black, winner), factor);
-            match.recordRating(blackDelta, whiteDelta);
+            int raw = Rating.delta(blackPlayer, whitePlayer, blackScore(black, winner));
+            blackDelta = Rating.limitByFloor(RatingPolicy.applyFactor(raw, factor), blackPlayer, whitePlayer);
+            match.recordRating(blackDelta, -blackDelta);
+            black.applyMatchResult(blackDelta, outcomeOf(black, winner));
+            white.applyMatchResult(-blackDelta, outcomeOf(white, winner));
         }
-
-        black.applyMatchResult(blackDelta, outcomeOf(black, winner));
-        white.applyMatchResult(whiteDelta, outcomeOf(white, winner));
+        int whiteDelta = -blackDelta;
         matchRepository.save(match);
 
         log.info(
@@ -74,15 +76,11 @@ public class MatchResultService {
                 match.isRated());
     }
 
-    private int rawDelta(User me, User opponent, User winner) {
-        int myMmr = me.getMmr();
-        int opponentMmr = opponent.getMmr();
-        int myGames = me.gamesPlayed();
-
+    private double blackScore(User black, User winner) {
         if (winner == null) {
-            return Rating.draw(myMmr, opponentMmr, myGames);
+            return Rating.DRAW;
         }
-        return winner == me ? Rating.win(myMmr, opponentMmr, myGames) : Rating.loss(myMmr, opponentMmr, myGames);
+        return winner == black ? Rating.WIN : Rating.LOSS;
     }
 
     private MatchOutcome outcomeOf(User user, User winner) {

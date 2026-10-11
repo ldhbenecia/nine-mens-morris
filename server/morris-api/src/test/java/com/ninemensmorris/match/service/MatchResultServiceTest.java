@@ -138,10 +138,10 @@ class MatchResultServiceTest extends IntegrationTestSupport {
             // when
             matchResultService.record(blackId, whiteId, blackId, "RESIGN", RATED_MOVES - 1);
 
-            // then
+            // then — 원장에는 남지만 전적은 오르지 않는다. 오르면 즉시 기권 반복으로 배치를 채운다
             assertThat(reload(blackId).getMmr()).isEqualTo(before);
             assertThat(reload(whiteId).getMmr()).isEqualTo(before);
-            assertThat(reload(blackId).getWins()).isEqualTo(1);
+            assertThat(reload(blackId).gamesPlayed()).isZero();
             assertThat(matchRepository.findAll().get(0).isRated()).isFalse();
         }
 
@@ -161,6 +161,50 @@ class MatchResultServiceTest extends IntegrationTestSupport {
             assertThat(matches).hasSize(3);
             int thirdDelta = matches.get(2).getBlackMmrDelta();
             assertThat(thirdDelta).isPositive().isLessThan(firstDelta);
+        }
+    }
+
+    @Nested
+    class 제로섬 {
+
+        @Test
+        @DisplayName("배치 중인 사람과 고참이 붙어도 변동 합이 0 이다")
+        void 판수가_달라도_제로섬이다() {
+            // given — 백만 배치를 끝낸 상태로 만든다. K 가 각자 다르게 골라지던 조합
+            for (int i = 0; i < Rating.PLACEMENT_GAMES; i++) {
+                matchResultService.record(whiteId, 상대("8100" + i, "배치상대" + i), whiteId, "RESIGN", RATED_MOVES);
+            }
+            int blackBefore = reload(blackId).getMmr();
+            int whiteBefore = reload(whiteId).getMmr();
+            long totalBefore = blackBefore + whiteBefore;
+
+            // when
+            matchResultService.record(blackId, whiteId, blackId, "RESIGN", RATED_MOVES);
+
+            // then — 한쪽이 얻은 만큼 다른 쪽이 잃어야 사다리 전체에 점수가 새로 생기지 않는다
+            assertThat((long) reload(blackId).getMmr() + reload(whiteId).getMmr())
+                    .isEqualTo(totalBefore);
+        }
+
+        @Test
+        @DisplayName("하한에 닿은 패자가 잃지 못한 만큼 승자도 얻지 못한다")
+        void 하한에서도_제로섬이다() {
+            // given — 둘 다 하한 근처의 비슷한 점수. 점수 차가 크면 변동이 원래 0 이라 하한에 닿지 않음
+            User black = reload(blackId);
+            black.applyMatchResult(Rating.FLOOR + 10 - black.getMmr(), User.MatchOutcome.DRAW);
+            userRepository.save(black);
+            User white = reload(whiteId);
+            white.applyMatchResult(Rating.FLOOR + 3 - white.getMmr(), User.MatchOutcome.DRAW);
+            userRepository.save(white);
+            long totalBefore = (long) reload(blackId).getMmr() + reload(whiteId).getMmr();
+
+            // when
+            matchResultService.record(blackId, whiteId, blackId, "RESIGN", RATED_MOVES);
+
+            // then
+            assertThat(reload(whiteId).getMmr()).isEqualTo(Rating.FLOOR);
+            assertThat((long) reload(blackId).getMmr() + reload(whiteId).getMmr())
+                    .isEqualTo(totalBefore);
         }
     }
 

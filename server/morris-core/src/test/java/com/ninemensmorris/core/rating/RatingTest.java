@@ -2,6 +2,7 @@ package com.ninemensmorris.core.rating;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.ninemensmorris.core.rating.Rating.Player;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -10,31 +11,8 @@ class RatingTest {
 
     private static final int VETERAN = Rating.PLACEMENT_GAMES;
 
-    @Nested
-    class 제로섬 {
-
-        @Test
-        @DisplayName("실력이 같으면 이긴 쪽이 얻는 만큼 진 쪽이 잃는다")
-        void 동급끼리는_주고받는_양이_같다() {
-            // when
-            int winnerDelta = Rating.win(1000, 1000, VETERAN);
-            int loserDelta = Rating.loss(1000, 1000, VETERAN);
-
-            // then
-            assertThat(winnerDelta).isPositive();
-            assertThat(winnerDelta + loserDelta).isZero();
-        }
-
-        @Test
-        @DisplayName("실력이 달라도 총합은 보존된다")
-        void 실력차가_있어도_총합이_보존된다() {
-            // when
-            int strongWins = Rating.win(1600, 1000, VETERAN);
-            int weakLoses = Rating.loss(1000, 1600, VETERAN);
-
-            // then
-            assertThat(strongWins + weakLoses).isZero();
-        }
+    private static Player veteran(int mmr) {
+        return new Player(mmr, VETERAN);
     }
 
     @Nested
@@ -44,9 +22,9 @@ class RatingTest {
         @DisplayName("강한 상대를 이기면 더 많이 얻는다")
         void 강한_상대를_이기면_많이_얻는다() {
             // when
-            int againstStrong = Rating.win(1000, 1600, VETERAN);
-            int againstEqual = Rating.win(1000, 1000, VETERAN);
-            int againstWeak = Rating.win(1000, 400, VETERAN);
+            int againstStrong = Rating.delta(veteran(1000), veteran(1600), Rating.WIN);
+            int againstEqual = Rating.delta(veteran(1000), veteran(1000), Rating.WIN);
+            int againstWeak = Rating.delta(veteran(1000), veteran(400), Rating.WIN);
 
             // then
             assertThat(againstStrong).isGreaterThan(againstEqual);
@@ -57,8 +35,8 @@ class RatingTest {
         @DisplayName("약한 상대에게 지면 더 많이 잃는다")
         void 약한_상대에게_지면_많이_잃는다() {
             // when
-            int toWeak = Rating.loss(1600, 1000, VETERAN);
-            int toStrong = Rating.loss(1000, 1600, VETERAN);
+            int toWeak = Rating.delta(veteran(1600), veteran(1000), Rating.LOSS);
+            int toStrong = Rating.delta(veteran(1000), veteran(1600), Rating.LOSS);
 
             // then
             assertThat(toWeak).isLessThan(toStrong);
@@ -68,7 +46,7 @@ class RatingTest {
         @DisplayName("400점 차이는 기대 승률 약 10:1 이라 강자가 이겨도 거의 얻지 못한다")
         void 사백점_차이의_의미() {
             // when
-            int delta = Rating.win(1400, 1000, VETERAN);
+            int delta = Rating.delta(veteran(1400), veteran(1000), Rating.WIN);
 
             // then — 기대 승률이 약 0.909 라 32 * 0.091 ≈ 3
             assertThat(delta).isBetween(1, 5);
@@ -82,20 +60,14 @@ class RatingTest {
         @DisplayName("동급끼리 무승부면 변동이 없다")
         void 동급_무승부는_변동이_없다() {
             // then
-            assertThat(Rating.draw(1000, 1000, VETERAN)).isZero();
+            assertThat(Rating.delta(veteran(1000), veteran(1000), Rating.DRAW)).isZero();
         }
 
         @Test
-        @DisplayName("낮은 쪽이 무승부를 하면 이득이다")
+        @DisplayName("낮은 쪽이 무승부를 하면 오른다")
         void 약자가_무승부하면_오른다() {
-            // when
-            int weakDelta = Rating.draw(1000, 1600, VETERAN);
-            int strongDelta = Rating.draw(1600, 1000, VETERAN);
-
             // then
-            assertThat(weakDelta).isPositive();
-            assertThat(strongDelta).isNegative();
-            assertThat(weakDelta + strongDelta).isZero();
+            assertThat(Rating.delta(veteran(1000), veteran(1600), Rating.DRAW)).isPositive();
         }
     }
 
@@ -103,14 +75,51 @@ class RatingTest {
     class 배치_판수 {
 
         @Test
-        @DisplayName("배치 중에는 변동 폭이 더 크다")
+        @DisplayName("둘 다 배치 중이면 변동 폭이 더 크다")
         void 배치중에는_크게_움직인다() {
             // when
-            int placement = Rating.win(1000, 1000, 0);
-            int veteran = Rating.win(1000, 1000, VETERAN);
+            int placement = Rating.delta(new Player(1000, 0), new Player(1000, 0), Rating.WIN);
+            int settled = Rating.delta(veteran(1000), veteran(1000), Rating.WIN);
 
             // then
-            assertThat(placement).isGreaterThan(veteran);
+            assertThat(placement).isGreaterThan(settled);
+        }
+
+        @Test
+        @DisplayName("배치 중인 사람과 고참은 두 K 의 평균으로 움직인다")
+        void 섞이면_평균_K_를_쓴다() {
+            // when — 동급이라 기대 승률 0.5. 평균 K 40 의 절반
+            int delta = Rating.delta(new Player(1000, 0), veteran(1000), Rating.WIN);
+
+            // then
+            assertThat(delta).isEqualTo(20);
+        }
+    }
+
+    @Nested
+    class 하한_제한 {
+
+        @Test
+        @DisplayName("패자가 하한까지 남은 만큼만 잃고 승자도 그만큼만 얻는다")
+        void 하한까지만_주고받는다() {
+            // given
+            Player nearFloor = veteran(Rating.FLOOR + 3);
+
+            // when
+            int winnerGain = Rating.limitByFloor(20, veteran(1000), nearFloor);
+            int loserLoss = Rating.limitByFloor(-20, nearFloor, veteran(1000));
+
+            // then
+            assertThat(winnerGain).isEqualTo(3);
+            assertThat(loserLoss).isEqualTo(-3);
+        }
+
+        @Test
+        @DisplayName("하한에서 멀면 그대로다")
+        void 여유가_있으면_그대로다() {
+            // then
+            assertThat(Rating.limitByFloor(16, veteran(1000), veteran(1000))).isEqualTo(16);
+            assertThat(Rating.limitByFloor(-16, veteran(1000), veteran(1000))).isEqualTo(-16);
         }
     }
 
