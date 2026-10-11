@@ -2,6 +2,7 @@ package com.ninemensmorris.config;
 
 import com.ninemensmorris.game.domain.SessionTracker;
 import com.ninemensmorris.game.service.GameService;
+import com.ninemensmorris.messaging.ClusterBroadcaster;
 import com.ninemensmorris.security.AuthenticatedUser;
 import java.time.Duration;
 import java.time.Instant;
@@ -10,7 +11,6 @@ import java.util.concurrent.RejectedExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
@@ -31,7 +31,7 @@ public class WebSocketEventListener {
 
     private final GameService gameService;
     private final SessionTracker sessions;
-    private final SimpMessagingTemplate messaging;
+    private final ClusterBroadcaster broadcaster;
     private final TaskScheduler taskScheduler;
 
     @EventListener
@@ -83,8 +83,7 @@ public class WebSocketEventListener {
 
         gameService
                 .handleDisconnect(userId, roomId)
-                .ifPresent(broadcast ->
-                        messaging.convertAndSend(ROOM_TOPIC_PREFIX + broadcast.roomId(), broadcast.event()));
+                .ifPresent(broadcast -> broadcaster.send(ROOM_TOPIC_PREFIX + broadcast.roomId(), broadcast.event()));
     }
 
     private Optional<Long> roomIdOf(String destination) {

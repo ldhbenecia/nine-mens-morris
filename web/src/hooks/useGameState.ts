@@ -22,6 +22,7 @@ const initialGameState: GameState = {
   loserId: null,
   endReason: null,
   turnRemainingMillis: null,
+  revision: -1,
 };
 
 let errorTimerId = 0;

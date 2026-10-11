@@ -53,6 +53,7 @@ public class InMemoryRoomRegistry implements RoomRegistry {
                 rooms.remove(roomId);
             } else {
                 room.touch();
+                room.nextRevision();
             }
             return Optional.ofNullable(result);
         }

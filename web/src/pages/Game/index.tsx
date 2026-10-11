@@ -173,6 +173,8 @@ export function GamePage() {
   // 일반 함수를 넘기면 연결 시점 값을 계속 붙잡아, 무승부를 신청한 사람이 자기 신청 창을 받음
   // useEffectEvent 로 감싸면 등록된 콜백이 호출될 때마다 최신 값을 봄
   const onRoomEvent = useEffectEvent((event: RoomEvent) => {
+    // 서버 여러 대가 보낸 이벤트는 순서가 뒤바뀌어 올 수 있음. 지금 판보다 오래된 판은 버림
+    if (event.state && event.state.revision < gameState.revision) return;
     // 남은 시간은 받은 순간부터 셈. 서버 시각과 내 시계가 어긋나도 마감이 맞음
     if (event.state) {
       const remaining = event.state.turnRemainingMillis;
@@ -205,6 +207,8 @@ export function GamePage() {
               : null
         );
         setGameState((previous) => {
+          // 한 렌더 안에 두 이벤트가 겹쳐 오면 위의 비교가 같은 옛 판을 봄. 여기서 한 번 더
+          if (event.state!.revision < previous.revision) return previous;
           playMoveSound(previous.board, event.state!.board);
           return event.state!;
         });

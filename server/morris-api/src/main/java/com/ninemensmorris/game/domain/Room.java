@@ -36,6 +36,10 @@ public final class Room {
     // 차례인 쪽이 둬야 하는 시각. 만료 확인이 락 밖에서 목록을 훑으므로 volatile
     private volatile Instant turnDeadline;
 
+    // 변경될 때마다 하나씩 오름. 여러 서버가 보낸 이벤트가 순서가 뒤바뀌어 도착해도
+    // 클라이언트가 더 오래된 판 상태를 버릴 수 있게 함
+    private volatile long revision;
+
     // 변경 중에 방을 없애기로 했다는 표시. 저장소가 저장 대신 삭제함
     // 변경 안에서 저장소를 직접 지우면 "읽고 고쳐 쓰는" 저장소에서는 끝에 다시 써져 방이 되살아남
     private boolean closed;
@@ -58,6 +62,7 @@ public final class Room {
         this.whiteId = snapshot.whiteId();
         this.lastActivityAt = snapshot.lastActivityAt();
         this.turnDeadline = snapshot.turnDeadline();
+        this.revision = snapshot.revision();
         this.game = snapshot.game() == null ? null : MorrisGame.restore(snapshot.game());
     }
 
@@ -77,7 +82,17 @@ public final class Room {
                 whiteId,
                 lastActivityAt,
                 turnDeadline,
+                revision,
                 game == null ? null : game.snapshot());
+    }
+
+    // 저장소가 변경을 저장하기 직전에 부름. 변경 하나에 한 번
+    public void nextRevision() {
+        this.revision++;
+    }
+
+    public long revision() {
+        return revision;
     }
 
     public void close() {

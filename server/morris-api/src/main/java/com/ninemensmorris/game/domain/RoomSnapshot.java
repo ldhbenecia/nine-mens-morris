@@ -15,4 +15,5 @@ public record RoomSnapshot(
         long whiteId,
         Instant lastActivityAt,
         Instant turnDeadline,
+        long revision,
         GameSnapshot game) {}

@@ -159,6 +159,7 @@ public class RedisRoomRegistry implements RoomRegistry {
                 written = delete(roomId, version);
             } else {
                 room.touch();
+                room.nextRevision();
                 written = save(room, version);
             }
             if (!written) {

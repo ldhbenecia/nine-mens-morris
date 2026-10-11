@@ -31,7 +31,9 @@ public record GameStateResponse(
         String endReason,
         // 차례인 쪽에 남은 시간. 판이 끝났으면 null
         // 마감 시각이 아니라 남은 양을 줌. 클라이언트 시계가 서버와 어긋나도 받은 순간부터 세면 맞음
-        Long turnRemainingMillis) {
+        Long turnRemainingMillis,
+        // 방이 바뀔 때마다 오르는 번호. 서버 여러 대가 보낸 이벤트가 뒤바뀌어 와도 클라이언트가 낡은 것을 버림
+        long revision) {
 
     public static GameStateResponse of(Room room, MorrisGame game, Instant now) {
         Board board = game.board();
@@ -69,7 +71,8 @@ public record GameStateResponse(
                 winnerId,
                 loserId,
                 endReason,
-                remainingMillis(room, game, now));
+                remainingMillis(room, game, now),
+                room.revision());
     }
 
     private static Long remainingMillis(Room room, MorrisGame game, Instant now) {
