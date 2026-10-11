@@ -28,6 +28,7 @@ import {
   explosionSound,
   errorSound,
   notificationSound,
+  preloadGameSounds,
 } from '~/lib/sounds';
 import { DrawRejectedModal } from './DrawRejectedModal';
 import { SocketErrorModal } from './SocketErrorModal';
@@ -143,7 +144,6 @@ export function GamePage() {
   // 화면에서 먼저 알아챈 거절도 서버 거절과 같은 문구 자리·소리로
   const onReject = (message: string) => {
     showError(message);
-    errorSound.currentTime = 0;
     errorSound.play();
   };
 
@@ -158,14 +158,12 @@ export function GamePage() {
     const removed = removedPoint(before, after);
 
     if (removed !== -1 && added === -1) {
-      stoneDroppingSound.currentTime = 0;
       stoneDroppingSound.play();
       return;
     }
     if (added === -1) return;
 
     const sound = after[added] === 'BLACK' ? blackStoneSound : whiteStoneSound;
-    sound.currentTime = 0;
     sound.play();
   }, []);
 
@@ -236,6 +234,8 @@ export function GamePage() {
 
   const onError = useEffectEvent((message: string) => showError(message));
 
+  useEffect(() => preloadGameSounds(), []);
+
   useEffect(() => {
     if (!roomId) return;
 
@@ -256,7 +256,6 @@ export function GamePage() {
         }
         onError(rejected.message);
         // 폭발음은 3연속 전용. 거절에까지 쓰면 둘을 소리로 구분할 수 없음
-        errorSound.currentTime = 0;
         errorSound.play();
       });
 
