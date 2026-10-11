@@ -1,13 +1,7 @@
 export type FirstMoveRule = 'RANDOM' | 'HOST_FIRST' | 'GUEST_FIRST';
 
 export type Tier =
-  | 'UNRANKED'
-  | 'BRONZE'
-  | 'SILVER'
-  | 'GOLD'
-  | 'PLATINUM'
-  | 'DIAMOND'
-  | 'MASTER';
+  'UNRANKED' | 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM' | 'DIAMOND' | 'MASTER';
 
 export type Room = {
   roomId: number;
