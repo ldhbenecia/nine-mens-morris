@@ -8,7 +8,7 @@ import { resultOf } from '~/lib/gameResult';
 import { QUERY } from '~/lib/queries';
 import { useGameState, useLeaveRoom } from '~/hooks';
 import { FirstMoveRule, MoveRejected, RoomEvent } from '~/lib/types';
-import { Board } from './Board';
+import { Board, StoneMotion } from './Board';
 import { WaitingRoom } from './WaitingRoom';
 import { Status } from './Status';
 import { ResignModal } from './ResignModal';
@@ -55,6 +55,7 @@ export function GamePage() {
   const [endNotice, setEndNotice] = useState('');
   const [disconnected, setDisconnected] = useState(false);
   const [lastPoint, setLastPoint] = useState<number | null>(null);
+  const [motion, setMotion] = useState<StoneMotion | null>(null);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
   const { mutate: leaveRoom } = useLeaveRoom();
   const {
@@ -142,9 +143,7 @@ export function GamePage() {
   // 서버가 그 경로를 막았고, 애초에 착수 결과가 브로드캐스트되므로 필요 없다
   const playMoveSound = useCallback((before: string[], after: string[]) => {
     const added = addedPoint(before, after);
-    const removed = after.findIndex(
-      (stone, idx) => stone === 'EMPTY' && before[idx] !== 'EMPTY'
-    );
+    const removed = removedPoint(before, after);
 
     if (removed !== -1 && added === -1) {
       stoneDroppingSound.currentTime = 0;
@@ -166,17 +165,28 @@ export function GamePage() {
       case 'STARTED':
         if (event.state) setGameState(event.state);
         setLastPoint(null);
+        setMotion(null);
         startSound.play();
         break;
       case 'SNAPSHOT':
         if (event.state) setGameState(event.state);
         setLastPoint(null);
+        setMotion(null);
         break;
       case 'STATE_CHANGED': {
         if (!event.state) break;
-        // 제거만 일어난 수는 새로 생긴 돌이 없어 표시를 그대로 둠
-        const added = addedPoint(gameState.board, event.state.board);
+        const before = gameState.board;
+        const added = addedPoint(before, event.state.board);
+        const removed = removedPoint(before, event.state.board);
+        // 제거만 일어난 수는 새로 생긴 돌이 없어 마지막 수 표시를 그대로 둠
         if (added !== -1) setLastPoint(added);
+        setMotion(
+          added !== -1 && removed !== -1
+            ? { kind: 'MOVE', from: removed, to: added }
+            : removed !== -1
+              ? { kind: 'REMOVE', point: removed, stone: before[removed] }
+              : null
+        );
         setGameState((previous) => {
           playMoveSound(previous.board, event.state!.board);
           return event.state!;
@@ -327,7 +337,8 @@ export function GamePage() {
       ) : (
         <>
           <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
-            <PhaseBanner phase={getPlayerPhase()} />
+            {/* key 가 바뀌면 다시 마운트돼 단계가 넘어갈 때마다 깜빡임이 재생됨 */}
+            <PhaseBanner key={getPlayerPhase()} phase={getPlayerPhase()} />
             <Status
               turn={gameState.status === 'PLAYING' && !isPlayerTurn()}
               color={enemyStone()}
@@ -347,6 +358,8 @@ export function GamePage() {
                 : 'EMPTY'
             }
             lastPoint={lastPoint}
+            motion={motion}
+            millFormed={gameState.awaitingRemoval}
             playerStoneColor={myStone()}
             addStone={addStone}
             moveStone={moveStone}
@@ -381,6 +394,12 @@ export function GamePage() {
 function addedPoint(before: string[], after: string[]) {
   return after.findIndex(
     (stone, idx) => stone !== 'EMPTY' && before[idx] === 'EMPTY'
+  );
+}
+
+function removedPoint(before: string[], after: string[]) {
+  return after.findIndex(
+    (stone, idx) => stone === 'EMPTY' && before[idx] !== 'EMPTY'
   );
 }
 

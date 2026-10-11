@@ -3,7 +3,7 @@ import HandShake from '~/assets/icons/handshake.svg?react';
 import { Avatar, Button } from '~/components';
 import { HelpButton } from './HelpButton';
 import { StoneType, UserProfile } from '~/lib/types';
-import { TIER_LABEL, TIER_STYLE } from '~/lib/tier';
+import { TIER_LABEL } from '~/lib/tier';
 
 type StatusProps = {
   isCurrentUser?: boolean;
@@ -35,19 +35,15 @@ export function Status({
   const nickname = player?.nickname ?? '';
 
   return (
-    <div
-      className={`relative z-10 w-72 rounded-2xl border bg-white/85 p-3 backdrop-blur-sm transition-all duration-300 ${turn ? 'border-gray-800 shadow-lg' : 'border-gray-200 shadow-xs'}`}
-    >
-      {turn && (
-        <span className="absolute -top-3 left-4 animate-pulse rounded-full bg-gray-800 px-2.5 py-0.5 text-xs font-semibold text-white">
-          {isCurrentUser ? '내 차례' : '상대 차례'}
-        </span>
-      )}
+    <div className="z-10 w-64">
       <div
-        className={`flex flex-col gap-2 transition-opacity ${turn ? '' : 'opacity-60'}`}
+        className={`flex flex-col gap-2 transition-opacity duration-300 ${turn ? '' : 'opacity-50'}`}
       >
         <div className="flex items-center gap-3">
           <div className="relative">
+            {turn && (
+              <div className="absolute -inset-1 animate-pulse rounded-full ring-2 ring-gray-800" />
+            )}
             <Avatar nickname={nickname || ' '} imageUrl={player?.imageUrl} />
             {/* 아바타만 봐도 어느 색인지 알게 돌을 겹쳐 그림 */}
             {color !== 'EMPTY' && (
@@ -60,9 +56,7 @@ export function Status({
             <span className="truncate font-semibold">{nickname}</span>
             {/* 게스트는 MMR 이 움직이지 않음. 티어를 보여주면 오르는 값처럼 읽힘 */}
             {player && (
-              <span
-                className={`text-xs font-semibold ${player.visitor ? 'text-gray-400' : TIER_STYLE[player.tier]}`}
-              >
+              <span className="text-xs font-semibold text-gray-500">
                 {player.visitor
                   ? '게스트'
                   : `${TIER_LABEL[player.tier]} · ${player.mmr.toLocaleString()}`}

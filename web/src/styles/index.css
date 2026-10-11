@@ -40,6 +40,9 @@
   --animate-shaking: shaking 0.5s linear forwards;
   --animate-blinking: blinking 2s linear forwards;
   --animate-refresh: refresh 0.5s ease-out forwards;
+  --animate-stone-slide: stone-slide 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-stone-remove: stone-remove 0.4s ease-out forwards;
+  --animate-mill-glow: mill-glow 0.9s ease-in-out 2;
 
   --breakpoint-xs: 430px;
 
@@ -135,6 +138,34 @@
     }
     60% {
       opacity: 1;
+    }
+  }
+  /* 출발 지점까지의 거리는 Point 가 --slide-x / --slide-y 로 넘김 */
+  @keyframes stone-slide {
+    0% {
+      transform: translate(var(--slide-x), var(--slide-y));
+    }
+    100% {
+      transform: translate(0, 0);
+    }
+  }
+  @keyframes stone-remove {
+    0% {
+      opacity: 1;
+      scale: 1;
+    }
+    100% {
+      opacity: 0;
+      scale: 1.35;
+    }
+  }
+  @keyframes mill-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(31, 41, 55, 0);
+    }
+    50% {
+      box-shadow: 0 0 0 10px rgba(31, 41, 55, 0.25);
     }
   }
   @keyframes refresh {
