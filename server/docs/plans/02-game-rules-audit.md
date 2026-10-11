@@ -214,7 +214,7 @@ public MorrisResponse<Void> tieRequest(TieRequestDto requestDto) {
 | 기능 | 현재 | 비고 |
 | --- | --- | --- |
 | 재접속 후 판 복구 | ❌ | `ResponseType.SYNC_GAME`이 선언만 되어 있음 |
-| 턴 제한 시간 | ❌ | 무한 대기 가능 |
+| 턴 제한 시간 | ✅ | 한 수 60초. 넘기면 차례인 쪽이 짐(`TIMEOUT`). [ADR-16](07-architecture-decision.md) |
 | 기보(착수 기록) | ❌ | 분쟁 검증·리플레이 불가. [09](09-ranking-design.md)의 전적 기능과 연계 |
 | 관전 | ❌ | `/topic/game/{id}` 구독만 하면 사실상 관전이 되지만 의도된 설계는 아님 |
 | 선공 결정 | ⚠️ | 아래 H-1 참고 — **개선 확정 항목** |
