@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
 import { AlertModal } from '~/components';
 import { authHeaders } from '~/lib/auth';
@@ -57,7 +57,11 @@ export function GamePage() {
   const [lastPoint, setLastPoint] = useState<number | null>(null);
   const [motion, setMotion] = useState<StoneMotion | null>(null);
   const [roomLost, setRoomLost] = useState(false);
-  const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
+  const { data: currentUser, isFetching: fetchingUser } = useQuery(
+    QUERY.CURRENT_USER
+  );
+  const queryClient = useQueryClient();
+  const [mmrBefore, setMmrBefore] = useState<number | null>(null);
   const { mutate: leaveRoom } = useLeaveRoom();
   const {
     gameState,
@@ -290,11 +294,34 @@ export function GamePage() {
   // 결과 화면은 상태에서 바로 계산. FINISHED 이벤트를 놓치고 SNAPSHOT 으로 복구해도 뜸
   const { status, winnerId, loserId } = gameState;
   const finished = status === 'FINISHED';
+  // 객체 대신 id 에 걸어야 함. 끝난 뒤 내 정보를 다시 받으면 객체가 바뀌어 소리가 두 번 남
+  const myId = currentUser?.userId;
   useEffect(() => {
-    if (status !== 'FINISHED' || !currentUser) return;
-    if (winnerId === currentUser.userId) winSound.play();
-    if (loserId === currentUser.userId) lossSound.play();
-  }, [status, winnerId, loserId, currentUser]);
+    if (status !== 'FINISHED' || myId === undefined) return;
+    if (winnerId === myId) winSound.play();
+    if (loserId === myId) lossSound.play();
+  }, [status, winnerId, loserId, myId]);
+
+  // 서버는 결과를 저장한 뒤에 종료를 알림. 그래서 받자마자 다시 읽으면 반영된 점수가 옴
+  useEffect(() => {
+    if (finished) {
+      queryClient.invalidateQueries({ queryKey: QUERY.CURRENT_USER.queryKey });
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      queryClient.invalidateQueries({ queryKey: QUERY.RANKS.queryKey });
+    }
+  }, [finished, queryClient]);
+
+  // 판 도중에 본 점수가 시작 점수. 점수는 판이 끝날 때만 바뀌므로 새로고침해 들어와도 같음
+  if (status === 'PLAYING' && currentUser && mmrBefore === null) {
+    setMmrBefore(currentUser.mmr);
+  }
+  // 게스트가 낀 판은 점수가 움직이지 않음
+  const rating =
+    !room?.rated || !currentUser || currentUser.visitor || mmrBefore === null
+      ? null
+      : fetchingUser
+        ? 'PENDING'
+        : { before: mmrBefore, after: currentUser.mmr };
 
   return (
     <main
@@ -311,6 +338,7 @@ export function GamePage() {
         <GameResultModal
           visible={finished}
           result={resultOf(gameState, currentUser.userId)}
+          rating={rating}
           endReason={gameState.endReason}
           notice={endNotice}
           onLeaveRoom={onLeaveRoom}
