@@ -20,7 +20,8 @@ management:
           include: livenessState
         # 여기에는 넣는다. 끊기면 트래픽만 안 받다가 돌아오면 스스로 복귀한다
         readiness:
-          include: readinessState,db,gameSession
+          # redis: 판 상태의 원본이라 끊기면 수를 받을 수 없음
+          include: readinessState,db,redis,gameSession
   metrics:
     tags:
       # 여러 환경의 메트릭이 한 Prometheus 에 모이면 이게 없으면 구분할 수 없다

@@ -26,9 +26,12 @@ services:
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
       KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
       DOMAIN: ${DOMAIN}
+      SPRING_DATA_REDIS_HOST: redis
     depends_on:
       # condition 없이 두면 DB 보다 먼저 떠서 기동에 실패함
       database:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: unless-stopped
     networks: [morris]
@@ -56,6 +59,20 @@ services:
       start_period: 30s
     volumes:
       - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+    networks: [morris]
+
+  # 판 상태·방 락·방 이벤트 전파. 로컬은 한 대, 운영은 Sentinel 로 이중화
+  redis:
+    container_name: morris-redis
+    image: redis:7.4-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     restart: unless-stopped
     networks: [morris]
 
