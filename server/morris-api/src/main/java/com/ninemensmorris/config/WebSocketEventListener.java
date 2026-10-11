@@ -3,6 +3,7 @@ package com.ninemensmorris.config;
 import com.ninemensmorris.game.domain.SessionTracker;
 import com.ninemensmorris.game.service.GameService;
 import com.ninemensmorris.messaging.ClusterBroadcaster;
+import com.ninemensmorris.messaging.ClusterPresence;
 import com.ninemensmorris.security.AuthenticatedUser;
 import java.time.Duration;
 import java.time.Instant;
@@ -30,7 +31,8 @@ public class WebSocketEventListener {
     private static final Duration RECONNECT_GRACE = Duration.ofSeconds(10);
 
     private final GameService gameService;
-    private final SessionTracker sessions;
+    private final SessionTracker sessions; // 이 서버의 세션. 끊긴 세션이 어느 방을 보던 것인지
+    private final ClusterPresence presence; // 서버 전체 기준 "그 방에 붙어 있는가"
     private final ClusterBroadcaster broadcaster;
     private final TaskScheduler taskScheduler;
 
@@ -47,10 +49,18 @@ public class WebSocketEventListener {
     }
 
     // 방 토픽 구독이 "이 세션이 그 방을 보고 있다" 는 유일한 신호
+    // 구독 검사(ClientFrameGuard)가 버린 구독은 이 이벤트가 오지 않음
     @EventListener
     public void onSubscribe(SessionSubscribeEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-        roomIdOf(accessor.getDestination()).ifPresent(roomId -> sessions.enterRoom(accessor.getSessionId(), roomId));
+        AuthenticatedUser actor = AuthenticatedUser.from(accessor.getUser());
+        String sessionId = accessor.getSessionId();
+        roomIdOf(accessor.getDestination()).ifPresent(roomId -> {
+            sessions.enterRoom(sessionId, roomId);
+            if (actor != null) {
+                presence.enter(actor.id(), roomId, sessionId);
+            }
+        });
     }
 
     @EventListener
@@ -66,6 +76,7 @@ public class WebSocketEventListener {
 
         long userId = departure.userId();
         long roomId = departure.roomId();
+        presence.leave(userId, roomId, sessionId);
         try {
             taskScheduler.schedule(
                     () -> settleIfStillGone(userId, roomId), Instant.now().plus(RECONNECT_GRACE));
@@ -76,8 +87,9 @@ public class WebSocketEventListener {
         }
     }
 
+    // 다른 서버로 다시 붙었을 수 있어 서버 전체 기준으로 봄
     private void settleIfStillGone(long userId, long roomId) {
-        if (sessions.isWatching(userId, roomId)) {
+        if (presence.isWatching(userId, roomId)) {
             return;
         }
 
