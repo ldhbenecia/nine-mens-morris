@@ -56,10 +56,12 @@ public class WebSocketEventListener {
         AuthenticatedUser actor = AuthenticatedUser.from(accessor.getUser());
         String sessionId = accessor.getSessionId();
         roomIdOf(accessor.getDestination()).ifPresent(roomId -> {
-            sessions.enterRoom(sessionId, roomId);
-            if (actor != null) {
-                presence.enter(actor.id(), roomId, sessionId);
+            // 같은 세션이 같은 방을 다시 구독해도 한 번만 셈
+            if (actor == null || !sessions.enterRoom(sessionId, roomId)) {
+                return;
             }
+            broadcaster.watch(roomId);
+            presence.enter(actor.id(), roomId, sessionId);
         });
     }
 
@@ -69,20 +71,24 @@ public class WebSocketEventListener {
         String sessionId = accessor.getSessionId();
 
         SessionTracker.Departure departure = sessions.remove(sessionId).orElse(null);
-        if (departure == null || departure.roomId() == null) {
+        if (departure == null) {
             return;
         }
-        log.debug("소켓 해제 userId={} roomId={} sessionId={}", departure.userId(), departure.roomId(), sessionId);
+        for (long roomId : departure.rooms()) {
+            log.debug("소켓 해제 userId={} roomId={} sessionId={}", departure.userId(), roomId, sessionId);
+            broadcaster.unwatch(roomId);
+            presence.leave(departure.userId(), roomId, sessionId);
+            scheduleSettlement(departure.userId(), roomId);
+        }
+    }
 
-        long userId = departure.userId();
-        long roomId = departure.roomId();
-        presence.leave(userId, roomId, sessionId);
+    private void scheduleSettlement(long userId, long roomId) {
         try {
             taskScheduler.schedule(
                     () -> settleIfStillGone(userId, roomId), Instant.now().plus(RECONNECT_GRACE));
         } catch (RejectedExecutionException rejected) {
             // 서버가 내려가는 중. 이때 붙어 있던 사람 수만큼 예외가 터져 로그를 덮는다
-            // 어차피 프로세스가 끝나므로 정산할 방법도 없음
+            // 정산을 건너뛰어도 됨. 클라이언트는 다른 서버로 다시 붙고, 안 돌아오면 턴 제한 시간이 판을 끝냄
             log.debug("종료 중이라 재접속 유예를 예약하지 못함 userId={} roomId={}", userId, roomId);
         }
     }

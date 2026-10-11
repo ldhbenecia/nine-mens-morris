@@ -2,6 +2,7 @@ package com.ninemensmorris.game.domain;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 
@@ -14,26 +15,31 @@ import org.springframework.stereotype.Component;
 public class SessionTracker {
 
     private final Map<String, Long> userBySession = new ConcurrentHashMap<>();
-    private final Map<String, Long> roomBySession = new ConcurrentHashMap<>();
+    private final Map<String, Set<Long>> roomsBySession = new ConcurrentHashMap<>();
 
     public void add(long userId, String sessionId) {
         userBySession.put(sessionId, userId);
     }
 
-    // 이 세션이 어느 방을 보고 있는지. 방 토픽 구독 시점에 알 수 있음
-    public void enterRoom(String sessionId, long roomId) {
-        if (userBySession.containsKey(sessionId)) {
-            roomBySession.put(sessionId, roomId);
+    // 이 세션이 그 방을 보기 시작함. 방 토픽 구독 시점에 알 수 있음
+    // 새로 보게 된 방이면 true. 이미 보던 방이거나 연결되지 않은 세션이면 false
+    // 방마다 이 서버의 구독자 수를 세는 쪽이 같은 방을 두 번 세지 않게
+    public boolean enterRoom(String sessionId, long roomId) {
+        if (!userBySession.containsKey(sessionId)) {
+            return false;
         }
+        return roomsBySession
+                .computeIfAbsent(sessionId, ignored -> ConcurrentHashMap.newKeySet())
+                .add(roomId);
     }
 
     public Optional<Departure> remove(String sessionId) {
         Long userId = userBySession.remove(sessionId);
-        Long roomId = roomBySession.remove(sessionId);
+        Set<Long> rooms = roomsBySession.remove(sessionId);
         if (userId == null) {
             return Optional.empty();
         }
-        return Optional.of(new Departure(userId, roomId));
+        return Optional.of(new Departure(userId, rooms == null ? Set.of() : Set.copyOf(rooms)));
     }
 
     // 이 서버에 열려 있는 소켓 수. 사용자 수가 아니라 세션 수다
@@ -42,6 +48,6 @@ public class SessionTracker {
         return userBySession.size();
     }
 
-    // 끊긴 세션의 주인과 그 세션이 보던 방. 방을 안 보고 있었으면 roomId 는 null
-    public record Departure(long userId, Long roomId) {}
+    // 끊긴 세션의 주인과 그 세션이 보던 방들. 방을 안 보고 있었으면 비어 있음
+    public record Departure(long userId, Set<Long> rooms) {}
 }
