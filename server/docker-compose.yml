@@ -69,8 +69,14 @@ services:
   redis:
     container_name: morris-redis
     image: redis:7.4-alpine
+    # 진행 중인 판의 원본이라 재시작해도 남아야 함
+    # AOF everysec: 쓰기를 파일에 이어 붙이고 1초마다 디스크에 내림. 잃어도 최대 1초
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
     ports:
       - "${REDIS_PORT:-6379}:6379"
+    # 이름 없는 볼륨이면 컨테이너를 다시 만들 때 새 볼륨이 붙어 데이터를 못 찾음
+    volumes:
+      - redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -86,3 +92,4 @@ volumes:
   mysql-data:
     # 리포지터리를 합치기 전에 만든 볼륨을 그대로 씀. 이름이 바뀌면 빈 DB 로 새로 뜸
     name: ninemensmorris_backend_mysql-data
+  redis-data:
