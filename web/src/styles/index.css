@@ -43,6 +43,7 @@
   --animate-stone-slide: stone-slide 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   --animate-stone-remove: stone-remove 0.4s ease-out forwards;
   --animate-mill-glow: mill-glow 0.9s ease-in-out 2;
+  --animate-rise-in: rise-in 0.35s ease-out both;
 
   --breakpoint-xs: 430px;
 
@@ -166,6 +167,16 @@
     }
     50% {
       box-shadow: 0 0 0 10px rgba(31, 41, 55, 0.25);
+    }
+  }
+  @keyframes rise-in {
+    0% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
   @keyframes refresh {
