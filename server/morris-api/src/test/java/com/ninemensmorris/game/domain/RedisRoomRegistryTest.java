@@ -1,6 +1,7 @@
 package com.ninemensmorris.game.domain;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ninemensmorris.game.repository.RoomStore;
 import com.ninemensmorris.support.IntegrationTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +27,8 @@ class RedisRoomRegistryTest extends IntegrationTestSupport implements RoomRegist
             connection.serverCommands().flushDb();
             return null;
         });
-        registry = new RedisRoomRegistry(redis, objectMapper);
-        otherServer = new RedisRoomRegistry(redis, objectMapper);
+        registry = new RedisRoomRegistry(new RoomStore(redis, objectMapper));
+        otherServer = new RedisRoomRegistry(new RoomStore(redis, objectMapper));
     }
 
     @Override
