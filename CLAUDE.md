@@ -141,7 +141,8 @@ docker compose up            # 앱 + MySQL
 | 룰 | 내용 |
 | --- | --- |
 | [work-start-checklist.md](.claude/rules/work-start-checklist.md) | **작업 시작 시 여기부터.** 컨텍스트 잡는 순서 |
-| [java-conventions.md](.claude/rules/java-conventions.md) | **용어집**, 모듈 경계, 주석, 객체 생성, 트랜잭션, JPA, 계층, 테스트 |
+| [java-conventions.md](.claude/rules/java-conventions.md) | **용어집**, 모듈 경계, 객체 생성, 트랜잭션, JPA, 계층, 테스트 |
+| [code-comments.md](.claude/rules/code-comments.md) | **주석에 무엇을 쓰고 무엇을 쓰지 않나** |
 | [git-conventions.md](.claude/rules/git-conventions.md) | 브랜치, 커밋 메시지, 의미 단위 커밋 |
 | [decisions-workflow.md](.claude/rules/decisions-workflow.md) | ADR 작성 기준과 위치 |
 
