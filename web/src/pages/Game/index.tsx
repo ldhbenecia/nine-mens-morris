@@ -11,7 +11,7 @@ import { FirstMoveRule, MoveRejected, RoomEvent } from '~/lib/types';
 import { Board } from './Board';
 import { WaitingRoom } from './WaitingRoom';
 import { Status } from './Status';
-import { WithdrawModal } from './WithdrawModal';
+import { ResignModal } from './ResignModal';
 import { GameResultModal } from './GameResultModal';
 import { HelpModal } from './HelpModal';
 import { RequestDrawModal } from './RequestDrawModal';
@@ -46,7 +46,7 @@ const client = new Client({
 
 export function GamePage() {
   const { roomId } = useParams();
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showResignModal, setShowResignModal] = useState(false);
   const [showRequestDrawModal, setShowRequestDrawModal] = useState(false);
   const [showResponseDrawModal, setShowResponseDrawModal] = useState(false);
   const [showDrawRejectedModal, setShowDrawRejectedModal] = useState(false);
@@ -114,7 +114,7 @@ export function GamePage() {
 
   const onResign = () => {
     if (roomId) resign(client, Number(roomId));
-    setShowWithdrawModal(false);
+    setShowResignModal(false);
   };
 
   const onOfferDraw = () => {
@@ -270,11 +270,11 @@ export function GamePage() {
     <main
       className={`transition-removing flex h-full grow flex-col justify-between overflow-hidden p-4 transition-colors duration-1000 md:gap-4 ${gameState.awaitingRemoval && 'bg-red-200'}`}
     >
-      <WithdrawModal
-        visible={showWithdrawModal}
+      <ResignModal
+        visible={showResignModal}
         rated={room?.rated ?? false}
-        onWithdraw={onResign}
-        onClose={() => setShowWithdrawModal(false)}
+        onResign={onResign}
+        onClose={() => setShowResignModal(false)}
       />
       {/* 내 정보가 오기 전에 판정하면 승자·패자 비교가 둘 다 거짓이라 무승부로 보임 */}
       {currentUser && (
@@ -352,7 +352,7 @@ export function GamePage() {
               inHand={getPlayerInHand()}
               onBoard={getPlayerOnBoard()}
               nickname={currentUser?.nickname}
-              onShowWithdrawModal={() => setShowWithdrawModal(true)}
+              onShowResignModal={() => setShowResignModal(true)}
               onShowRequestDrawModal={() => setShowRequestDrawModal(true)}
               onShowHelpModal={() => setShowHelpModal(true)}
             />

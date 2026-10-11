@@ -1,20 +1,20 @@
 import { Button, Modal } from '~/components';
 
-type WithdrawModalProps = {
+type ResignModalProps = {
   visible: boolean;
   rated: boolean;
-  onWithdraw: () => void;
+  onResign: () => void;
   onClose: () => void;
 };
 
 // 일반전은 전적도 점수도 남지 않고, 랭크전도 10수 미만이면 점수는 그대로임
 // 늘 "점수가 내려갑니다" 라고 하면 사실과 달라 기권을 망설이게 만듦
-export function WithdrawModal({
+export function ResignModal({
   visible,
   rated,
-  onWithdraw,
+  onResign,
   onClose,
-}: WithdrawModalProps) {
+}: ResignModalProps) {
   return (
     <Modal visible={visible}>
       <>
@@ -31,7 +31,7 @@ export function WithdrawModal({
         )}
         <div className="flex w-full gap-4">
           <Button theme="secondary" fullWidth text="취소" onClick={onClose} />
-          <Button fullWidth text="기권" onClick={onWithdraw} />
+          <Button fullWidth text="기권" onClick={onResign} />
         </div>
       </>
     </Modal>

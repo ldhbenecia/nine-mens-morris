@@ -14,7 +14,7 @@ type StatusProps = {
   onBoard: number;
   nickname?: string;
   visible?: boolean;
-  onShowWithdrawModal?: () => void;
+  onShowResignModal?: () => void;
   onShowRequestDrawModal?: () => void;
   onShowHelpModal?: () => void;
 };
@@ -27,7 +27,7 @@ export function Status({
   onBoard,
   nickname = ' ',
   visible = true,
-  onShowWithdrawModal,
+  onShowResignModal,
   onShowRequestDrawModal,
   onShowHelpModal,
 }: StatusProps) {
@@ -77,7 +77,7 @@ export function Status({
                 slim
                 small
                 fullWidth
-                onClick={onShowWithdrawModal}
+                onClick={onShowResignModal}
               />
               <Button
                 text="무승부"
