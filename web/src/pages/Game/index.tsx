@@ -96,7 +96,7 @@ export function GamePage() {
   const inGame = gameState.status !== 'WAITING' || room?.hasGame === true;
 
   const { data: enemy } = useQuery({
-    ...QUERY.USER_NICKNAME(enemyId()),
+    ...QUERY.USER_PROFILE(enemyId()),
     enabled: gameState.status !== 'WAITING' && enemyId() > 0,
   });
 
@@ -326,7 +326,7 @@ export function GamePage() {
               color={enemyStone()}
               inHand={getEnemyInHand()}
               onBoard={getEnemyOnBoard()}
-              nickname={enemy?.nickname}
+              player={enemy}
             />
           </div>
           <Board
@@ -351,7 +351,7 @@ export function GamePage() {
               color={myStone()}
               inHand={getPlayerInHand()}
               onBoard={getPlayerOnBoard()}
-              nickname={currentUser?.nickname}
+              player={currentUser}
               onShowResignModal={() => setShowResignModal(true)}
               onShowRequestDrawModal={() => setShowRequestDrawModal(true)}
               onShowHelpModal={() => setShowHelpModal(true)}

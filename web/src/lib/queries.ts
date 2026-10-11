@@ -3,7 +3,7 @@ import {
   getRanks,
   getRoom,
   getRooms,
-  getUserNickname,
+  getUserProfile,
 } from './api';
 import { getToken } from './auth';
 
@@ -31,9 +31,8 @@ export const QUERY = {
     retry: false,
   }),
   // 상대가 바뀌면 캐시도 갈려야 하므로 userId 를 키에 넣음
-  // 예전에는 키가 ['userNickname'] 로 고정이라 상대가 바뀌어도 옛 값이 나왔음
-  USER_NICKNAME: (userId: number) => ({
-    queryKey: ['userNickname', userId],
-    queryFn: () => getUserNickname(userId),
+  USER_PROFILE: (userId: number) => ({
+    queryKey: ['userProfile', userId],
+    queryFn: () => getUserProfile(userId),
   }),
 };

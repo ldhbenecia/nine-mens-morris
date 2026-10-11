@@ -2,8 +2,8 @@ package com.ninemensmorris.user.controller;
 
 import com.ninemensmorris.security.AuthenticatedUser;
 import com.ninemensmorris.user.dto.response.MyProfileResponse;
-import com.ninemensmorris.user.dto.response.NicknameResponse;
 import com.ninemensmorris.user.dto.response.RankingResponse;
+import com.ninemensmorris.user.dto.response.UserProfileResponse;
 import com.ninemensmorris.user.service.UserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +28,8 @@ public class UserController {
     }
 
     @GetMapping("/users/{userId}")
-    public NicknameResponse findNickname(@PathVariable long userId) {
-        return userService.findNickname(userId);
+    public UserProfileResponse findProfile(@PathVariable long userId) {
+        return userService.findProfile(userId);
     }
 
     // 위쪽만 막아서 limit=-1 이면 PageRequest.of 가 터졌음. 아래쪽도 잠금

@@ -4,8 +4,8 @@ import com.ninemensmorris.common.exception.CustomException;
 import com.ninemensmorris.common.response.ErrorCode;
 import com.ninemensmorris.user.domain.User;
 import com.ninemensmorris.user.dto.response.MyProfileResponse;
-import com.ninemensmorris.user.dto.response.NicknameResponse;
 import com.ninemensmorris.user.dto.response.RankingResponse;
+import com.ninemensmorris.user.dto.response.UserProfileResponse;
 import com.ninemensmorris.user.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +30,8 @@ public class UserService {
         return MyProfileResponse.of(user, rank);
     }
 
-    public NicknameResponse findNickname(long userId) {
-        return new NicknameResponse(find(userId).getNickname());
+    public UserProfileResponse findProfile(long userId) {
+        return UserProfileResponse.of(find(userId));
     }
 
     // 동점자는 같은 등수를 받고 다음 사람은 인원수만큼 건너뛴다

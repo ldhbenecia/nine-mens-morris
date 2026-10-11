@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { clearToken, getToken } from '~/lib/auth';
-import { Rank, Room, RoomDetail, User } from '~/lib/types';
+import { Rank, Room, RoomDetail, User, UserProfile } from '~/lib/types';
 
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -54,8 +54,8 @@ export const getCurrentUser = async () => {
   return response.data;
 };
 
-export const getUserNickname = async (userId: number) => {
-  const response = await client.get<{ nickname: string }>(`users/${userId}`);
+export const getUserProfile = async (userId: number) => {
+  const response = await client.get<UserProfile>(`users/${userId}`);
 
   return response.data;
 };

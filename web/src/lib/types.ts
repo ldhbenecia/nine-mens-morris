@@ -32,6 +32,20 @@ export type User = {
   visitor: boolean;
 };
 
+// 대전 상대에게 보이는 정보. 내 정보(User)도 같은 필드를 가져 같은 카드로 그림
+export type UserProfile = Pick<
+  User,
+  | 'userId'
+  | 'nickname'
+  | 'imageUrl'
+  | 'mmr'
+  | 'tier'
+  | 'wins'
+  | 'losses'
+  | 'draws'
+  | 'visitor'
+>;
+
 export type Rank = {
   rank: number;
   userId: number;

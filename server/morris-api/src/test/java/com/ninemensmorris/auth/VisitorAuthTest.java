@@ -74,6 +74,27 @@ class VisitorAuthTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("대전 상대의 공개 프로필을 볼 수 있고 게스트인지 드러난다")
+    void 상대_프로필을_본다() {
+        // given
+        User member = userRepository.save(User.ofKakao("7002", "회원", null));
+        String visitorToken = issueVisitor();
+
+        // when
+        var profile = rest.exchange(
+                url("/api/v1/users/" + member.getUserId()),
+                HttpMethod.GET,
+                new HttpEntity<>(bearer(visitorToken)),
+                PublicProfile.class);
+
+        // then
+        assertThat(profile.getStatusCode().value()).isEqualTo(200);
+        assertThat(profile.getBody().nickname()).isEqualTo("회원");
+        assertThat(profile.getBody().tier()).isNotBlank();
+        assertThat(profile.getBody().visitor()).isFalse();
+    }
+
+    @Test
     @DisplayName("방 목록은 방장이 게스트인지 알려준다")
     void 방_목록에_게스트_방장이_표시된다() {
         // given
@@ -188,6 +209,8 @@ class VisitorAuthTest extends IntegrationTestSupport {
     private record VisitorToken(String accessToken) {}
 
     private record Profile(String nickname, Integer rank, boolean visitor) {}
+
+    private record PublicProfile(String nickname, String tier, boolean visitor) {}
 
     private record CreateRoomPayload(String title) {}
 
