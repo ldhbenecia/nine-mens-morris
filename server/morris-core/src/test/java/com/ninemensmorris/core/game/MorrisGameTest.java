@@ -521,6 +521,38 @@ class MorrisGameTest {
         }
 
         @Test
+        @DisplayName("내 제안이 걸려 있으면 다시 낼 수 없다")
+        void 걸린_제안은_다시_못_낸다() {
+            // given
+            MorrisGame game = new MorrisGame(Stone.BLACK);
+            game.apply(Stone.BLACK, new Move.OfferDraw());
+
+            // when
+            MoveResult result = game.apply(Stone.BLACK, new Move.OfferDraw());
+
+            // then — 같은 제안을 연타하면 상대 화면에 수락 창이 계속 뜬다
+            assertThat(result).isEqualTo(new MoveResult.Rejected(RejectReason.DRAW_ALREADY_OFFERED));
+        }
+
+        @Test
+        @DisplayName("한 판에 세 번까지만 제안할 수 있다")
+        void 제안_횟수에_제한이_있다() {
+            // given — 제안과 거절을 세 번 반복
+            MorrisGame game = new MorrisGame(Stone.BLACK);
+            for (int i = 0; i < 3; i++) {
+                game.apply(Stone.BLACK, new Move.OfferDraw());
+                game.apply(Stone.WHITE, new Move.RespondDraw(false));
+            }
+
+            // when
+            MoveResult result = game.apply(Stone.BLACK, new Move.OfferDraw());
+
+            // then — 상대는 여전히 제안할 수 있다
+            assertThat(result).isEqualTo(new MoveResult.Rejected(RejectReason.DRAW_OFFER_LIMIT));
+            assertThat(game.apply(Stone.WHITE, new Move.OfferDraw())).isInstanceOf(MoveResult.DrawOffered.class);
+        }
+
+        @Test
         @DisplayName("거절은 DrawDeclined 로 구분된다")
         void 거절은_DrawDeclined다() {
             // given

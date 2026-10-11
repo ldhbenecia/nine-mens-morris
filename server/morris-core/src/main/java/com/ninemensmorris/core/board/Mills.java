@@ -32,12 +32,22 @@ public final class Mills {
 
     private Mills() {}
 
+    // 바깥에는 깊은 복사본만 줌. 원본을 고치면 모든 게임의 밀 정의가 함께 바뀜
     public static int[][] all() {
-        return ALL.clone();
+        return deepCopy(ALL);
     }
 
     public static int[][] containing(int point) {
+        return deepCopy(BY_POINT[point]);
+    }
+
+    // Board 의 밀 판정 전용. 매 착수마다 불려서 복사하지 않음. 반환값을 고치지 말 것
+    static int[][] containingUnsafe(int point) {
         return BY_POINT[point];
+    }
+
+    private static int[][] deepCopy(int[][] mills) {
+        return Arrays.stream(mills).map(int[]::clone).toArray(int[][]::new);
     }
 
     private static int[][] concat(int[][] a, int[][] b) {

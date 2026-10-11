@@ -27,6 +27,8 @@ public record MoveRejectedResponse(String code, String message) {
             case PROTECTED_BY_MILL -> "3연속에 속한 돌은 제거할 수 없습니다.";
             case NO_DRAW_OFFER -> "무승부 제안이 없습니다.";
             case CANNOT_ACCEPT_OWN_OFFER -> "자기가 한 제안은 수락할 수 없습니다.";
+            case DRAW_ALREADY_OFFERED -> "이미 무승부를 제안했습니다. 상대의 응답을 기다려 주세요.";
+            case DRAW_OFFER_LIMIT -> "이번 판에서는 더 이상 무승부를 제안할 수 없습니다.";
         };
     }
 }

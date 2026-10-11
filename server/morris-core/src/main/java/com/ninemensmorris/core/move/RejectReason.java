@@ -16,5 +16,7 @@ public enum RejectReason {
     NOT_ADJACENT, // MOVING 인데 인접하지 않은 곳으로 이동
     PROTECTED_BY_MILL, // 밀에 속한 돌. 단 상대 돌이 전부 밀이면 제거 가능
     NO_DRAW_OFFER, // 무승부 제안이 없는데 응답
-    CANNOT_ACCEPT_OWN_OFFER // 자기 제안을 자기가 수락
+    CANNOT_ACCEPT_OWN_OFFER, // 자기 제안을 자기가 수락
+    DRAW_ALREADY_OFFERED, // 내 제안이 아직 걸려 있음
+    DRAW_OFFER_LIMIT // 한 판에 낼 수 있는 제안 횟수를 넘음
 }

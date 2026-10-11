@@ -91,7 +91,7 @@ public final class Board {
         if (stone == null) {
             return false;
         }
-        for (int[] mill : Mills.containing(point)) {
+        for (int[] mill : Mills.containingUnsafe(point)) {
             if (points[mill[0]] == stone && points[mill[1]] == stone && points[mill[2]] == stone) {
                 return true;
             }

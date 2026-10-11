@@ -26,8 +26,11 @@ public final class MorrisGame {
 
     private static final int REPETITION_DRAW_LIMIT = 3;
 
+    private static final int MAX_DRAW_OFFERS = 3; // 한 사람이 한 판에 낼 수 있는 무승부 제안
+
     private final Board board;
     private final Map<Stone, Integer> inHand = new EnumMap<>(Stone.class);
+    private final Map<Stone, Integer> drawOffers = new EnumMap<>(Stone.class);
     private final Map<String, Integer> seenPositions = new HashMap<>();
 
     private Stone currentTurn;
@@ -158,11 +161,20 @@ public final class MorrisGame {
 
         board.clear(at);
         awaitingRemoval = false;
+        drawOfferedBy = null;
         return endTurn(true);
     }
 
-    // 무승부 제안. 상대가 수를 두면 자동으로 소멸함
+    // 무승부 제안. 다음 수가 진행되면 소멸함
+    // 상대 화면에 수락 창을 띄우므로 횟수 제한이 없으면 괴롭힘 수단이 됨
     private MoveResult offerDraw(Stone actor) {
+        if (drawOfferedBy == actor) {
+            return reject(RejectReason.DRAW_ALREADY_OFFERED);
+        }
+        if (drawOffers.getOrDefault(actor, 0) >= MAX_DRAW_OFFERS) {
+            return reject(RejectReason.DRAW_OFFER_LIMIT);
+        }
+        drawOffers.merge(actor, 1, Integer::sum);
         drawOfferedBy = actor;
         return new MoveResult.DrawOffered();
     }

@@ -80,4 +80,19 @@ class MillsTest {
             }
         }
     }
+
+    @Test
+    @DisplayName("돌려받은 배열을 고쳐도 밀 정의는 바뀌지 않는다")
+    void 반환값을_고쳐도_원본은_그대로다() {
+        // given
+        int original = Mills.containing(0)[0][0];
+
+        // when — 바깥 코드가 실수로 원소를 덮어씀
+        Mills.containing(0)[0][0] = 99;
+        Mills.all()[0][0] = 99;
+
+        // then — 원본이 바뀌면 모든 게임의 밀 판정이 함께 틀어진다
+        assertThat(Mills.containing(0)[0][0]).isEqualTo(original);
+        assertThat(Mills.all()[0][0]).isEqualTo(original);
+    }
 }
