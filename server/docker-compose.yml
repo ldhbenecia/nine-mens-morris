@@ -1,4 +1,7 @@
-# 로컬 개발:  docker compose up -d            -> DB 만 뜸. 앱은 IDE 에서 실행
+# 프로젝트 이름을 고정. 없으면 실행한 디렉터리 이름이 붙어 같은 서비스가 프로젝트 여러 개로 갈라짐
+name: nine-mens-morris
+
+# 로컬 개발:  docker compose up -d            -> DB·Redis 만 뜸. 앱은 IDE 에서 실행
 # 전체 구동:  docker compose --profile app up  -> 앱까지 같이 뜸
 #
 # 앱을 기본으로 두면 코드를 고칠 때마다 이미지를 다시 빌드해야 하고
@@ -26,9 +29,12 @@ services:
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
       KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
       DOMAIN: ${DOMAIN}
+      SPRING_DATA_REDIS_HOST: redis
     depends_on:
       # condition 없이 두면 DB 보다 먼저 떠서 기동에 실패함
       database:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: unless-stopped
     networks: [morris]
@@ -59,8 +65,31 @@ services:
     restart: unless-stopped
     networks: [morris]
 
+  # 판 상태·방 락·방 이벤트 전파. 로컬은 한 대, 운영은 Sentinel 로 이중화
+  redis:
+    container_name: morris-redis
+    image: redis:7.4-alpine
+    # 진행 중인 판의 원본이라 재시작해도 남아야 함
+    # AOF everysec: 쓰기를 파일에 이어 붙이고 1초마다 디스크에 내림. 잃어도 최대 1초
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    # 이름 없는 볼륨이면 컨테이너를 다시 만들 때 새 볼륨이 붙어 데이터를 못 찾음
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    networks: [morris]
+
 networks:
   morris:
 
 volumes:
   mysql-data:
+    # 리포지터리를 합치기 전에 만든 볼륨을 그대로 씀. 이름이 바뀌면 빈 DB 로 새로 뜸
+    name: ninemensmorris_backend_mysql-data
+  redis-data:

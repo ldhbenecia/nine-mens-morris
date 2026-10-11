@@ -101,6 +101,8 @@ export type GameState = {
   endReason: EndReason | null;
   // 차례인 쪽에 남은 시간. 받은 순간부터 세야 서버와 시계가 어긋나도 맞음. 판이 끝났으면 null
   turnRemainingMillis: number | null;
+  // 방이 바뀔 때마다 오르는 번호. 서버 여러 대가 보낸 이벤트가 뒤바뀌어 오면 낡은 쪽을 버리는 기준
+  revision: number;
 };
 
 export type RoomDetail = {

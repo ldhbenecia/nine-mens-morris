@@ -8,9 +8,8 @@ import java.util.Random;
 
 // 방 하나의 상태. 대기 중이면 game 이 null 이고 시작하면 채워짐
 //
-// 로비와 게임 상태를 DB 가 아니라 메모리에 둔다
-// 방의 수명이 수십 초인데 서버가 죽으면 정리되지 않아 고아 행이 쌓였고,
-// 진행 중인 판은 어차피 메모리에만 있어 복구할 수도 없었다
+// DB 가 아니라 RoomRegistry(Redis) 에 둠. 방의 수명이 수십 초라 DB 행으로 두면 고아 행이 쌓임
+// 저장소에서 꺼낸 사본이므로 고쳐도 RoomRegistry.mutate 를 거쳐야 저장됨
 public final class Room {
 
     private static final Random RANDOM = new Random();
@@ -18,7 +17,7 @@ public final class Room {
     private final long roomId;
     private final String title;
     private final long hostId;
-    private final Instant createdAt = Instant.now();
+    private final Instant createdAt;
 
     // 변경은 전부 RoomRegistry.mutate 의 방 단위 락 안에서 일어나지만
     // 로비 목록·방 상세·유휴 정리는 락 없이 읽는다
@@ -37,10 +36,71 @@ public final class Room {
     // 차례인 쪽이 둬야 하는 시각. 만료 확인이 락 밖에서 목록을 훑으므로 volatile
     private volatile Instant turnDeadline;
 
+    // 변경될 때마다 하나씩 오름. 여러 서버가 보낸 이벤트가 순서가 뒤바뀌어 도착해도
+    // 클라이언트가 더 오래된 판 상태를 버릴 수 있게 함
+    private volatile long revision;
+
+    // 변경 중에 방을 없애기로 했다는 표시. 저장소가 저장 대신 삭제함
+    // 변경 안에서 저장소를 직접 지우면 "읽고 고쳐 쓰는" 저장소에서는 끝에 다시 써져 방이 되살아남
+    private boolean closed;
+
     public Room(long roomId, String title, long hostId) {
         this.roomId = roomId;
         this.title = title;
         this.hostId = hostId;
+        this.createdAt = Instant.now();
+    }
+
+    private Room(RoomSnapshot snapshot) {
+        this.roomId = snapshot.roomId();
+        this.title = snapshot.title();
+        this.hostId = snapshot.hostId();
+        this.createdAt = snapshot.createdAt();
+        this.guestId = snapshot.guestId();
+        this.firstMoveRule = snapshot.firstMoveRule();
+        this.blackId = snapshot.blackId();
+        this.whiteId = snapshot.whiteId();
+        this.lastActivityAt = snapshot.lastActivityAt();
+        this.turnDeadline = snapshot.turnDeadline();
+        this.revision = snapshot.revision();
+        this.game = snapshot.game() == null ? null : MorrisGame.restore(snapshot.game());
+    }
+
+    public static Room restore(RoomSnapshot snapshot) {
+        return new Room(snapshot);
+    }
+
+    public RoomSnapshot snapshot() {
+        return new RoomSnapshot(
+                roomId,
+                title,
+                hostId,
+                createdAt,
+                guestId,
+                firstMoveRule,
+                blackId,
+                whiteId,
+                lastActivityAt,
+                turnDeadline,
+                revision,
+                game == null ? null : game.snapshot());
+    }
+
+    // 저장소가 변경을 저장하기 직전에 부름. 변경 하나에 한 번
+    public void nextRevision() {
+        this.revision++;
+    }
+
+    public long revision() {
+        return revision;
+    }
+
+    public void close() {
+        this.closed = true;
+    }
+
+    public boolean isClosed() {
+        return closed;
     }
 
     public boolean isFull() {

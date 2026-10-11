@@ -2,6 +2,7 @@ package com.ninemensmorris.support;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 
 // 통합 테스트 공통 컨테이너
@@ -14,10 +15,17 @@ import org.testcontainers.containers.MySQLContainer;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class IntegrationTestSupport {
 
+    // 서버를 하나 더 띄우는 테스트가 같은 컨테이너에 붙도록 하위 클래스에 염
     @ServiceConnection
-    static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4");
+    protected static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4");
+
+    // 판 상태·방 락·이벤트 전파가 여기 있음. 운영과 같은 Redis 로 돌림
+    @ServiceConnection(name = "redis")
+    protected static final GenericContainer<?> REDIS =
+            new GenericContainer<>("redis:7.4-alpine").withExposedPorts(6379);
 
     static {
         MYSQL.start();
+        REDIS.start();
     }
 }

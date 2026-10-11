@@ -1,9 +1,9 @@
 package com.ninemensmorris.game.schedule;
 
 import com.ninemensmorris.game.service.GameService;
+import com.ninemensmorris.messaging.ClusterBroadcaster;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -18,12 +18,12 @@ public class TurnTimeoutScheduler {
     private static final String ROOM_TOPIC = "/topic/rooms/";
 
     private final GameService gameService;
-    private final SimpMessagingTemplate messaging;
+    private final ClusterBroadcaster broadcaster;
 
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.SECONDS)
     public void expire() {
         gameService
                 .expireTurns()
-                .forEach(broadcast -> messaging.convertAndSend(ROOM_TOPIC + broadcast.roomId(), broadcast.event()));
+                .forEach(broadcast -> broadcaster.send(ROOM_TOPIC + broadcast.roomId(), broadcast.event()));
     }
 }

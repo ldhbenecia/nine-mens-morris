@@ -12,6 +12,7 @@ import com.ninemensmorris.game.dto.request.RemoveRequest;
 import com.ninemensmorris.game.dto.response.RoomEvent;
 import com.ninemensmorris.game.service.GameService;
 import com.ninemensmorris.game.service.PlayOutcome;
+import com.ninemensmorris.messaging.ClusterBroadcaster;
 import com.ninemensmorris.security.AuthenticatedUser;
 import jakarta.validation.Valid;
 import java.security.Principal;
@@ -39,7 +40,8 @@ public class GameStompController {
     private static final String ERROR_QUEUE = "/queue/errors";
 
     private final GameService gameService;
-    private final SimpMessagingTemplate messaging;
+    private final SimpMessagingTemplate messaging; // 개인 큐. 요청한 세션이 이 서버에 있음
+    private final ClusterBroadcaster broadcaster; // 방 토픽. 모든 서버로
 
     @MessageMapping("/rooms/{roomId}/settings")
     public void changeSettings(
@@ -139,7 +141,7 @@ public class GameStompController {
     }
 
     private void broadcast(long roomId, RoomEvent event) {
-        messaging.convertAndSend(ROOM_TOPIC + roomId, event);
+        broadcaster.send(ROOM_TOPIC + roomId, event);
     }
 
     private AuthenticatedUser require(Principal principal) {

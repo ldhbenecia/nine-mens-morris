@@ -1,79 +1,35 @@
 package com.ninemensmorris.game.domain;
 
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
-import org.springframework.stereotype.Component;
 
 // 방 저장소
 //
-// 기존에는 gameId 하나의 상태가 동기화 없는 HashMap 11개에 흩어져 있었다
-// STOMP 메시지는 스레드 풀에서 병렬 처리되므로 락 없이 접근하면 값이 유실된다
-// 방 하나당 락을 걸어 직렬화하고, 방끼리는 그대로 병렬로 처리한다
-@Component
-public class RoomRegistry {
+// 방 하나에 대한 변경은 mutate 하나로만 일어나고 방 단위로 직렬화됨. 방끼리는 병렬
+// 여러 서버가 같은 저장소를 쓰므로 find / findAll 이 주는 Room 은 그 순간의 사본임
+public interface RoomRegistry {
 
-    private final ConcurrentMap<Long, Room> rooms = new ConcurrentHashMap<>();
-    private final AtomicLong sequence = new AtomicLong();
+    Room create(String title, long hostId);
 
-    public Room create(String title, long hostId) {
-        long roomId = sequence.incrementAndGet();
-        Room room = new Room(roomId, title, hostId);
-        rooms.put(roomId, room);
-        return room;
-    }
+    Optional<Room> find(long roomId);
 
-    public Optional<Room> find(long roomId) {
-        return Optional.ofNullable(rooms.get(roomId));
-    }
+    // 최근에 만든 방부터
+    List<Room> findAll();
 
-    public List<Room> findAll() {
-        return rooms.values().stream()
-                .sorted(Comparator.comparing(Room::createdAt).reversed())
-                .toList();
-    }
+    // 게이지와 헬스체크가 주기적으로 읽음. 목록을 만들지 않고 셈
+    int size();
 
-    public void remove(long roomId) {
-        rooms.remove(roomId);
-    }
+    // 방 하나에 대한 모든 변경은 여기를 거침. 방이 없으면 empty
+    // action 이 room.close() 를 부르면 저장 대신 지움
+    // action 안에서 저장소를 직접 부르지 않음. 같은 방의 락을 다시 잡으려다 멈춤
+    <R> Optional<R> mutate(long roomId, Function<Room, R> action);
 
-    // 게이지와 헬스체크가 주기적으로 읽는 값이라 findAll().size() 로 정렬된 목록을 만들지 않는다
-    public int size() {
-        return rooms.size();
-    }
+    // 아래 둘은 락 없이 고른 후보. 고른 뒤 mutate 안에서 다시 확인해야 함
 
-    // 방 하나에 대한 모든 변경은 이 메서드를 거친다
-    public <R> Optional<R> mutate(long roomId, Function<Room, R> action) {
-        Room room = rooms.get(roomId);
-        if (room == null) {
-            return Optional.empty();
-        }
-        synchronized (room) {
-            R result = action.apply(room);
-            room.touch();
-            return Optional.ofNullable(result);
-        }
-    }
+    List<Long> findTurnExpired(Instant now);
 
     // 주어진 시각보다 오래 방치된 방. 얼마나 방치돼야 정리 대상인지는 호출자가 정함
-    // 여기서 바로 지우지 않는 이유는 진행 중인 판을 정산할 수 있는 곳이 아니어서다
-    // 락 없이 훑어 후보만 고름. 고른 뒤 락 안에서 다시 확인해야 함
-    public List<Long> findTurnExpired(Instant now) {
-        return rooms.values().stream()
-                .filter(room -> room.isTurnExpired(now))
-                .map(Room::roomId)
-                .toList();
-    }
-
-    public List<Long> findIdle(Instant threshold) {
-        return rooms.values().stream()
-                .filter(room -> room.lastActivityAt().isBefore(threshold))
-                .map(Room::roomId)
-                .toList();
-    }
+    List<Long> findIdle(Instant threshold);
 }

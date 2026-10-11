@@ -38,6 +38,8 @@ morris-api ──▶ morris-core
 
 - **`morris-core` 에는 Spring / JPA / STOMP 의존성을 넣지 않는다.** 게임 규칙만 산다
 - `morris-storage` 는 엔티티 + 리포지토리. 웹 계층이 엔티티를 직접 만지지 않게 한다
+  - MySQL(JPA) 과 Redis(방 상태 `RoomStore`) 둘 다 여기. 저장소는 스냅샷(데이터)만 다루고 도메인 객체(`Room`)는 모른다
+  - WebSocket 에 묶인 Redis 사용(방 이벤트 중계, 접속 여부)은 저장이 아니라 `morris-api` 의 `messaging` 에 둔다
 - `auth` / `game` / `user` 는 당분간 `morris-api` 안의 패키지
 
 ## 주석
