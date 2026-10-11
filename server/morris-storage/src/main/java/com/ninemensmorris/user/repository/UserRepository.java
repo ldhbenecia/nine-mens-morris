@@ -2,13 +2,16 @@ package com.ninemensmorris.user.repository;
 
 import com.ninemensmorris.user.domain.Provider;
 import com.ninemensmorris.user.domain.User;
+import jakarta.persistence.LockModeType;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,6 +45,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("delete from User u where u.provider = com.ninemensmorris.user.domain.Provider.VISITOR"
             + " and u.createdAt < :threshold")
     int deleteVisitorsCreatedBefore(@Param("threshold") Instant threshold);
+
+    // 정산용. 한 사람이 여러 방에 속해 두 판이 동시에 끝날 수 있어 행을 잠그고 읽음
+    // 잠그지 않으면 둘 다 같은 MMR 을 읽고 각자 덮어써 한 판이 사라짐
+    // 항상 user_id 순으로 잠가 두 정산이 서로 반대 순서로 기다리는 교착을 막음
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from User u where u.userId in :userIds order by u.userId")
+    List<User> findAllByIdForUpdate(@Param("userIds") Collection<Long> userIds);
 
     // 내 등수. 기존에는 전체 목록을 받아 프론트가 세는 수밖에 없었다
     @Query("select count(u) + 1 from User u where u.mmr > :mmr"

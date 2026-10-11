@@ -10,6 +10,10 @@ import com.ninemensmorris.support.IntegrationTestSupport;
 import com.ninemensmorris.user.domain.User;
 import com.ninemensmorris.user.repository.UserRepository;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -253,6 +257,47 @@ class MatchResultServiceTest extends IntegrationTestSupport {
             int settledDelta = matches.get(matches.size() - 1).getBlackMmrDelta();
             assertThat(reload(blackId).gamesPlayed()).isGreaterThan(Rating.PLACEMENT_GAMES);
             assertThat(settledDelta).isLessThan(placementDelta);
+        }
+    }
+
+    @Nested
+    class 동시_정산 {
+
+        @Test
+        @DisplayName("한 사람의 두 판이 동시에 끝나도 전적과 MMR 이 원장과 맞는다")
+        void 동시에_끝나도_잃지_않는다() throws Exception {
+            // given — 한 사용자가 여러 방에 속할 수 있어 두 판이 같은 순간 끝날 수 있음
+            long other = 상대("9003", "다른상대");
+            int rounds = 10;
+            ExecutorService pool = Executors.newFixedThreadPool(2);
+
+            // when — 매 라운드 흑이 두 상대를 동시에 이김
+            for (int round = 0; round < rounds; round++) {
+                CountDownLatch start = new CountDownLatch(1);
+                Future<?> first = pool.submit(() -> {
+                    start.await();
+                    matchResultService.record(blackId, whiteId, blackId, "RESIGN", RATED_MOVES);
+                    return null;
+                });
+                Future<?> second = pool.submit(() -> {
+                    start.await();
+                    matchResultService.record(blackId, other, blackId, "RESIGN", RATED_MOVES);
+                    return null;
+                });
+                start.countDown();
+                first.get();
+                second.get();
+            }
+            pool.shutdown();
+
+            // then — 원장에서 흑의 변동을 더한 값과 users 의 값이 같아야 함
+            User black = reload(blackId);
+            int ledgerDelta = matchRepository.findAll().stream()
+                    .filter(match -> match.getBlack().getUserId() == blackId)
+                    .mapToInt(Match::getBlackMmrDelta)
+                    .sum();
+            assertThat(black.getWins()).isEqualTo(rounds * 2);
+            assertThat(black.getMmr()).isEqualTo(Rating.INITIAL + ledgerDelta);
         }
     }
 }

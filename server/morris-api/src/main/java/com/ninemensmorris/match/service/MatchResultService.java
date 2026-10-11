@@ -9,6 +9,10 @@ import com.ninemensmorris.user.domain.User.MatchOutcome;
 import com.ninemensmorris.user.repository.UserRepository;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,8 +34,10 @@ public class MatchResultService {
 
     @Transactional
     public void record(long blackId, long whiteId, Long winnerId, String endReason, int moveCount) {
-        User black = userRepository.findById(blackId).orElse(null);
-        User white = userRepository.findById(whiteId).orElse(null);
+        Map<Long, User> players = userRepository.findAllByIdForUpdate(List.of(blackId, whiteId)).stream()
+                .collect(Collectors.toMap(User::getUserId, Function.identity()));
+        User black = players.get(blackId);
+        User white = players.get(whiteId);
         if (black == null || white == null) {
             log.warn("경기 결과를 반영할 수 없음. 사용자 없음 black={} white={}", blackId, whiteId);
             return;
