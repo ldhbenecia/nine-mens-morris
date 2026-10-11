@@ -13,6 +13,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.ninemensmorris.common.exception.CustomException;
+import com.ninemensmorris.common.response.ErrorCode;
 import com.ninemensmorris.core.board.Stone;
 import com.ninemensmorris.core.game.GameStatus;
 import com.ninemensmorris.core.move.Move;
@@ -545,6 +546,15 @@ class GameServiceTest {
 
             // then
             assertThat(gameService.snapshot(room.roomId(), OUTSIDER)).isEmpty();
+        }
+
+        @Test
+        @DisplayName("방이 사라졌으면 조용히 넘어가지 않고 알린다")
+        void 없는_방이면_알린다() {
+            // when / then — 서버 재시작 뒤 재접속하면 판이 멀쩡해 보인 채로 남았다
+            assertThatThrownBy(() -> gameService.snapshot(12345L, HOST))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ROOM_NOT_FOUND);
         }
     }
 }

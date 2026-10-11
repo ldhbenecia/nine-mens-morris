@@ -239,7 +239,11 @@ public class GameService {
     // 도착지에도 없는 판이 나가고, 승부가 난 순간에는 status 만 FINISHED 이고
     // outcome 은 아직 안 보여서 결정된 판이 무승부로 그려진다
     // 방에 속한 사람만. 예전에는 roomId 만 보고 돌려줘서 아무나 남의 판을 끌어올 수 있었다
+    // 방 자체가 없으면 알림. 재시작·유휴 정리 뒤 다시 붙은 화면이 판이 살아 있는 것처럼 남지 않게
     public Optional<RoomEvent> snapshot(long roomId, long actorId) {
+        if (rooms.find(roomId).isEmpty()) {
+            throw new CustomException(ErrorCode.ROOM_NOT_FOUND);
+        }
         return rooms.mutate(roomId, room -> {
             if (!room.contains(actorId) || !room.hasGame()) {
                 return null;

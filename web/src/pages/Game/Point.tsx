@@ -12,6 +12,7 @@ type PointProps = {
   inMill: boolean; // 방금 3연속이 된 줄
   slideFrom: { x: number; y: number } | null; // 이동해 온 돌이면 출발 지점까지의 거리
   removedStone: StoneType; // 방금 제거된 돌. 사라지는 모습만 그림
+  clickable: boolean; // 지금 눌러서 의미가 있는 자리. 커서와 올렸을 때 표시를 여기에만 줌
   onClick: () => void;
 };
 
@@ -33,6 +34,7 @@ export function Point({
   inMill,
   slideFrom,
   removedStone,
+  clickable,
   onClick,
 }: PointProps) {
   return (
@@ -41,11 +43,13 @@ export function Point({
       aria-label={`지점 ${point}`}
       onClick={onClick}
       // 지나가는 길의 다른 돌 위로 그려지게. transform 때문에 z 는 버튼 단위로만 먹힘
-      className={`group absolute flex h-[80px] w-[80px] cursor-pointer items-center justify-center ${slideFrom ? 'z-30' : ''}`}
+      className={`group absolute flex h-[80px] w-[80px] items-center justify-center ${clickable ? 'cursor-pointer' : 'cursor-default'} ${slideFrom ? 'z-30' : ''}`}
       style={{ transform: `translate(${-40 + left}px, ${-40 + top}px)` }}
     >
       {stone === 'EMPTY' ? (
-        <div className="flex h-[60px] w-[60px] items-center justify-center rounded-full transition-colors group-hover:bg-[rgba(107,114,128,0.1)]">
+        <div
+          className={`flex h-[60px] w-[60px] items-center justify-center rounded-full transition-colors ${clickable ? 'group-hover:bg-[rgba(107,114,128,0.1)]' : ''}`}
+        >
           {preview !== 'EMPTY' && (
             <div
               className={`absolute h-[60px] w-[60px] rounded-full opacity-0 transition-opacity group-hover:opacity-40 ${STONE_BACKGROUND[preview]}`}
@@ -61,7 +65,7 @@ export function Point({
       ) : (
         // 이동해 온 돌은 착수 파동 대신 출발 지점에서 미끄러져 옴
         <div
-          className={`flex h-[60px] w-[60px] items-center justify-center rounded-full ${slideFrom ? 'animate-stone-slide' : 'animate-stone-set'} ${inMill ? 'animate-mill-glow' : ''}`}
+          className={`flex h-[60px] w-[60px] items-center justify-center rounded-full ${slideFrom ? 'animate-stone-slide' : 'animate-stone-set'} ${inMill ? 'animate-mill-glow' : ''} ${removable ? 'transition-transform group-hover:scale-110' : ''}`}
           style={
             slideFrom
               ? ({

@@ -53,7 +53,12 @@ export function Status({
             )}
           </div>
           <div className="flex min-w-0 grow flex-col leading-tight">
-            <span className="truncate font-semibold">{nickname}</span>
+            <div className="flex min-w-0 items-baseline gap-1">
+              <span className="truncate font-semibold">{nickname}</span>
+              {isCurrentUser && (
+                <span className="shrink-0 text-sm text-gray-500">(나)</span>
+              )}
+            </div>
             {/* 게스트는 MMR 이 움직이지 않음. 티어를 보여주면 오르는 값처럼 읽힘 */}
             {player && (
               <span className="text-xs font-semibold text-gray-500">

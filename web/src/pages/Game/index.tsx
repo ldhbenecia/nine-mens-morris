@@ -56,6 +56,7 @@ export function GamePage() {
   const [disconnected, setDisconnected] = useState(false);
   const [lastPoint, setLastPoint] = useState<number | null>(null);
   const [motion, setMotion] = useState<StoneMotion | null>(null);
+  const [roomLost, setRoomLost] = useState(false);
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
   const { mutate: leaveRoom } = useLeaveRoom();
   const {
@@ -237,6 +238,11 @@ export function GamePage() {
       // 규칙 위반 거절과 권한 오류는 방이 아니라 나에게만 옴
       client.subscribe('/user/queue/errors', (message) => {
         const rejected = JSON.parse(message.body) as MoveRejected;
+        // 판은 서버 메모리에만 있어 재시작·정리 뒤 다시 붙으면 방이 없음. 이어 둘 수 없으니 창으로 알리고 내보냄
+        if (rejected.code === 'ROOM_NOT_FOUND') {
+          setRoomLost(true);
+          return;
+        }
         onError(rejected.message);
         // 폭발음은 3연속 전용. 거절에까지 쓰면 둘을 소리로 구분할 수 없음
         errorSound.currentTime = 0;
@@ -285,7 +291,7 @@ export function GamePage() {
 
   return (
     <main
-      className={`transition-removing flex h-full grow flex-col justify-between overflow-hidden p-4 transition-colors duration-1000 md:gap-4 ${gameState.awaitingRemoval && 'bg-red-200'}`}
+      className={`transition-removing relative flex h-full grow flex-col justify-between overflow-hidden p-4 transition-colors duration-1000 md:gap-4 ${gameState.awaitingRemoval && 'bg-red-200'}`}
     >
       <ResignModal
         visible={showResignModal}
@@ -323,7 +329,14 @@ export function GamePage() {
       />
       <SocketErrorModal visible={disconnected} onLeaveRoom={onLeaveRoom} />
       <AlertModal
-        message={roomGone && !inGame ? '사라진 방입니다' : ''}
+        message={
+          // 두던 판이 사라진 것과 처음부터 없는 방을 연 것은 다른 상황
+          !inGame && (roomGone || roomLost)
+            ? '사라진 방입니다'
+            : roomLost
+              ? '서버가 다시 시작됐거나 오래 비어 있어 방이 사라졌습니다'
+              : ''
+        }
         onClose={onLeaveRoom}
       />
       {!inGame ? (
@@ -347,24 +360,28 @@ export function GamePage() {
               player={enemy}
             />
           </div>
-          <Board
-            client={client}
-            board={gameState.board}
-            selectable={getPlayerPhase() !== 'PLACING' && isPlayerTurn()}
-            placeable={getPlayerPhase() === 'PLACING' && isPlayerTurn()}
-            removableStone={
-              gameState.awaitingRemoval && isPlayerTurn()
-                ? enemyStone()
-                : 'EMPTY'
-            }
-            lastPoint={lastPoint}
-            motion={motion}
-            millFormed={gameState.awaitingRemoval}
-            playerStoneColor={myStone()}
-            addStone={addStone}
-            moveStone={moveStone}
-            removeStone={removeStone}
-          />
+          {/* 좁은 화면은 위아래 정보와 겹치지 않게 흐름에 넣음
+              넓은 화면은 정보가 모서리에 있어 가운데 겹쳐도 부딪히지 않고, 흐름에 넣으면 세로가 모자람 */}
+          <div className="flex grow items-center justify-center md:absolute md:inset-0">
+            <Board
+              client={client}
+              board={gameState.board}
+              selectable={getPlayerPhase() !== 'PLACING' && isPlayerTurn()}
+              placeable={getPlayerPhase() === 'PLACING' && isPlayerTurn()}
+              removableStone={
+                gameState.awaitingRemoval && isPlayerTurn()
+                  ? enemyStone()
+                  : 'EMPTY'
+              }
+              lastPoint={lastPoint}
+              motion={motion}
+              millFormed={gameState.awaitingRemoval}
+              playerStoneColor={myStone()}
+              addStone={addStone}
+              moveStone={moveStone}
+              removeStone={removeStone}
+            />
+          </div>
           <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
             <Message
               phase={getPlayerPhase()}

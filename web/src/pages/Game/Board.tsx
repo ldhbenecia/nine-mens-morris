@@ -73,6 +73,13 @@ export function Board({
       ? playerStoneColor
       : 'EMPTY';
 
+  // 판정은 서버가 함. 여기선 눌러 볼 만한 자리인지만 봄
+  const clickableOf = (stone: StoneType) => {
+    if (removableStone !== 'EMPTY') return stone === removableStone;
+    if (stone === 'EMPTY') return placeable || selectedStone !== null;
+    return stone === playerStoneColor && selectable;
+  };
+
   const onClickPoint = (idx: number) => {
     if (!roomId) return;
 
@@ -97,8 +104,10 @@ export function Board({
   };
 
   return (
-    <div className="absolute top-0 left-0 flex h-full w-full items-center justify-center overflow-hidden">
-      <div className="h-[480px] w-[480px] scale-50 xs:scale-75 md:scale-90 lg:scale-100">
+    // scale 은 레이아웃 크기를 줄이지 않음. 바깥 상자를 줄어든 크기로 잡아야 위아래 글자와 겹치지 않음
+    // 여백은 가장자리 지점의 돌이 판 밖으로 반지름만큼 나가는 몫
+    <div className="m-6 h-[240px] w-[240px] shrink-0 xs:h-[360px] xs:w-[360px] md:h-[432px] md:w-[432px] lg:h-[480px] lg:w-[480px]">
+      <div className="h-[480px] w-[480px] origin-top-left scale-50 xs:scale-75 md:scale-90 lg:scale-100">
         <div className="absolute z-10">
           {points.map((point, idx) => (
             <Point
@@ -120,6 +129,7 @@ export function Board({
                   ? motion.stone
                   : 'EMPTY'
               }
+              clickable={clickableOf(point.stone)}
               onClick={() => onClickPoint(idx)}
             />
           ))}
