@@ -29,6 +29,18 @@ export const authHeaders = (): Record<string, string> => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+// 같은 브라우저의 다른 탭에서 로그인·로그아웃·게스트 시작을 하면 토큰이 바뀜
+// 이 탭은 열어 둔 소켓은 예전 신원, 다시 받은 내 정보는 새 신원이 되어 내 돌을 상대 돌로 보게 됨
+// 다시 읽어 한 신원으로 맞춤. storage 이벤트는 바꾼 탭이 아니라 다른 탭에만 옴
+export const reloadWhenTokenChangesElsewhere = () => {
+  window.addEventListener('storage', (event) => {
+    // key 가 null 이면 저장소 전체를 지운 것
+    if (event.key === TOKEN_KEY || event.key === null) {
+      window.location.reload();
+    }
+  });
+};
+
 export const clearToken = () => {
   try {
     localStorage.removeItem(TOKEN_KEY);

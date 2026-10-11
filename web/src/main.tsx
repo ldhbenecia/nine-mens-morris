@@ -12,6 +12,7 @@ import {
 } from './pages/lazy';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthGate } from './components/AuthGate';
+import { reloadWhenTokenChangesElsewhere } from './lib/auth';
 
 // Pages 하위 경로로 서비스되므로 라우터도 같은 접두사를 알아야 함
 // BASE_URL 은 vite 의 base 설정에서 옴
@@ -67,6 +68,8 @@ const router = createBrowserRouter(
 );
 
 const queryClient = new QueryClient();
+
+reloadWhenTokenChangesElsewhere();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
