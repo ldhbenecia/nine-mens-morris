@@ -2,10 +2,12 @@ package com.ninemensmorris.game.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -25,6 +27,7 @@ import com.ninemensmorris.match.service.MatchResultService;
 import com.ninemensmorris.observability.GameMetrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -278,6 +281,27 @@ class GameServiceTest {
             assertThat(event.state().winnerId()).isEqualTo(GUEST);
             assertThat(event.state().loserId()).isEqualTo(HOST);
             verify(matchResultService).record(eq(HOST), eq(GUEST), eq(GUEST), eq("RESIGN"), anyInt());
+        }
+
+        @Test
+        @DisplayName("전적 기록은 방 락을 놓은 뒤에 한다")
+        void 전적_기록은_락_밖에서_한다() {
+            // given — 기록 시점에 이 스레드가 방 모니터를 쥐고 있는지 잡아 둔다
+            Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
+            AtomicBoolean heldLock = new AtomicBoolean(true);
+            doAnswer(invocation -> {
+                        heldLock.set(Thread.holdsLock(room));
+                        return null;
+                    })
+                    .when(matchResultService)
+                    .record(anyLong(), anyLong(), any(), anyString(), anyInt());
+
+            // when
+            착수(HOST, room.roomId(), new Move.Resign());
+
+            // then — 락 안에서 DB 를 기다리면 그동안 이 방의 모든 수가 막힌다
+            verify(matchResultService).record(anyLong(), anyLong(), any(), anyString(), anyInt());
+            assertThat(heldLock).isFalse();
         }
 
         @Test

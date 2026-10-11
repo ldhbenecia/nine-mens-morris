@@ -4,7 +4,6 @@ import com.ninemensmorris.common.exception.CustomException;
 import com.ninemensmorris.common.response.ErrorCode;
 import com.ninemensmorris.core.board.Stone;
 import com.ninemensmorris.core.game.MorrisGame;
-import com.ninemensmorris.core.game.Outcome;
 import com.ninemensmorris.core.move.Move;
 import com.ninemensmorris.core.move.MoveResult;
 import com.ninemensmorris.core.move.RejectReason;
@@ -88,17 +87,17 @@ public class GameService {
 
     // 착수. 방 단위 락 안에서 규칙 엔진에 위임한다
     public PlayOutcome play(RoomCommand.PlayMove command) {
-        return inRoom(command.roomId(), room -> applyMove(room, command.actorId(), command.move()));
+        return afterUnlock(inRoom(command.roomId(), room -> applyMove(room, command.actorId(), command.move())));
     }
 
-    private PlayOutcome applyMove(Room room, long actorId, Move move) {
+    private LockedResult<PlayOutcome> applyMove(Room room, long actorId, Move move) {
         if (!room.isPlaying()) {
-            return reject(RejectReason.GAME_NOT_IN_PROGRESS);
+            return LockedResult.of(reject(RejectReason.GAME_NOT_IN_PROGRESS));
         }
         Stone actor = room.stoneOf(actorId);
         if (actor == null) {
             // 방에 속하지 않은 사람이 보낸 프레임
-            return reject(RejectReason.NOT_YOUR_TURN);
+            return LockedResult.of(reject(RejectReason.NOT_YOUR_TURN));
         }
 
         MorrisGame game = room.game();
@@ -107,19 +106,18 @@ public class GameService {
         return switch (result) {
             case MoveResult.Rejected rejected -> {
                 logRejection(room.roomId(), actorId, rejected.reason(), move);
-                yield reject(rejected.reason());
+                yield LockedResult.of(reject(rejected.reason()));
             }
-            case MoveResult.Finished finished -> {
-                settle(room, game, finished.outcome());
-                yield broadcast(RoomEventType.FINISHED, room, game);
-            }
+            case MoveResult.Finished finished ->
+                LockedResult.settled(
+                        broadcast(RoomEventType.FINISHED, room, game), Settlement.of(room, game, finished.outcome()));
             // 무승부 제안과 거절은 판이 안 바뀌므로 누가 했는지를 실어 보내야 함
             case MoveResult.DrawOffered ignored ->
-                new PlayOutcome.Broadcast(RoomEvent.by(RoomEventType.DRAW_OFFERED, actorId));
+                LockedResult.of(new PlayOutcome.Broadcast(RoomEvent.by(RoomEventType.DRAW_OFFERED, actorId)));
             case MoveResult.DrawDeclined ignored ->
-                new PlayOutcome.Broadcast(RoomEvent.by(RoomEventType.DRAW_DECLINED, actorId));
-            case MoveResult.MillFormed ignored -> broadcast(RoomEventType.STATE_CHANGED, room, game);
-            case MoveResult.Applied ignored -> broadcast(RoomEventType.STATE_CHANGED, room, game);
+                LockedResult.of(new PlayOutcome.Broadcast(RoomEvent.by(RoomEventType.DRAW_DECLINED, actorId)));
+            case MoveResult.MillFormed ignored -> LockedResult.of(broadcast(RoomEventType.STATE_CHANGED, room, game));
+            case MoveResult.Applied ignored -> LockedResult.of(broadcast(RoomEventType.STATE_CHANGED, room, game));
         };
     }
 
@@ -153,26 +151,30 @@ public class GameService {
     // 방에 속하지 않은 사람의 요청이면 아무것도 알리지 않는다
     private Optional<RoomBroadcast> exit(long roomId, long userId, ExitCause cause) {
         return rooms.mutate(roomId, room -> {
-            if (!room.contains(userId)) {
-                return null;
-            }
-            if (!room.isPlaying()) {
-                removeFromRoom(room, userId);
-                return new RoomBroadcast(roomId, RoomEvent.by(RoomEventType.PLAYER_LEFT, userId));
-            }
+                    if (!room.contains(userId)) {
+                        return null;
+                    }
+                    if (!room.isPlaying()) {
+                        removeFromRoom(room, userId);
+                        return LockedResult.of(
+                                new RoomBroadcast(roomId, RoomEvent.by(RoomEventType.PLAYER_LEFT, userId)));
+                    }
 
-            MorrisGame game = room.game();
-            if (game.apply(room.stoneOf(userId), new Move.Resign()) instanceof MoveResult.Finished finished) {
-                settle(room, game, finished.outcome());
-                log.warn("게임 중 이탈로 기권 처리 roomId={} userId={} 사유={}", roomId, userId, cause);
-            }
+                    MorrisGame game = room.game();
+                    Settlement settlement = null;
+                    if (game.apply(room.stoneOf(userId), new Move.Resign()) instanceof MoveResult.Finished finished) {
+                        settlement = Settlement.of(room, game, finished.outcome());
+                        log.warn("게임 중 이탈로 기권 처리 roomId={} userId={} 사유={}", roomId, userId, cause);
+                    }
 
-            RoomEventType type =
-                    cause == ExitCause.DISCONNECT ? RoomEventType.OPPONENT_DISCONNECTED : RoomEventType.FINISHED;
-            RoomEvent event = RoomEvent.of(type, GameStateResponse.of(room, game));
-            removeFromRoom(room, userId);
-            return new RoomBroadcast(roomId, event);
-        });
+                    RoomEventType type = cause == ExitCause.DISCONNECT
+                            ? RoomEventType.OPPONENT_DISCONNECTED
+                            : RoomEventType.FINISHED;
+                    RoomEvent event = RoomEvent.of(type, GameStateResponse.of(room, game));
+                    removeFromRoom(room, userId);
+                    return LockedResult.settled(new RoomBroadcast(roomId, event), settlement);
+                })
+                .map(this::afterUnlock);
     }
 
     // 방장이 나가면 방이 사라지고, 참가자가 나가면 방은 대기 상태로 돌아감
@@ -190,31 +192,44 @@ public class GameService {
     // 방치된 방 정리. 진행 중이던 판은 무승부로 기록하고 알림
     // 예전에는 RoomRegistry 가 직접 지워서 진행 중인 판이 기록 없이 사라졌다
     public List<RoomBroadcast> purgeIdleRooms() {
-        List<Long> idle = rooms.findIdle(Instant.now().minus(idleTimeout));
+        Instant threshold = Instant.now().minus(idleTimeout);
+        List<Long> purged = new ArrayList<>();
         List<RoomBroadcast> broadcasts = new ArrayList<>();
-        for (long roomId : idle) {
-            settleAbandoned(roomId).ifPresent(broadcasts::add);
-            rooms.remove(roomId);
+        for (long roomId : rooms.findIdle(threshold)) {
+            rooms.mutate(roomId, room -> purgeIfIdle(room, threshold)).ifPresent(locked -> {
+                purged.add(roomId);
+                RoomBroadcast broadcast = afterUnlock(locked);
+                if (broadcast != null) {
+                    broadcasts.add(broadcast);
+                }
+            });
         }
 
-        if (!idle.isEmpty()) {
-            log.info("유휴 방 정리 roomId={} 그중 진행 중이던 방 {}개", idle, broadcasts.size());
+        if (!purged.isEmpty()) {
+            log.info("유휴 방 정리 roomId={} 그중 진행 중이던 방 {}개", purged, broadcasts.size());
         }
         return broadcasts;
     }
 
-    private Optional<RoomBroadcast> settleAbandoned(long roomId) {
-        return rooms.mutate(roomId, room -> {
-            if (!room.isPlaying()) {
-                return null;
-            }
-            MorrisGame game = room.game();
-            if (game.abandon() instanceof MoveResult.Finished finished) {
-                settle(room, game, finished.outcome());
-                log.warn("장시간 방치로 무승부 처리 roomId={}", roomId);
-            }
-            return new RoomBroadcast(roomId, RoomEvent.of(RoomEventType.FINISHED, GameStateResponse.of(room, game)));
-        });
+    // 목록을 뜬 뒤 락을 잡기 전에 누가 들어왔을 수 있어 락 안에서 유휴 여부를 다시 확인함
+    // 삭제도 락 안에서 해야 그 사이 입장한 사람의 방이 사라지지 않음
+    private LockedResult<RoomBroadcast> purgeIfIdle(Room room, Instant threshold) {
+        if (!room.lastActivityAt().isBefore(threshold)) {
+            return null;
+        }
+        rooms.remove(room.roomId());
+        if (!room.isPlaying()) {
+            return LockedResult.of(null);
+        }
+
+        MorrisGame game = room.game();
+        Settlement settlement = null;
+        if (game.abandon() instanceof MoveResult.Finished finished) {
+            settlement = Settlement.of(room, game, finished.outcome());
+            log.warn("장시간 방치로 무승부 처리 roomId={}", room.roomId());
+        }
+        RoomEvent event = RoomEvent.of(RoomEventType.FINISHED, GameStateResponse.of(room, game));
+        return LockedResult.settled(new RoomBroadcast(room.roomId(), event), settlement);
     }
 
     // 재접속 복구. 기존에는 SYNC_GAME 이 선언만 되어 있고 새로고침하면 판을 잃었다
@@ -234,12 +249,20 @@ public class GameService {
         });
     }
 
-    // 끝나는 경로가 착수·연결 끊김·유휴 정리 셋인데 전부 여기를 지난다
-    private void settle(Room room, MorrisGame game, Outcome outcome) {
-        Long winnerId = outcome.isDraw() ? null : room.userIdOf(outcome.winner());
-        matchResultService.record(
-                room.blackId(), room.whiteId(), winnerId, outcome.reason().name(), game.totalMoves());
-        metrics.gameFinished(outcome.reason());
+    // 반드시 방 락 밖에서 호출. 안에서 DB 를 기다리면 그동안 그 방의 모든 프레임이 막힘
+    // 끝나는 경로(착수·이탈·끊김·유휴 정리)가 전부 여기를 지남
+    private <R> R afterUnlock(LockedResult<R> locked) {
+        Settlement settlement = locked.settlement();
+        if (settlement != null) {
+            matchResultService.record(
+                    settlement.blackId(),
+                    settlement.whiteId(),
+                    settlement.winnerId(),
+                    settlement.outcome().reason().name(),
+                    settlement.moves());
+            metrics.gameFinished(settlement.outcome().reason());
+        }
+        return locked.value();
     }
 
     private PlayOutcome broadcast(RoomEventType type, Room room, MorrisGame game) {
