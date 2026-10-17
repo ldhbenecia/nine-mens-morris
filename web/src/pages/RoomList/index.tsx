@@ -16,6 +16,7 @@ export function RoomListPage() {
   const [alertMessage, setAlertMessage] = useState('');
   const [refreshed, setRefreshed] = useState(true);
   const { data: rooms, refetch } = useQuery(QUERY.ROOMS);
+  // 사라졌거나 가득 찬 방인지는 서버가 판단함. 실패하면 서버 문구를 띄우고 목록을 다시 받음
   const { mutate: joinRoom } = useJoinRoom(setAlertMessage);
 
   // 방이 생기거나 사라지면 서버가 로비 토픽으로 알려줌
@@ -32,17 +33,6 @@ export function RoomListPage() {
       client.deactivate();
     };
   }, [refetch]);
-
-  // 목록에 있는지 먼저 보는 것은 빠른 피드백용일 뿐이고
-  // 가득 찼는지 같은 판단은 서버가 함. 실패하면 서버 문구를 그대로 띄움
-  const onJoinRoom = async (roomId: number) => {
-    const { data: currentRooms } = await refetch();
-    if (!currentRooms?.find((room) => room.roomId === roomId)) {
-      return setAlertMessage('사라진 방입니다');
-    }
-
-    joinRoom(roomId);
-  };
 
   const onClickCreateRoom = () => setShowCreateRoomModal(true);
 
@@ -80,19 +70,7 @@ export function RoomListPage() {
               .slice()
               .reverse()
               .map((room) => (
-                <RoomItem
-                  key={room.roomId}
-                  roomId={room.roomId}
-                  title={room.title}
-                  hostNickname={room.hostNickname}
-                  hostImageUrl={room.hostImageUrl}
-                  hostRating={room.hostRating}
-                  hostVisitor={room.hostVisitor}
-                  rated={room.rated}
-                  playing={room.playing}
-                  full={room.playerCount >= 2}
-                  onJoinRoom={onJoinRoom}
-                />
+                <RoomItem key={room.roomId} room={room} onJoinRoom={joinRoom} />
               ))}
         </ul>
       </div>

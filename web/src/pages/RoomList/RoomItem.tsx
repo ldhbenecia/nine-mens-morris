@@ -1,15 +1,8 @@
 import { Avatar, RatedBadge } from '~/components';
+import { Room } from '~/lib/types';
 
 type RoomItemProps = {
-  roomId: number;
-  title: string;
-  hostNickname: string;
-  hostImageUrl: string | null;
-  hostRating: number;
-  hostVisitor: boolean;
-  rated: boolean;
-  playing: boolean;
-  full: boolean;
+  room: Room;
   onJoinRoom: (roomId: number) => void;
 };
 
@@ -20,18 +13,18 @@ const statusLabel = (playing: boolean, full: boolean) => {
   return '대기 중';
 };
 
-export function RoomItem({
-  roomId,
-  title,
-  hostNickname,
-  hostImageUrl,
-  hostRating,
-  hostVisitor,
-  rated,
-  playing,
-  full,
-  onJoinRoom,
-}: RoomItemProps) {
+export function RoomItem({ room, onJoinRoom }: RoomItemProps) {
+  const {
+    roomId,
+    title,
+    hostNickname,
+    hostImageUrl,
+    hostRating,
+    hostVisitor,
+    rated,
+    playing,
+  } = room;
+  const full = room.playerCount >= 2;
   const joinable = !playing && !full;
 
   return (
