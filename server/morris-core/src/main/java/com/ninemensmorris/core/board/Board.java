@@ -184,6 +184,26 @@ public final class Board {
         return out.toString();
     }
 
+    // 저장용 표기. 지점 0~23 순서로 한 글자씩
+    public String toPoints() {
+        char[] out = new char[POINTS];
+        for (int point = 0; point < POINTS; point++) {
+            out[point] = toChar(points[point]);
+        }
+        return new String(out);
+    }
+
+    public static Board fromPoints(String marks) {
+        if (marks.length() != POINTS) {
+            throw new IllegalArgumentException("지점은 %d개여야 함: %d".formatted(POINTS, marks.length()));
+        }
+        Board board = new Board();
+        for (int point = 0; point < POINTS; point++) {
+            board.points[point] = toStone(marks.charAt(point), point);
+        }
+        return board;
+    }
+
     private static Stone toStone(char c, int point) {
         return switch (c) {
             case EMPTY_CHAR -> null;

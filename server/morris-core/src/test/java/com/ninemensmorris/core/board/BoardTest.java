@@ -72,6 +72,37 @@ class BoardTest {
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("7줄");
         }
+
+        @Test
+        @DisplayName("저장용 표기는 지점 순서대로 한 글자씩이고 되읽으면 같은 판이다")
+        void 저장용_표기를_왕복한다() {
+            // given
+            Board board = Board.parse(
+                    """
+                    B  .  .
+                     . . .
+                      ...
+                    W.. ...
+                      ...
+                     . . .
+                    .  .  W
+                    """);
+
+            // when
+            String points = board.toPoints();
+
+            // then
+            assertThat(points).isEqualTo("B........W.............W");
+            assertThat(Board.fromPoints(points).render()).isEqualTo(board.render());
+        }
+
+        @Test
+        @DisplayName("저장용 표기의 길이나 글자가 틀리면 거부한다")
+        void 저장용_표기가_틀리면_거부한다() {
+            assertThatThrownBy(() -> Board.fromPoints("B.")).isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> Board.fromPoints("X".repeat(Board.POINTS)))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
     }
 
     @Nested

@@ -28,10 +28,6 @@ public final class MorrisGame {
 
     private static final int MAX_DRAW_OFFERS = 3; // 한 사람이 한 판에 낼 수 있는 무승부 제안
 
-    private static final char EMPTY_POINT = '.';
-    private static final char BLACK_POINT = 'B';
-    private static final char WHITE_POINT = 'W';
-
     private final Board board;
     private final Map<Stone, Integer> inHand = new EnumMap<>(Stone.class);
     private final Map<Stone, Integer> drawOffers = new EnumMap<>(Stone.class);
@@ -64,13 +60,8 @@ public final class MorrisGame {
     }
 
     public GameSnapshot snapshot() {
-        StringBuilder points = new StringBuilder(Board.POINTS);
-        for (int point = 0; point < Board.POINTS; point++) {
-            Stone stone = board.stoneAt(point);
-            points.append(stone == null ? EMPTY_POINT : stone == Stone.BLACK ? BLACK_POINT : WHITE_POINT);
-        }
         return new GameSnapshot(
-                points.toString(),
+                board.toPoints(),
                 currentTurn,
                 status,
                 outcome,
@@ -87,14 +78,11 @@ public final class MorrisGame {
 
     // 생성자를 거치면 시작 국면이 반복 기록에 한 번 더 들어가므로 기록을 덮어씀
     public static MorrisGame restore(GameSnapshot snapshot) {
-        Board board = new Board();
-        for (int point = 0; point < Board.POINTS; point++) {
-            char mark = snapshot.points().charAt(point);
-            if (mark != EMPTY_POINT) {
-                board.place(point, mark == BLACK_POINT ? Stone.BLACK : Stone.WHITE);
-            }
-        }
-        MorrisGame game = new MorrisGame(board, snapshot.currentTurn(), snapshot.blackInHand(), snapshot.whiteInHand());
+        MorrisGame game = new MorrisGame(
+                Board.fromPoints(snapshot.points()),
+                snapshot.currentTurn(),
+                snapshot.blackInHand(),
+                snapshot.whiteInHand());
         game.seenPositions.clear();
         game.seenPositions.putAll(snapshot.seenPositions());
         game.drawOffers.put(Stone.BLACK, snapshot.blackDrawOffers());
