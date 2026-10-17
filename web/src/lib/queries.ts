@@ -7,6 +7,9 @@ import {
 } from './api';
 import { getToken } from './auth';
 
+// 판이 끝나면 상대 정보를 userId 와 상관없이 한꺼번에 무효화할 때 씀
+export const USER_PROFILE_KEY = ['userProfile'];
+
 export const QUERY = {
   ROOMS: {
     queryKey: ['rooms'],
@@ -32,7 +35,7 @@ export const QUERY = {
   }),
   // 상대가 바뀌면 캐시도 갈려야 하므로 userId 를 키에 넣음
   USER_PROFILE: (userId: number) => ({
-    queryKey: ['userProfile', userId],
+    queryKey: [...USER_PROFILE_KEY, userId],
     queryFn: () => getUserProfile(userId),
   }),
 };

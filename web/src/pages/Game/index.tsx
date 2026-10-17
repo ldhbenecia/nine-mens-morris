@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertModal } from '~/components';
 import { resultOf } from '~/lib/gameResult';
-import { QUERY } from '~/lib/queries';
+import { QUERY, USER_PROFILE_KEY } from '~/lib/queries';
 import { createSocketClient, DESTINATION } from '~/lib/socket';
 import { useCountdown, useGameState, useLeaveRoom } from '~/hooks';
 import { MoveRejected, RoomEvent } from '~/lib/types';
@@ -29,7 +29,6 @@ import {
   notificationSound,
   preloadGameSounds,
 } from '~/lib/sounds';
-import { DrawRejectedModal } from './DrawRejectedModal';
 import { SocketErrorModal } from './SocketErrorModal';
 
 const client = createSocketClient();
@@ -39,7 +38,7 @@ export function GamePage() {
   const [showResignModal, setShowResignModal] = useState(false);
   const [showRequestDrawModal, setShowRequestDrawModal] = useState(false);
   const [showResponseDrawModal, setShowResponseDrawModal] = useState(false);
-  const [showDrawRejectedModal, setShowDrawRejectedModal] = useState(false);
+  const [drawDeclined, setDrawDeclined] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [endNotice, setEndNotice] = useState('');
   const [disconnected, setDisconnected] = useState(false);
@@ -197,7 +196,7 @@ export function GamePage() {
         break;
       case 'DRAW_DECLINED':
         if (event.actorId !== currentUser?.userId) {
-          setShowDrawRejectedModal(true);
+          setDrawDeclined(true);
         }
         break;
       case 'OPPONENT_DISCONNECTED':
@@ -289,7 +288,7 @@ export function GamePage() {
   useEffect(() => {
     if (finished) {
       queryClient.invalidateQueries({ queryKey: QUERY.CURRENT_USER.queryKey });
-      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      queryClient.invalidateQueries({ queryKey: USER_PROFILE_KEY });
       queryClient.invalidateQueries({ queryKey: QUERY.RANKS.queryKey });
     }
   }, [finished, queryClient]);
@@ -308,7 +307,7 @@ export function GamePage() {
 
   return (
     <main
-      className={`transition-removing relative flex h-full grow flex-col justify-between overflow-hidden p-4 transition-colors duration-1000 md:gap-4 ${gameState.awaitingRemoval && 'bg-red-200'}`}
+      className={`relative flex h-full grow flex-col justify-between overflow-hidden p-4 transition-colors duration-1000 md:gap-4 ${gameState.awaitingRemoval ? 'bg-red-200' : ''}`}
     >
       <ResignModal
         visible={showResignModal}
@@ -341,9 +340,9 @@ export function GamePage() {
         onAcceptDraw={onAcceptDraw}
         onRejectDraw={onDeclineDraw}
       />
-      <DrawRejectedModal
-        visible={showDrawRejectedModal}
-        onClose={() => setShowDrawRejectedModal(false)}
+      <AlertModal
+        message={drawDeclined ? '상대가 무승부를 거절했습니다' : ''}
+        onClose={() => setDrawDeclined(false)}
       />
       <SocketErrorModal visible={disconnected} onLeaveRoom={onLeaveRoom} />
       <AlertModal
