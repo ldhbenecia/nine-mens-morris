@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -46,7 +47,11 @@ public class RoomStore {
     // 변경 하나는 수 ms. 넉넉히 잡아도 서버가 죽었을 때 그 방이 이만큼만 멈춤
     private static final Duration LOCK_LEASE = Duration.ofSeconds(5);
     private static final Duration LOCK_WAIT = Duration.ofSeconds(3);
-    private static final long LOCK_RETRY_MILLIS = 10;
+
+    // 재시도 간격. 실패할수록 상한을 두 배로 늘리고(5 → 10 → … → 50ms) 매번 1ms~상한 사이에서 무작위로 고름
+    // 간격이 고정이면 같이 진 요청들이 같은 박자로 다시 부딪혀 계속 함께 짐
+    private static final long LOCK_BACKOFF_BASE_MILLIS = 5;
+    private static final long LOCK_BACKOFF_MAX_MILLIS = 50;
 
     // 락은 자기 토큰일 때만 지움. 임대가 끝나 다른 서버가 잡은 락을 지우지 않게
     private static final String RELEASE_LOCK =
@@ -215,12 +220,14 @@ public class RoomStore {
 
     private void acquire(Lock lock, long roomId) {
         long deadline = System.nanoTime() + LOCK_WAIT.toNanos();
+        long backoffCap = LOCK_BACKOFF_BASE_MILLIS;
         while (!Boolean.TRUE.equals(redis.opsForValue().setIfAbsent(lock.key(), lock.token(), LOCK_LEASE))) {
             if (System.nanoTime() > deadline) {
                 throw new IllegalStateException("방 락을 얻지 못함 roomId=" + roomId);
             }
             try {
-                Thread.sleep(LOCK_RETRY_MILLIS);
+                Thread.sleep(ThreadLocalRandom.current().nextLong(1, backoffCap + 1));
+                backoffCap = Math.min(backoffCap * 2, LOCK_BACKOFF_MAX_MILLIS);
             } catch (InterruptedException interrupted) {
                 Thread.currentThread().interrupt();
                 throw new IllegalStateException("방 락 대기 중 중단 roomId=" + roomId, interrupted);
