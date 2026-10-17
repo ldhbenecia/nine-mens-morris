@@ -33,9 +33,9 @@ import {
 import { DrawRejectedModal } from './DrawRejectedModal';
 import { SocketErrorModal } from './SocketErrorModal';
 
-// 토큰은 CONNECT 프레임 헤더로 보낸다
-// 핸드셰이크는 브라우저가 보내는 HTTP 요청이라 헤더를 붙일 수 없고, 쿠키는 cross-site 라 못 쓴다
-// beforeConnect 에서 채워야 재연결 때도 최신 토큰이 실린다
+// 토큰은 CONNECT 프레임 헤더로 보냄
+// 핸드셰이크는 브라우저가 보내는 HTTP 요청이라 헤더를 붙일 수 없고, 쿠키는 cross-site 라 못 씀
+// beforeConnect 에서 채워야 재연결 때도 최신 토큰이 실림
 const client = new Client({
   brokerURL: import.meta.env.VITE_SOCKET_URL,
   reconnectDelay: 5000,
@@ -101,9 +101,9 @@ export function GamePage() {
   });
   const isHost = !!currentUser && room?.hostId === currentUser.userId;
 
-  // 'WAITING' 은 서버가 보내지 않는 값이다. 초기 상태값일 뿐이라
-  // 이것만 보고 분기하면 진행 중인 판을 새로고침했을 때 대기실이 뜬다
-  // 서버가 알려주는 hasGame 을 같이 본다
+  // 'WAITING' 은 서버가 보내지 않는 값임. 초기 상태값일 뿐이라
+  // 이것만 보고 분기하면 진행 중인 판을 새로고침했을 때 대기실이 뜸
+  // 서버가 알려주는 hasGame 을 같이 봄
   const inGame = gameState.status !== 'WAITING' || room?.hasGame === true;
 
   const { data: enemy } = useQuery({
@@ -274,12 +274,12 @@ export function GamePage() {
         onRoomEvent(JSON.parse(message.body) as RoomEvent);
       });
 
-      // 구독 직후 진행 중인 판이 있는지 물어본다. 새로고침해도 판을 잃지 않는다
+      // 구독 직후 진행 중인 판이 있는지 물어봄. 새로고침해도 판을 잃지 않음
       client.publish({ destination: `/app/rooms/${roomId}/sync` });
       joinSound.play();
     };
 
-    // 끊긴 상태에서 publish 하면 stompjs 가 throw 하므로 화면에 알려야 한다
+    // 끊긴 상태에서 publish 하면 stompjs 가 throw 하므로 화면에 알려야 함
     client.onWebSocketClose = () => setDisconnected(true);
     client.onStompError = (frame) =>
       onError(frame.headers.message ?? '서버와 통신에 실패했습니다.');
@@ -287,7 +287,7 @@ export function GamePage() {
     client.activate();
 
     return () => {
-      // 의도적으로 끊는 것이므로 끊김 알림이 뜨지 않게 먼저 떼어낸다
+      // 의도적으로 끊는 것이므로 끊김 알림이 뜨지 않게 먼저 떼어냄
       client.onWebSocketClose = () => {};
       client.deactivate();
     };

@@ -4,9 +4,9 @@ package com.ninemensmorris.core.rating;
 // 1237 같은 숫자보다 등급이 읽기 쉽고 목표가 생김
 // 화면에 보일 한글 표기는 프론트에서 매핑함
 //
-// 구간 폭이 위로 갈수록 넓어진다 (200 / 250 / 300 / 350)
+// 구간 폭이 위로 갈수록 넓어짐 (200 / 250 / 300 / 350)
 // Elo 는 400점 차이가 기대 승률 10:1 을 뜻하므로
-// 같은 폭을 유지하면 상위 등급이 실제보다 쉽게 나온다
+// 같은 폭을 유지하면 상위 등급이 실제보다 쉽게 나옴
 public enum Tier {
     UNRANKED(Integer.MIN_VALUE),
     BRONZE(Integer.MIN_VALUE),

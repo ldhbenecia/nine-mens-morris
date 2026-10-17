@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 // 로비. 방 생성 / 입장 / 목록
 //
 // 방 자체는 Redis 에 있고 DB 는 방장 정보를 읽을 때만 씀
-// 트랜잭션이 없으면 리포지터리 호출마다 커넥션을 따로 잡는다
+// 트랜잭션이 없으면 리포지터리 호출마다 커넥션을 따로 잡음
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -55,7 +55,7 @@ public class RoomService {
         return new CreateRoomResponse(room.roomId(), room.title());
     }
 
-    // 입장은 방 단위 락 안에서 처리한다
+    // 입장은 방 단위 락 안에서 처리함
     // 빈자리 확인과 저장 사이에 다른 요청이 끼어들면 한 자리에 두 명이 들어옴
     public void join(RoomCommand.JoinRoom command) {
         RejectableResult result = rooms.mutate(command.roomId(), room -> {
@@ -97,11 +97,11 @@ public class RoomService {
                 .collect(Collectors.toMap(User::getUserId, Function.identity()));
     }
 
-    // 두 자리가 모두 회원이어야 랭크전이다
-    // 비로그인 계정은 얼마든지 만들 수 있어 한 명만 껴도 레이팅이 움직여선 안 된다
+    // 두 자리가 모두 회원이어야 랭크전임
+    // 비로그인 계정은 얼마든지 만들 수 있어 한 명만 껴도 레이팅이 움직여선 안 됨
     //
-    // 아직 상대가 없는 방은 방장 기준으로 본다. 비로그인 사용자가 들어오는 순간 일반전으로 바뀌고
-    // 그 전환이 화면에 보여야 하므로 대기 중에도 값을 내려 준다
+    // 아직 상대가 없는 방은 방장 기준으로 봄. 비로그인 사용자가 들어오는 순간 일반전으로 바뀌고
+    // 그 전환이 화면에 보여야 하므로 대기 중에도 값을 내려 줌
     private boolean isRated(Room room, Map<Long, User> players) {
         return playerIdsOf(room).allMatch(userId -> {
             User player = players.get(userId);

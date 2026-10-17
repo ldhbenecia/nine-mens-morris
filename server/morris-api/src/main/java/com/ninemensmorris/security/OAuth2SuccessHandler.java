@@ -12,7 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
-// 로그인에 성공하면 토큰을 프래그먼트에 실어 프론트로 보낸다
+// 로그인에 성공하면 토큰을 프래그먼트에 실어 프론트로 보냄
 //
 // 쿠키를 쓰지 않는 이유는 프론트가 GitHub Pages 라 서버와 cross-site 이기 때문
 // 쿼리스트링이 아니라 프래그먼트인 이유는 그쪽이 서버로 전송되지 않아

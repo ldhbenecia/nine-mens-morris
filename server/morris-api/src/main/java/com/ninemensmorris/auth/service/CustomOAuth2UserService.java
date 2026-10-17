@@ -42,7 +42,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .orElseGet(() -> userRepository.save(toUser(oAuth2User, providerId)));
         syncProfile(user, oAuth2User, providerId);
 
-        // 토큰 subject 는 카카오 회원번호가 아니라 서비스가 발급한 식별자다
+        // 토큰 subject 는 카카오 회원번호가 아니라 서비스가 발급한 식별자임
         return new CustomOAuth2User(user.getUserId());
     }
 
@@ -69,8 +69,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return User.ofKakao(providerId, nicknameOf(nickname, providerId), profileImage);
     }
 
-    // 닉네임 동의를 안 했으면 회원번호로 만들어 준다
-    // 컬럼이 20자라 그냥 이어 붙이면 회원번호가 길 때 저장에서 터진다
+    // 닉네임 동의를 안 했으면 회원번호로 만들어 줌
+    // 컬럼이 20자라 그냥 이어 붙이면 회원번호가 길 때 저장에서 터짐
     private String nicknameOf(String nickname, String providerId) {
         if (nickname != null && !nickname.isBlank()) {
             return truncate(nickname);

@@ -9,7 +9,7 @@ import com.ninemensmorris.game.domain.Room;
 import java.time.Duration;
 import java.time.Instant;
 
-// 판 상태 전체. 클라이언트는 이것만 보고 화면을 그린다
+// 판 상태 전체. 클라이언트는 이것만 보고 화면을 그림
 //
 // 방장/참가자가 아니라 흑/백 기준. 방장이 흑이라는 전제를 두면 선공 방식을 바꿀 수 없음
 public record GameStateResponse(

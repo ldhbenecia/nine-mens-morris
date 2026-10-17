@@ -29,9 +29,9 @@ import org.springframework.stereotype.Controller;
 
 // 게임 진행 STOMP 목적지
 //
-// roomId 는 항상 경로 변수로 받는다. 페이로드에 식별자를 넣으면 조작 지점이 되고
-// 목적지별 인가 검사를 일괄 적용할 수 없다
-// 행위자는 Principal 에서만 온다
+// roomId 는 항상 경로 변수로 받음. 페이로드에 식별자를 넣으면 조작 지점이 되고
+// 목적지별 인가 검사를 일괄 적용할 수 없음
+// 행위자는 Principal 에서만 옴
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -93,7 +93,7 @@ public class GameStompController {
         play(roomId, principal, new Move.RespondDraw(false));
     }
 
-    // 재접속 복구. 요청자에게만 현재 판을 보낸다
+    // 재접속 복구. 요청자에게만 현재 판을 보냄
     @MessageMapping("/rooms/{roomId}/sync")
     public void sync(@DestinationVariable long roomId, Principal principal) {
         AuthenticatedUser actor = require(principal);
@@ -111,7 +111,7 @@ public class GameStompController {
     }
 
     // @Valid 가 걸린 @Payload 의 검증 실패
-    // 웹 계층의 동명 예외가 아니라 messaging 쪽 예외가 날아온다. 타입을 헷갈리면 조용히 안 잡힌다
+    // 웹 계층의 동명 예외가 아니라 messaging 쪽 예외가 날아옴. 타입을 헷갈리면 조용히 안 잡힘
     @MessageExceptionHandler(MethodArgumentNotValidException.class)
     public void onInvalidPayload(MethodArgumentNotValidException exception, Principal principal) {
         log.debug("STOMP 페이로드 검증 실패: {}", exception.getMessage());
@@ -132,7 +132,7 @@ public class GameStompController {
 
         switch (outcome) {
             case PlayOutcome.Broadcast broadcast -> broadcast(roomId, broadcast.event());
-            // 거절은 요청자에게만. 방에 뿌리면 상대에게 내 실수가 보인다
+            // 거절은 요청자에게만. 방에 뿌리면 상대에게 내 실수가 보임
             case PlayOutcome.Reject reject ->
                 messaging.convertAndSendToUser(
                         String.valueOf(actor.id()), StompDestinations.ERROR_QUEUE, reject.response());

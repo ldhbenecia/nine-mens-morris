@@ -7,8 +7,8 @@ type LoginModalProps = {
   onClose: () => void;
 };
 
-// 로그인이 진입 장벽이 되지 않게 게스트를 기본 버튼으로 둔다
-// 대신 "랭킹에 오르려면 로그인" 이라는 이유를 남겨 로그인을 강제하지 않고도 유인을 만든다
+// 로그인이 진입 장벽이 되지 않게 게스트를 기본 버튼으로 둠
+// 대신 "랭킹에 오르려면 로그인" 이라는 이유를 남겨 로그인을 강제하지 않고도 유인을 만듦
 export function LoginModal({ visible, onClose }: LoginModalProps) {
   const [failure, setFailure] = useState('');
   const { mutate: startAsVisitor, isPending } = useStartAsVisitor(setFailure);

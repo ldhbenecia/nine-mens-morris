@@ -69,7 +69,7 @@ class AdjacencyTest {
         assertThat(Adjacency.isAdjacent(0, 2)).isFalse();
         assertThat(Adjacency.isAdjacent(0, 21)).isFalse();
         assertThat(Adjacency.isAdjacent(0, 4)).isFalse();
-        // 7x7 격자의 한가운데는 지점이 아니라 세로 중앙선이 위아래로 끊겨 있다
+        // 7x7 격자의 한가운데는 지점이 아니라 세로 중앙선이 위아래로 끊겨 있음
         assertThat(Adjacency.isAdjacent(7, 16)).isFalse();
     }
 }

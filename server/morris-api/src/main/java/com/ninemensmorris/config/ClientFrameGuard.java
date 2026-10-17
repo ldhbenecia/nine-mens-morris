@@ -49,9 +49,9 @@ public class ClientFrameGuard implements ChannelInterceptor {
     }
 
     // 인증 없는 소켓은 붙는 것 자체를 막음
-    // 익명 연결을 허용하면 아무나 무한히 소켓을 열어 둘 수 있다
+    // 익명 연결을 허용하면 아무나 무한히 소켓을 열어 둘 수 있음
     //
-    // 토큰이 CONNECT 프레임에 실려 오므로 여기서 주체를 확정한다
+    // 토큰이 CONNECT 프레임에 실려 오므로 여기서 주체를 확정함
     // 핸드셰이크는 그냥 HTTP 요청이라 헤더를 붙일 방법이 없고,
     // 쿠키는 프론트가 cross-site 라 쓸 수 없음
     private Message<?> authenticate(Message<?> message, StompHeaderAccessor accessor) {
@@ -66,7 +66,7 @@ public class ClientFrameGuard implements ChannelInterceptor {
     }
 
     // 구독 거부는 예외를 던지지 않고 프레임만 버림
-    // 예외를 던지면 연결이 끊기고, 끊기면 클라이언트가 다시 붙어 또 거부당하는 루프가 된다
+    // 예외를 던지면 연결이 끊기고, 끊기면 클라이언트가 다시 붙어 또 거부당하는 루프가 됨
     // 받을 자격이 없는 사람에게 아무것도 가지 않는다는 목적은 프레임을 버리는 것으로 충분함
     private Message<?> authorizeSubscribe(Message<?> message, StompHeaderAccessor accessor) {
         AuthenticatedUser actor = AuthenticatedUser.from(accessor.getUser());
@@ -98,10 +98,10 @@ public class ClientFrameGuard implements ChannelInterceptor {
         return rooms.find(roomId).filter(room -> room.contains(userId)).isPresent();
     }
 
-    // SimpleBroker 는 클라이언트가 /topic 으로 보낸 SEND 프레임도 구독자에게 그대로 중계한다
+    // SimpleBroker 는 클라이언트가 /topic 으로 보낸 SEND 프레임도 구독자에게 그대로 중계함
     // /app 접두사는 "여기로 보내면 @MessageMapping 이 받는다" 는 뜻일 뿐
-    // 다른 곳으로 못 보낸다는 뜻이 아니다
-    // 막지 않으면 브라우저 콘솔 한 줄로 상대 화면에 위조된 게임 상태를 띄울 수 있다
+    // 다른 곳으로 못 보낸다는 뜻이 아님
+    // 막지 않으면 브라우저 콘솔 한 줄로 상대 화면에 위조된 게임 상태를 띄울 수 있음
     private Message<?> requireAppDestination(Message<?> message, StompHeaderAccessor accessor) {
         String destination = accessor.getDestination();
         if (destination == null || !destination.startsWith(StompDestinations.APP_PREFIX)) {

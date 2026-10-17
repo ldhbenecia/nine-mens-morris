@@ -24,9 +24,9 @@ client.interceptors.response.use(
   }
 );
 
-// 서버는 실패를 전부 { status, code, message } 한 가지 모양으로 보낸다
+// 서버는 실패를 전부 { status, code, message } 한 가지 모양으로 보냄
 // 그대로 두면 axios 기본 메시지("Request failed with status code 400")만 남아
-// 화면에 보여줄 수 있는 문구가 없다
+// 화면에 보여줄 수 있는 문구가 없음
 export const errorMessageOf = (error: unknown) => {
   if (axios.isAxiosError(error)) {
     const body = error.response?.data as { message?: string } | undefined;
@@ -41,7 +41,7 @@ export const logout = async () => {
   return response.status === 204;
 };
 
-// 로그인 없이 신원을 받는다. 보낼 것이 없다 — 닉네임까지 서버가 정한다
+// 로그인 없이 신원을 받음. 보낼 것이 없음 — 닉네임까지 서버가 정함
 export const createVisitor = async () => {
   const response = await client.post<{ accessToken: string }>('auth/visitors');
 
@@ -88,8 +88,8 @@ export const getRoom = async (roomId: number) => {
   return response.data;
 };
 
-// 방 입장은 "방에 플레이어를 추가"하는 것이므로 하위 리소스 생성이다
-// userId 를 보내지 않는다. 서버가 인증 정보에서 확정한다
+// 방 입장은 "방에 플레이어를 추가"하는 것이므로 하위 리소스 생성임
+// userId 를 보내지 않음. 서버가 인증 정보에서 확정함
 export const joinRoom = async (roomId: number) => {
   await client.post(`rooms/${roomId}/players`);
 };

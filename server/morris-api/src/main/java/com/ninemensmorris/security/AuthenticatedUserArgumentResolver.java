@@ -9,7 +9,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-// 컨트롤러 파라미터에서 AuthenticatedUser 를 채워준다
+// 컨트롤러 파라미터에서 AuthenticatedUser 를 채워줌
 @Component
 public class AuthenticatedUserArgumentResolver implements HandlerMethodArgumentResolver {
 

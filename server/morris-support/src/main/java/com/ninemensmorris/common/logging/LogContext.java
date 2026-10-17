@@ -4,7 +4,7 @@ import java.util.UUID;
 import org.slf4j.MDC;
 
 // 로그를 요청·사용자·방 단위로 묶는 키
-// morris-support 에 둔 것은 ErrorResponse 가 같은 traceId 를 응답에 실어야 해서다
+// morris-support 에 둔 것은 ErrorResponse 가 같은 traceId 를 응답에 실어야 해서임
 public final class LogContext {
 
     public static final String TRACE_ID = "traceId";
@@ -33,7 +33,7 @@ public final class LogContext {
         return MDC.get(TRACE_ID);
     }
 
-    // 스레드가 재사용되므로 반드시 finally 에서 부른다. 안 지우면 다음 작업에 남의 값이 붙는다
+    // 스레드가 재사용되므로 반드시 finally 에서 부름. 안 지우면 다음 작업에 남의 값이 붙음
     public static void clear() {
         MDC.remove(TRACE_ID);
         MDC.remove(USER_ID);

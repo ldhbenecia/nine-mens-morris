@@ -18,8 +18,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 
-// 로그인 없이 신원을 받아 게임까지 갈 수 있어야 한다
-// 인가 규칙을 denyAll 기본으로 두고 있어 실제로 요청을 보내 봐야 열렸는지 알 수 있다
+// 로그인 없이 신원을 받아 게임까지 갈 수 있어야 함
+// 인가 규칙을 denyAll 기본으로 두고 있어 실제로 요청을 보내 봐야 열렸는지 알 수 있음
 class VisitorAuthTest extends IntegrationTestSupport {
 
     private static final AtomicInteger NEXT_IP = new AtomicInteger();
@@ -47,7 +47,7 @@ class VisitorAuthTest extends IntegrationTestSupport {
     @Test
     @DisplayName("로그인 없이 신원을 받고 그 토큰으로 방을 만들 수 있다")
     void 로그인_없이_방을_만든다() {
-        // given / when — 요청 본문도 인증도 없다
+        // given / when — 요청 본문도 인증도 없음
         var issued = rest.exchange(url("/api/v1/auth/visitors"), HttpMethod.POST, fromNewIp(), VisitorToken.class);
 
         // then
@@ -120,13 +120,13 @@ class VisitorAuthTest extends IntegrationTestSupport {
     @Test
     @DisplayName("비로그인 사용자가 낀 방은 일반전, 회원끼리는 랭크전으로 표시된다")
     void 비로그인_사용자가_끼면_일반전이다() {
-        // given — 회원이 만든 방은 아직 랭크전이다
+        // given — 회원이 만든 방은 아직 랭크전임
         User host = userRepository.save(User.ofKakao("7001", "회원", null));
         String hostToken = jwtProvider.generateAccessToken(host.getUserId());
         long roomId = createRoom(hostToken);
         assertThat(detailOf(roomId, hostToken).rated()).isTrue();
 
-        // when — 비로그인 사용자가 들어온다
+        // when — 비로그인 사용자가 들어옴
         String visitorToken = issueVisitor();
         var joined = rest.exchange(
                 url("/api/v1/rooms/" + roomId + "/players"),
@@ -135,14 +135,14 @@ class VisitorAuthTest extends IntegrationTestSupport {
                 Void.class);
         assertThat(joined.getStatusCode().value()).isEqualTo(201);
 
-        // then — 그 순간 일반전으로 바뀐다. 화면이 전환을 보여줄 수 있어야 함
+        // then — 그 순간 일반전으로 바뀜. 화면이 전환을 보여줄 수 있어야 함
         assertThat(detailOf(roomId, hostToken).rated()).isFalse();
     }
 
     @Test
     @DisplayName("토큰이 없으면 401 이다")
     void 토큰이_없으면_거절한다() {
-        // when — 게스트를 열었다고 해서 익명 접근이 열린 것은 아니다
+        // when — 게스트를 열었다고 해서 익명 접근이 열린 것은 아님
         var profile = rest.exchange(url("/api/v1/users/me"), HttpMethod.GET, null, String.class);
 
         // then
@@ -160,7 +160,7 @@ class VisitorAuthTest extends IntegrationTestSupport {
         var detail = rest.exchange(
                 url("/api/v1/rooms/" + roomId), HttpMethod.GET, new HttpEntity<>(bearer(outsider)), String.class);
 
-        // then — 403 이면 그 번호의 방이 있다는 것이 드러난다
+        // then — 403 이면 그 번호의 방이 있다는 것이 드러남
         assertThat(detail.getStatusCode().value()).isEqualTo(404);
     }
 

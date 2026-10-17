@@ -19,8 +19,8 @@ public class AuthController {
     private final VisitorService visitorService;
     private final VisitorIssueLimiter visitorIssueLimiter;
 
-    // 요청 본문이 없다. 닉네임까지 서버가 정하므로 클라이언트가 보낼 것이 없음
-    // 호출자 IP 는 웹 계층에서만 알 수 있으므로 한도 확인도 여기서 한다
+    // 요청 본문이 없음. 닉네임까지 서버가 정하므로 클라이언트가 보낼 것이 없음
+    // 호출자 IP 는 웹 계층에서만 알 수 있으므로 한도 확인도 여기서 함
     @PostMapping("/visitors")
     @ResponseStatus(HttpStatus.CREATED)
     public VisitorResponse issueVisitor(HttpServletRequest request) {

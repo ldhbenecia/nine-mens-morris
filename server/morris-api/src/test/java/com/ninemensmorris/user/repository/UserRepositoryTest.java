@@ -16,9 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 
-// 카카오 회원번호를 기본키로 쓰던 구조를 대체키로 바꿨다
-// 같은 계정이 두 행이 되는 것을 이제 PK 가 아니라 유니크 제약이 막으므로
-// 그 제약이 실제 MySQL 에서 도는지 확인해야 한다
+// 기본키는 대체키이고 카카오 회원번호는 기본키가 아님
+// 같은 계정이 두 행이 되는 것은 PK 가 아니라 (provider, provider_id) 유니크 제약이 막으므로
+// 그 제약이 실제 MySQL 에서 도는지 확인해야 함
 class UserRepositoryTest extends IntegrationTestSupport {
 
     @Autowired
@@ -44,7 +44,7 @@ class UserRepositoryTest extends IntegrationTestSupport {
                 .findByProviderAndProviderId(Provider.KAKAO, "40012345")
                 .orElseThrow();
 
-        // then — 회원번호와 별개로 서비스가 발급한 식별자를 쓴다
+        // then — 회원번호와 별개로 서비스가 발급한 식별자를 씀
         assertThat(found.getUserId()).isEqualTo(userId);
         assertThat(found.getProvider()).isEqualTo(Provider.KAKAO);
     }
@@ -57,16 +57,16 @@ class UserRepositoryTest extends IntegrationTestSupport {
         userRepository.save(User.ofKakao("40012345", "회원", null));
         userRepository.save(User.visitor("게스트1234"));
 
-        // when — 기준 시각이 아직 이르면 아무것도 지우지 않는다
+        // when — 기준 시각이 아직 이르면 아무것도 지우지 않음
         int notYet = userRepository.deleteVisitorsCreatedBefore(Instant.now().minus(Duration.ofDays(1)));
 
         // then
         assertThat(notYet).isZero();
 
-        // when — 기준 시각을 넘기면 비로그인 계정만 지운다
+        // when — 기준 시각을 넘기면 비로그인 계정만 지움
         int deleted = userRepository.deleteVisitorsCreatedBefore(Instant.now().plus(Duration.ofDays(1)));
 
-        // then — 회원은 남아야 한다
+        // then — 회원은 남아야 함
         assertThat(deleted).isEqualTo(1);
         assertThat(userRepository.findAll()).singleElement().satisfies(remaining -> assertThat(remaining.isVisitor())
                 .isFalse());
@@ -78,7 +78,7 @@ class UserRepositoryTest extends IntegrationTestSupport {
         // given
         userRepository.saveAndFlush(User.ofKakao("40012345", "방장", null));
 
-        // when / then — 동시에 두 번 로그인해도 DB 가 막는다
+        // when / then — 동시에 두 번 로그인해도 DB 가 막음
         assertThatThrownBy(() -> userRepository.saveAndFlush(User.ofKakao("40012345", "다른이름", null)))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }

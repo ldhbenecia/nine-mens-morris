@@ -1,12 +1,12 @@
 spring:
-  # 테스트 리소스의 application.yml 이 이 파일을 가리므로 관측 설정은 따로 둔다
+  # 테스트 리소스의 application.yml 이 이 파일을 가리므로 관측 설정은 따로 둠
   config:
     import: classpath:observability.yml
 
   application:
     name: nine-mens-morris
 
-  # graceful shutdown 이 처리 중인 요청을 기다리는 한도. 짧으면 정산 트랜잭션이 잘린다
+  # graceful shutdown 이 처리 중인 요청을 기다리는 한도. 짧으면 정산 트랜잭션이 잘림
   lifecycle:
     timeout-per-shutdown-phase: 30s
 
@@ -16,7 +16,7 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  # 스키마는 Flyway 가 만들고 Hibernate 는 엔티티와 맞는지 검사만 한다
+  # 스키마는 Flyway 가 만들고 Hibernate 는 엔티티와 맞는지 검사만 함
   # ddl-auto 로 만들면 운영 DDL 이 어디에도 기록되지 않음
   flyway:
     enabled: true
@@ -32,17 +32,17 @@ spring:
         jdbc:
           # 저장은 UTC 고정. 표시 시점 변환은 클라이언트가 함
           # 서버 지역을 옮기거나 서머타임이 있는 곳을 다루게 되면
-          # 로컬 시각으로 저장된 값은 해석이 불가능해진다
+          # 로컬 시각으로 저장된 값은 해석이 불가능해짐
           time_zone: UTC
 
-  # 한 스레드를 공유하면 정산 하나가 DB 를 기다릴 때 다른 사람들의 유예가 전부 밀린다
-  # SchedulingConfig 가 taskScheduler 빈을 만들어야 이 설정이 적용된다
+  # 한 스레드를 공유하면 정산 하나가 DB 를 기다릴 때 다른 사람들의 유예가 전부 밀림
+  # SchedulingConfig 가 taskScheduler 빈을 만들어야 이 설정이 적용됨
   task:
     scheduling:
       pool:
         size: 4
       shutdown:
-        # 돌고 있던 정산을 끊지 않는다
+        # 돌고 있던 정산을 끊지 않음
         await-termination: true
         await-termination-period: 20s
 
@@ -73,10 +73,10 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
-  # X-Forwarded-* 를 반영해 getRemoteAddr 이 프록시가 아니라 실제 호출자를 돌려주게 한다
-  # 이게 없으면 IP 당 발급 한도가 nginx IP 하나로 집계돼 모든 사용자가 한 카운터를 공유한다
+  # X-Forwarded-* 를 반영해 getRemoteAddr 이 프록시가 아니라 실제 호출자를 돌려주게 함
+  # 이게 없으면 IP 당 발급 한도가 nginx IP 하나로 집계돼 모든 사용자가 한 카운터를 공유함
   #
-  # 헤더는 위조할 수 있으므로 앱이 프록시를 거치지 않고 직접 닿으면 한도를 우회당한다
+  # 헤더는 위조할 수 있으므로 앱이 프록시를 거치지 않고 직접 닿으면 한도를 우회당함
   # 보안그룹으로 프록시만 앱에 닿게 막혀 있다는 전제 위에서만 맞는 설정
   forward-headers-strategy: framework
   # 배포할 때 진행 중인 요청을 끊지 않고 마무리함
@@ -87,15 +87,15 @@ server:
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
 
-# 키 이름을 환경변수와 다르게 둔다
-# 같으면 ${X} 가 자기 자신을 가리켜 순환 참조가 되고, 환경변수가 없을 때 기본값 대신 기동이 깨진다
+# 키 이름을 환경변수와 다르게 둠
+# 같으면 ${X} 가 자기 자신을 가리켜 순환 참조가 되고, 환경변수가 없을 때 기본값 대신 기동이 깨짐
 jwt:
   # HS256 서명 키. Base64 인코딩된 32바이트(256비트) 이상
   secret-key: ${JWT_SECRET_KEY}
   # 밀리초 단위. JwtProvider 가 now.getTime() + 이 값으로 만료 시각 계산
   access-token-expiration: ${ACCESS_TOKEN_EXPIRATION:3600000}
   # 비로그인 사용자 토큰. 7일
-  # 토큰을 잃으면 그 신원으로 돌아올 방법이 없어 짧으면 게임 도중 끊긴다
+  # 토큰을 잃으면 그 신원으로 돌아올 방법이 없어 짧으면 게임 도중 끊김
   visitor-token-expiration: ${VISITOR_TOKEN_EXPIRATION:604800000}
 
 app:

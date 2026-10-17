@@ -14,7 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-// 토큰은 Authorization 헤더로만 받는다
+// 토큰은 Authorization 헤더로만 받음
 // 쿠키는 프론트가 GitHub Pages 에 있어 cross-site 가 되므로 쓸 수 없음
 @Component
 @RequiredArgsConstructor
@@ -32,8 +32,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
             securityContext.setAuthentication(authentication);
             SecurityContextHolder.setContext(securityContext);
-            // 요청자가 확정되는 유일한 지점. MDC 도 여기서 채운다
-            // 비우는 것은 MdcRequestFilter 의 finally 가 한다
+            // 요청자가 확정되는 유일한 지점. MDC 도 여기서 채움
+            // 비우는 것은 MdcRequestFilter 의 finally 가 함
             AuthenticatedUser actor = AuthenticatedUser.from(authentication);
             if (actor != null) {
                 LogContext.putUserId(actor.id());

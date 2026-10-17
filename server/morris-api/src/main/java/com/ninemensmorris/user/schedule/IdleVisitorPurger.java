@@ -11,9 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 // 오래된 비로그인 계정 정리
 //
-// 보존 기간은 토큰 수명보다 충분히 길어야 한다
-// 토큰이 살아 있는 계정을 지우면 게임 도중에 신원이 사라져 연결이 끊긴다
-// 지금은 토큰 7일 / 보존 30일이라 지워지는 행의 토큰은 이미 만료된 지 오래다
+// 보존 기간은 토큰 수명보다 충분히 길어야 함
+// 토큰이 살아 있는 계정을 지우면 게임 도중에 신원이 사라져 연결이 끊김
+// 지금은 토큰 7일 / 보존 30일이라 지워지는 행의 토큰은 이미 만료된 지 오래됨
 @Component
 @RequiredArgsConstructor
 @Slf4j

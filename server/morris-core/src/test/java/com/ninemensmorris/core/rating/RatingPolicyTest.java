@@ -38,7 +38,7 @@ class RatingPolicyTest {
         @Test
         @DisplayName("감쇠해도 부호는 유지된다")
         void 감쇠해도_부호는_유지된다() {
-            // when — 1 * 0.25 는 반올림하면 0 이 되지만 승패가 사라지면 안 된다
+            // when — 1 * 0.25 는 반올림하면 0 이 되지만 승패가 사라지면 안 됨
             int gained = RatingPolicy.applyFactor(1, 0.25);
             int lost = RatingPolicy.applyFactor(-1, 0.25);
 
@@ -70,7 +70,7 @@ class RatingPolicyTest {
         @Test
         @DisplayName("너무 일찍 끝난 판은 반영하지 않는다")
         void 조기_종료는_반영하지_않는다() {
-            // then — 붙자마자 기권을 반복하는 파밍을 막는다
+            // then — 붙자마자 기권을 반복하는 파밍을 막음
             assertThat(RatingPolicy.isRated(0)).isFalse();
             assertThat(RatingPolicy.isRated(RatingPolicy.MIN_RATED_MOVES - 1)).isFalse();
         }

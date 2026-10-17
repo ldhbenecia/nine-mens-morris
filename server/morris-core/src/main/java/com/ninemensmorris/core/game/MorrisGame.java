@@ -184,7 +184,7 @@ public final class MorrisGame {
 
     // 밀을 만든 직후 상대 돌 하나를 제거
     // 밀에 속한 상대 돌은 보호되지만, 상대 돌이 전부 밀에 속해 있으면 그마저 제거할 수 있음
-    // 이 예외가 없으면 제거할 대상이 하나도 없어 게임이 멈춘다
+    // 이 예외가 없으면 제거할 대상이 하나도 없어 게임이 멈춤
     private MoveResult remove(Stone actor, int at) {
         if (actor != currentTurn) {
             return reject(RejectReason.NOT_YOUR_TURN);
@@ -241,7 +241,7 @@ public final class MorrisGame {
     }
 
     // 돌이 자리를 잡은 직후 공통 처리
-    // 밀이 생겼으면 턴을 넘기지 않고 제거 권한만 준다
+    // 밀이 생겼으면 턴을 넘기지 않고 제거 권한만 줌
     private MoveResult afterStoneLanded(int to) {
         drawOfferedBy = null;
         if (board.isInMill(to)) {
@@ -252,7 +252,7 @@ public final class MorrisGame {
     }
 
     // 턴을 넘기고 종료 조건을 확인
-    // 판정 대상은 "다음에 둘 사람"이다. 둘 수가 없으면 그 사람이 진다
+    // 판정 대상은 "다음에 둘 사람"임. 둘 수가 없으면 그 사람이 짐
     private MoveResult endTurn(boolean removalHappened) {
         totalMoves++;
         movesSinceRemoval = removalHappened ? 0 : movesSinceRemoval + 1;
@@ -280,7 +280,7 @@ public final class MorrisGame {
     }
 
     // 패배 조건은 두 가지 — 돌이 2개 이하이거나 둘 수가 없거나
-    // 손에 돌이 남아 있으면 놓으면 되므로 배치 단계에서는 패배하지 않는다
+    // 손에 돌이 남아 있으면 놓으면 되므로 배치 단계에서는 패배하지 않음
     private boolean isDefeated(Stone stone) {
         if (inHand.get(stone) > 0) {
             return false;
@@ -314,15 +314,15 @@ public final class MorrisGame {
         return new MoveResult.Rejected(reason);
     }
 
-    // 같은 국면이 몇 번째로 나타났는지 센다
-    // 손에 든 돌 수까지 키에 넣어야 배치 단계와 이동 단계의 같은 배치를 구분한다
+    // 같은 국면이 몇 번째로 나타났는지 셈
+    // 손에 든 돌 수까지 키에 넣어야 배치 단계와 이동 단계의 같은 배치를 구분함
     private int recordPosition() {
         String key =
                 "%s|%s|%d|%d".formatted(board.render(), currentTurn, inHand.get(Stone.BLACK), inHand.get(Stone.WHITE));
         return seenPositions.merge(key, 1, Integer::sum);
     }
 
-    // 단계는 상태가 아니라 손에 든 돌과 판 위의 돌 수에서 계산된다
+    // 단계는 상태가 아니라 손에 든 돌과 판 위의 돌 수에서 계산됨
     public Phase phaseOf(Stone stone) {
         if (inHand.get(stone) > 0) {
             return Phase.PLACING;
@@ -330,7 +330,7 @@ public final class MorrisGame {
         return board.count(stone) == FLYING_STONES ? Phase.FLYING : Phase.MOVING;
     }
 
-    // 밖에서 판을 고칠 수 없도록 복사본을 준다
+    // 밖에서 판을 고칠 수 없도록 복사본을 줌
     public Board board() {
         return board.copy();
     }

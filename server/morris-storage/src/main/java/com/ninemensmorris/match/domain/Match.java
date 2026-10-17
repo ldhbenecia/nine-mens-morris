@@ -39,8 +39,8 @@ public class Match {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 외래키는 DB 에 걸지 않는다. 참조 무결성은 애플리케이션에서 지킴
-    // 명시해 두지 않으면 누가 ddl-auto 를 켰을 때 제약이 생겨 스키마가 갈라진다
+    // 외래키는 DB 에 걸지 않음. 참조 무결성은 애플리케이션에서 지킴
+    // 명시해 두지 않으면 누가 ddl-auto 를 켰을 때 제약이 생겨 스키마가 갈라짐
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "black_id", nullable = false, foreignKey = @ForeignKey(NO_CONSTRAINT))
     private User black;

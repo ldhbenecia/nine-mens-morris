@@ -30,8 +30,8 @@ export const useLogout = () => {
   return { mutate };
 };
 
-// 로그인을 거치지 않고 바로 시작한다
-// 발급이 잦으면 서버가 429 로 막으므로 실패 문구를 보여줄 수 있어야 한다
+// 로그인을 거치지 않고 바로 시작함
+// 발급이 잦으면 서버가 429 로 막으므로 실패 문구를 보여줄 수 있어야 함
 export const useStartAsVisitor = (onFailure?: OnFailure) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ export const useStartAsVisitor = (onFailure?: OnFailure) => {
     mutationFn: createVisitor,
     onSuccess: ({ accessToken }) => {
       setToken(accessToken);
-      // 신원이 바뀌었으므로 이전 신원으로 받아둔 응답은 버린다
+      // 신원이 바뀌었으므로 이전 신원으로 받아둔 응답은 버림
       queryClient.clear();
       navigate('/rooms');
     },
@@ -74,7 +74,7 @@ export const useJoinRoom = (onFailure?: OnFailure) => {
       queryClient.invalidateQueries({ queryKey: QUERY.ROOMS.queryKey });
       navigate(`/game/${roomId}`);
     },
-    // 방이 가득 찼거나 사라진 경우. 목록도 갱신해 같은 방을 또 누르지 않게 한다
+    // 방이 가득 찼거나 사라진 경우. 목록도 갱신해 같은 방을 또 누르지 않게 함
     onError: (error) => {
       queryClient.invalidateQueries({ queryKey: QUERY.ROOMS.queryKey });
       onFailure?.(errorMessageOf(error));

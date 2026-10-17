@@ -11,11 +11,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 
-// 관측 엔드포인트는 설정으로만 생기므로 요청을 보내 봐야 살아 있는지 알 수 있다
-// 인가 기본값이 denyAll 이라 열어두는 것을 빠뜨리면 프로브가 401 을 받고 파드가 재시작을 반복한다
+// 관측 엔드포인트는 설정으로만 생기므로 요청을 보내 봐야 살아 있는지 알 수 있음
+// 인가 기본값이 denyAll 이라 열어두는 것을 빠뜨리면 프로브가 401 을 받고 파드가 재시작을 반복함
 //
-// Spring Boot Test 는 테스트에서 simple 외의 메트릭 익스포터를 전부 끈다
-// 그래서 prometheus 만 다시 켜 준다. 운영 설정과는 무관함
+// Spring Boot Test 는 테스트에서 simple 외의 메트릭 익스포터를 전부 끔
+// 그래서 prometheus 만 다시 켜 줌. 운영 설정과는 무관함
 @TestPropertySource(properties = "management.prometheus.metrics.export.enabled=true")
 class ObservabilityEndpointTest extends IntegrationTestSupport {
 
@@ -27,7 +27,7 @@ class ObservabilityEndpointTest extends IntegrationTestSupport {
     @Test
     @DisplayName("프로브 두 개가 인증 없이 열려 있다")
     void 프로브가_열려있다() {
-        // then — 토큰 없이 200 이어야 한다. kubelet 은 토큰을 들고 오지 않는다
+        // then — 토큰 없이 200 이어야 함. kubelet 은 토큰을 들고 오지 않음
         assertThat(get("/actuator/health/liveness").getStatusCode().value()).isEqualTo(200);
         assertThat(get("/actuator/health/readiness").getStatusCode().value()).isEqualTo(200);
     }
@@ -35,9 +35,9 @@ class ObservabilityEndpointTest extends IntegrationTestSupport {
     @Test
     @DisplayName("readiness 에는 DB 와 게임 세션이 들어가고 liveness 에는 들어가지 않는다")
     void readiness_에만_외부_의존성이_들어간다() {
-        // given — show-details 가 never 라 본문으로는 구성요소를 알 수 없다
-        // 대신 DB 가 살아 있는 지금 둘 다 UP 인지로 그룹 구성이 유효한지 확인한다
-        // 그룹에 없는 이름을 넣었다면 기동 자체가 실패하므로 이 테스트가 그것도 잡는다
+        // given — show-details 가 never 라 본문으로는 구성요소를 알 수 없음
+        // 대신 DB 가 살아 있는 지금 둘 다 UP 인지로 그룹 구성이 유효한지 확인함
+        // 그룹에 없는 이름을 넣었다면 기동 자체가 실패하므로 이 테스트가 그것도 잡음
         ResponseEntity<String> liveness = get("/actuator/health/liveness");
         ResponseEntity<String> readiness = get("/actuator/health/readiness");
 
@@ -52,12 +52,12 @@ class ObservabilityEndpointTest extends IntegrationTestSupport {
         // when
         ResponseEntity<String> response = get("/actuator/prometheus");
 
-        // then — 이름이 바뀌면 대시보드와 알림이 조용히 빈 그래프가 된다
+        // then — 이름이 바뀌면 대시보드와 알림이 조용히 빈 그래프가 됨
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         String body = response.getBody();
         assertThat(body).contains("morris_rooms_active");
         assertThat(body).contains("morris_sockets_open");
-        // 공통 태그가 안 붙으면 여러 환경의 메트릭을 구분할 수 없다
+        // 공통 태그가 안 붙으면 여러 환경의 메트릭을 구분할 수 없음
         assertThat(body).contains("application=\"nine-mens-morris\"");
         assertThat(body).contains("environment=");
     }

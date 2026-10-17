@@ -61,8 +61,8 @@ public class JwtProvider {
         return generateToken(userId, ROLE_USER, accessTokenExpirationPeriod);
     }
 
-    // 비로그인 사용자는 토큰을 잃으면 그 신원으로 돌아올 방법이 없다
-    // 짧게 잡으면 게임 도중 만료되고, 탈취돼도 전적도 레이팅도 없어 잃을 것이 없으므로 길게 둔다
+    // 비로그인 사용자는 토큰을 잃으면 그 신원으로 돌아올 방법이 없음
+    // 짧게 잡으면 게임 도중 만료되고, 탈취돼도 전적도 레이팅도 없어 잃을 것이 없으므로 길게 둠
     public String generateVisitorToken(Long userId) {
         return generateToken(userId, ROLE_VISITOR, visitorTokenExpirationPeriod);
     }

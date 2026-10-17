@@ -59,7 +59,7 @@ class StompLogContextInterceptorTest {
     @Test
     @DisplayName("처리가 끝나면 지운다")
     void 처리_후_지운다() {
-        // given — 스레드가 재사용되므로 남으면 다음 메시지에 남의 값이 붙는다
+        // given — 스레드가 재사용되므로 남으면 다음 메시지에 남의 값이 붙음
         Message<byte[]> message = frame("/app/rooms/42/place", 7L);
         interceptor.beforeHandle(message, null, null);
 

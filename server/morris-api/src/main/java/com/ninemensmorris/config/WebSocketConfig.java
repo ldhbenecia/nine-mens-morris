@@ -57,7 +57,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setUserDestinationPrefix("/user");
     }
 
-    // 인증·인가를 먼저 걸고 그 결과(주체)를 로그 컨텍스트가 읽는다
+    // 인증·인가를 먼저 걸고 그 결과(주체)를 로그 컨텍스트가 읽음
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(clientFrameGuard, logContextInterceptor);

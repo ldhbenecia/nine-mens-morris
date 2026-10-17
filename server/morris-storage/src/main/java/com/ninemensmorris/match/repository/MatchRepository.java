@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface MatchRepository extends JpaRepository<Match, Long> {
 
-    // 같은 두 사람이 최근에 몇 판을 뒀는지. 반복 대전 감쇠 판단에 쓴다
+    // 같은 두 사람이 최근에 몇 판을 뒀는지. 반복 대전 감쇠 판단에 씀
     @Query(
             """
             select count(m) from Match m

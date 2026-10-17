@@ -27,7 +27,7 @@ export type User = {
   wins: number;
   losses: number;
   draws: number;
-  // 비로그인 사용자는 랭킹에 오르지 않으므로 등수가 없다
+  // 비로그인 사용자는 랭킹에 오르지 않으므로 등수가 없음
   rank: number | null;
   visitor: boolean;
 };
@@ -66,7 +66,7 @@ export type PointType = {
   stone: StoneType;
 };
 
-// 배치 / 인접 이동 / 자유 이동. 서버가 손에 든 돌과 판 위의 돌 수로 계산해서 내려준다
+// 배치 / 인접 이동 / 자유 이동. 서버가 손에 든 돌과 판 위의 돌 수로 계산해서 내려줌
 export type Phase = 'PLACING' | 'MOVING' | 'FLYING';
 
 export type GameStatus = 'WAITING' | 'PLAYING' | 'FINISHED';
@@ -81,8 +81,8 @@ export type EndReason =
   | 'ABANDONED'
   | 'TIMEOUT';
 
-// 서버가 흑/백 기준으로 내려준다
-// 방장이 항상 흑이라는 전제가 사라져서 host/guest 로는 표현할 수 없다
+// 서버가 흑/백 기준으로 내려줌
+// 방장이 항상 흑인 것은 아니라서 host/guest 로는 표현할 수 없음
 export type GameState = {
   board: StoneType[];
   blackId: number;
@@ -131,14 +131,14 @@ export type RoomEventType =
   | 'SNAPSHOT'
   | 'OPPONENT_DISCONNECTED';
 
-// 방 토픽 하나로 흐르는 이벤트. 예전처럼 토픽이 둘로 나뉘어 있지 않다
+// 방 토픽 하나로 흐르는 이벤트. 토픽을 나누지 않음
 export type RoomEvent = {
   type: RoomEventType;
   state: GameState | null;
   actorId: number | null;
 };
 
-// 규칙 위반 거절. 방이 아니라 요청자에게만 온다
+// 규칙 위반 거절. 방이 아니라 요청자에게만 옴
 export type MoveRejected = {
   code: string;
   message: string;

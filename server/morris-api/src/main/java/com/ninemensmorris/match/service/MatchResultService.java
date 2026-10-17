@@ -41,9 +41,9 @@ public class MatchResultService {
             return;
         }
 
-        // 비로그인 계정은 얼마든지 새로 만들 수 있다
+        // 비로그인 계정은 얼마든지 새로 만들 수 있음
         // 레이팅만 막고 전적을 남기면 배치 판수를 공짜로 채워 티어를 받을 수 있으므로
-        // 그런 판은 아예 기록하지 않는다. 양쪽 다 잃는 것이 없어야 몰아주기 유인이 생기지 않는다
+        // 그런 판은 아예 기록하지 않음. 양쪽 다 잃는 것이 없어야 몰아주기 유인이 생기지 않음
         if (black.isVisitor() || white.isVisitor()) {
             log.info("비로그인 계정이 낀 판이라 기록하지 않음 black={} white={} 사유={} 수={}", blackId, whiteId, endReason, moveCount);
             return;

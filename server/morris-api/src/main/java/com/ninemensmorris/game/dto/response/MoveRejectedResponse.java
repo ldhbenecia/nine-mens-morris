@@ -3,14 +3,14 @@ package com.ninemensmorris.game.dto.response;
 import com.ninemensmorris.core.move.RejectReason;
 
 // 규칙 위반으로 거절됐을 때 요청자에게만 보냄
-// 브로드캐스트하면 상대에게 내 실수가 보인다
+// 브로드캐스트하면 상대에게 내 실수가 보임
 public record MoveRejectedResponse(String code, String message) {
 
     public static MoveRejectedResponse of(RejectReason reason) {
         return new MoveRejectedResponse(reason.name(), messageOf(reason));
     }
 
-    // 사용자에게 보이는 문구. "밀" 은 전달되지 않는 용어라 "3연속" 으로 쓴다
+    // 사용자에게 보이는 문구. "밀" 은 전달되지 않는 용어라 "3연속" 으로 씀
     private static String messageOf(RejectReason reason) {
         return switch (reason) {
             case GAME_NOT_IN_PROGRESS -> "이미 끝난 게임입니다.";

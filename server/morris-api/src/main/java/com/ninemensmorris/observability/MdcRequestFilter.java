@@ -11,9 +11,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-// HTTP 요청에 traceId 를 붙인다. userId 는 인증이 끝나는 JwtAuthenticationFilter 에서 이어 넣는다
+// HTTP 요청에 traceId 를 붙임. userId 는 인증이 끝나는 JwtAuthenticationFilter 에서 이어 넣음
 //
-// 보안 필터 체인(-100)보다 앞이어야 한다. 뒤면 401 을 만드는 시점에 MDC 가 비어 있다
+// 보안 필터 체인(-100)보다 앞이어야 함. 뒤면 401 을 만드는 시점에 MDC 가 비어 있음
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class MdcRequestFilter extends OncePerRequestFilter {
@@ -30,7 +30,7 @@ public class MdcRequestFilter extends OncePerRequestFilter {
         }
     }
 
-    // 프로브는 10초마다 들어오는데 묶을 로그가 없다
+    // 프로브는 10초마다 들어오는데 묶을 로그가 없음
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         return request.getRequestURI().startsWith("/actuator");

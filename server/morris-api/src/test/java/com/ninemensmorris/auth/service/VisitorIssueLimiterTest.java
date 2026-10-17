@@ -88,7 +88,7 @@ class VisitorIssueLimiterTest extends IntegrationTestSupport {
     @Test
     @DisplayName("창의 경계를 넘어도 최근 1분 안의 발급이 한도면 거절한다")
     void 경계_직후에도_막는다() {
-        // given — 1분 창의 끝자락에 한도를 채운다
+        // given — 1분 창의 끝자락에 한도를 채움
         clock.move(Duration.ofSeconds(59));
         발급(5);
 
@@ -118,7 +118,7 @@ class VisitorIssueLimiterTest extends IntegrationTestSupport {
         // when
         limiter.check(IP);
 
-        // then — 메모리 카운터 때는 1분마다 정리 배치를 돌려야 했음
+        // then — 만료가 없으면 들른 IP 를 지우는 정리 배치가 따로 필요함
         Long ttl = redis.getExpire("limit:visitor:" + IP);
         assertThat(ttl).isPositive().isLessThanOrEqualTo(60);
     }

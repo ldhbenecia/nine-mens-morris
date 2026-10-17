@@ -16,15 +16,15 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-// 식별자는 서비스가 발급하고 인증 수단은 속성으로 둔다
+// 식별자는 서비스가 발급하고 인증 수단은 속성으로 둠
 // 카카오 회원번호를 기본키로 쓰면 회원번호가 없는 비로그인 사용자를 만들 수 없음
 //
 // (provider, provider_id) 유니크는 같은 카카오 계정이 두 행이 되는 것을 막음
 // 비로그인 사용자는 provider_id 가 null 인데 MySQL 은 유니크 인덱스에서 null 을
 // 서로 다른 값으로 보므로 그 행은 몇 개가 생기든 이 제약에 걸리지 않음
 //
-// 랭킹은 mmr 로 정렬하고 내 등수는 mmr 비교로 세므로 인덱스가 없으면 매번 풀스캔이다
-// /rankings 는 로그인 없이도 열리는 엔드포인트라 더 그렇다
+// 랭킹은 mmr 로 정렬하고 내 등수는 mmr 비교로 세므로 인덱스가 없으면 매번 풀스캔임
+// /rankings 는 로그인 없이도 열리는 엔드포인트라 아무나 반복 호출할 수 있어 더 중요함
 @Entity
 @Table(
         name = "users",
@@ -96,7 +96,7 @@ public class User {
         return new User(Provider.KAKAO, providerId, nickname, imageUrl, ROLE_USER);
     }
 
-    // 로그인하지 않은 사용자. 닉네임은 서버가 정하고 프로필 이미지는 없다
+    // 로그인하지 않은 사용자. 닉네임은 서버가 정하고 프로필 이미지는 없음
     public static User visitor(String nickname) {
         return new User(Provider.VISITOR, null, nickname, null, ROLE_VISITOR);
     }
@@ -109,8 +109,8 @@ public class User {
         return wins + losses + draws;
     }
 
-    // 세터 대신 의도가 드러나는 메서드로만 바꾼다
-    // 하한과 최고 기록 갱신을 엔티티가 보장해야 호출부마다 빠뜨리지 않는다
+    // 세터 대신 의도가 드러나는 메서드로만 바꿈
+    // 하한과 최고 기록 갱신을 엔티티가 보장해야 호출부마다 빠뜨리지 않음
     public void applyMatchResult(int mmrDelta, MatchOutcome outcome) {
         this.mmr = Rating.applyFloor(this.mmr + mmrDelta);
         this.peakMmr = Math.max(this.peakMmr, this.mmr);

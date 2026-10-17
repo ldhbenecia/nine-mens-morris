@@ -35,13 +35,13 @@ class MatchResultServiceTest extends IntegrationTestSupport {
     @Autowired
     private MatchRepository matchRepository;
 
-    // 식별자를 DB 가 발급하므로 저장한 뒤에야 알 수 있다
+    // 식별자를 DB 가 발급하므로 저장한 뒤에야 알 수 있음
     private long blackId;
     private long whiteId;
 
     @BeforeEach
     void setUp() {
-        // matches 가 users 를 참조하므로 먼저 지운다
+        // matches 가 users 를 참조하므로 먼저 지움
         matchRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
         List<User> saved =
@@ -102,12 +102,12 @@ class MatchResultServiceTest extends IntegrationTestSupport {
         @Test
         @DisplayName("최고 MMR 은 올랐을 때만 갱신되고 떨어져도 남는다")
         void 최고_기록은_남는다() {
-            // given — 흑이 이겨서 최고 기록을 세운다
+            // given — 흑이 이겨서 최고 기록을 세움
             matchResultService.record(blackId, whiteId, blackId, "RESIGN", RATED_MOVES);
             int peak = reload(blackId).getPeakMmr();
             assertThat(peak).isEqualTo(reload(blackId).getMmr());
 
-            // when — 이번엔 진다
+            // when — 이번엔 짐
             matchResultService.record(blackId, whiteId, whiteId, "RESIGN", RATED_MOVES);
 
             // then
@@ -141,7 +141,7 @@ class MatchResultServiceTest extends IntegrationTestSupport {
             // when
             matchResultService.record(blackId, whiteId, blackId, "RESIGN", RATED_MOVES - 1);
 
-            // then — 원장에는 남지만 전적은 오르지 않는다. 오르면 즉시 기권 반복으로 배치를 채운다
+            // then — 원장에는 남지만 전적은 오르지 않음. 오르면 즉시 기권 반복으로 배치를 채움
             assertThat(reload(blackId).getMmr()).isEqualTo(before);
             assertThat(reload(whiteId).getMmr()).isEqualTo(before);
             assertThat(reload(blackId).gamesPlayed()).isZero();
@@ -173,7 +173,7 @@ class MatchResultServiceTest extends IntegrationTestSupport {
         @Test
         @DisplayName("배치 중인 사람과 고참이 붙어도 변동 합이 0 이다")
         void 판수가_달라도_제로섬이다() {
-            // given — 백만 배치를 끝낸 상태로 만든다. K 가 각자 다르게 골라지던 조합
+            // given — 백만 배치를 끝낸 상태로 만듦. K 가 각자 다르게 골라지던 조합
             for (int i = 0; i < Rating.PLACEMENT_GAMES; i++) {
                 matchResultService.record(whiteId, 상대("8100" + i, "배치상대" + i), whiteId, "RESIGN", RATED_MOVES);
             }
@@ -184,7 +184,7 @@ class MatchResultServiceTest extends IntegrationTestSupport {
             // when
             matchResultService.record(blackId, whiteId, blackId, "RESIGN", RATED_MOVES);
 
-            // then — 한쪽이 얻은 만큼 다른 쪽이 잃어야 사다리 전체에 점수가 새로 생기지 않는다
+            // then — 한쪽이 얻은 만큼 다른 쪽이 잃어야 사다리 전체에 점수가 새로 생기지 않음
             assertThat((long) reload(blackId).getMmr() + reload(whiteId).getMmr())
                     .isEqualTo(totalBefore);
         }
@@ -217,14 +217,14 @@ class MatchResultServiceTest extends IntegrationTestSupport {
         @Test
         @DisplayName("비로그인 계정이 끼면 MMR 도 전적도 원장도 남지 않는다")
         void 비로그인_계정이_끼면_기록하지_않는다() {
-            // given — 새 계정을 찍어내 본계정에 점수를 몰아줄 수 있으면 안 된다
+            // given — 새 계정을 찍어내 본계정에 점수를 몰아줄 수 있으면 안 됨
             long visitorId = userRepository.save(User.visitor("게스트1234")).getUserId();
             int before = reload(blackId).getMmr();
 
-            // when — 랭크전 조건을 충족하는 길이로 끝낸다
+            // when — 랭크전 조건을 충족하는 길이로 끝냄
             matchResultService.record(blackId, visitorId, blackId, "RESIGN", RATED_MOVES);
 
-            // then — 이긴 쪽도 얻는 것이 없어야 몰아주기 유인이 사라진다
+            // then — 이긴 쪽도 얻는 것이 없어야 몰아주기 유인이 사라짐
             User black = reload(blackId);
             assertThat(black.getMmr()).isEqualTo(before);
             assertThat(black.getWins()).isZero();
@@ -243,7 +243,7 @@ class MatchResultServiceTest extends IntegrationTestSupport {
             matchResultService.record(blackId, whiteId, blackId, "RESIGN", RATED_MOVES);
             int placementDelta = matchRepository.findAll().get(0).getBlackMmrDelta();
 
-            // when — 배치 판수를 다 채운다. 상대를 바꿔 반복 대전 감쇠를 피함
+            // when — 배치 판수를 다 채움. 상대를 바꿔 반복 대전 감쇠를 피함
             for (int i = 0; i < Rating.PLACEMENT_GAMES; i++) {
                 long opponent = 상대("9100" + i, "상대" + i);
                 matchResultService.record(blackId, opponent, blackId, "RESIGN", RATED_MOVES);

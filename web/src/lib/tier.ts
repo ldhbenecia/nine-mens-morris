@@ -1,6 +1,6 @@
 import { Tier } from '~/lib/types';
 
-// 서버는 등급을 영어로 내려준다. 화면 표기는 여기서 매핑한다
+// 서버는 등급을 영어로 내려줌. 화면 표기는 여기서 매핑함
 export const TIER_LABEL: Record<Tier, string> = {
   UNRANKED: '언랭크',
   BRONZE: '브론즈',

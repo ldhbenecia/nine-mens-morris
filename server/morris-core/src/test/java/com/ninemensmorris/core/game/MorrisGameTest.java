@@ -15,7 +15,7 @@ class MorrisGameTest {
 
     private static final int NO_STONES_IN_HAND = 0;
 
-    // 판을 그림으로 주고 배치 단계를 건너뛴 게임을 만든다
+    // 판을 그림으로 주고 배치 단계를 건너뛴 게임을 만듦
     private static MorrisGame midGame(String art, Stone turn) {
         return new MorrisGame(Board.parse(art), turn, NO_STONES_IN_HAND, NO_STONES_IN_HAND);
     }
@@ -188,7 +188,7 @@ class MorrisGameTest {
         @Test
         @DisplayName("밀에 속한 상대 돌은 제거할 수 없다")
         void 밀에_속한_돌은_보호된다() {
-            // given — 백은 21,22,23 밀과 밀 밖의 돌 9 를 갖고 있다
+            // given — 백은 21,22,23 밀과 밀 밖의 돌 9 를 갖고 있음
             MorrisGame game = midGame(
                     """
                     B  B  .
@@ -200,7 +200,7 @@ class MorrisGameTest {
                     W  W  W
                     """,
                     Stone.BLACK);
-            // 흑이 14 -> 2 로 옮겨 0,1,2 밀을 만든다
+            // 흑이 14 -> 2 로 옮겨 0,1,2 밀을 만듦
             assertThat(game.apply(Stone.BLACK, new Move.Slide(14, 2))).isInstanceOf(MoveResult.MillFormed.class);
 
             // when
@@ -226,7 +226,7 @@ class MorrisGameTest {
                     W  W  W
                     """,
                     Stone.BLACK);
-            // 흑이 14 -> 2 로 옮겨 0,1,2 밀을 만든다
+            // 흑이 14 -> 2 로 옮겨 0,1,2 밀을 만듦
             assertThat(game.apply(Stone.BLACK, new Move.Slide(14, 2))).isInstanceOf(MoveResult.MillFormed.class);
 
             // when
@@ -241,7 +241,7 @@ class MorrisGameTest {
         @Test
         @DisplayName("상대 돌이 전부 밀에 속하면 밀 속 돌도 제거할 수 있다")
         void 전부_밀이면_밀_속_돌도_제거된다() {
-            // given — 백의 6개가 21,22,23 과 15,16,17 두 밀에 전부 들어 있다
+            // given — 백의 6개가 21,22,23 과 15,16,17 두 밀에 전부 들어 있음
             MorrisGame game = midGame(
                     """
                     B  B  .
@@ -395,7 +395,7 @@ class MorrisGameTest {
         @Test
         @DisplayName("돌이 2개가 되면 패배한다")
         void 두개가_되면_패배한다() {
-            // given — 흑 3개(0,3,6) / 백 3개(14,21,22). 백이 14->23 으로 밀을 만든다
+            // given — 흑 3개(0,3,6) / 백 3개(14,21,22). 백이 14->23 으로 밀을 만듦
             MorrisGame game = midGame(
                     """
                     B  .  .
@@ -423,7 +423,7 @@ class MorrisGameTest {
         @Test
         @DisplayName("둘 수가 없으면 패배한다")
         void 이동할_수_없으면_패배한다() {
-            // given — 흑 0,2,14,23 이 백 1,9,13,22 에 완전히 막혀 있다. 백은 3 을 움직일 수 있다
+            // given — 흑 0,2,14,23 이 백 1,9,13,22 에 완전히 막혀 있음. 백은 3 을 움직일 수 있음
             MorrisGame game = midGame(
                     """
                     B  W  B
@@ -448,7 +448,7 @@ class MorrisGameTest {
         @Test
         @DisplayName("배치 단계에서는 판 위에서 못 움직여도 패배가 아니다")
         void 배치_단계에는_이동_불가로_패배하지_않는다() {
-            // given — 흑 돌 0 이 백 1,9 에 막혀 있지만 흑은 손에 돌이 남아 있다
+            // given — 흑 돌 0 이 백 1,9 에 막혀 있지만 흑은 손에 돌이 남아 있음
             MorrisGame game = new MorrisGame(
                     Board.parse(
                             """
@@ -515,7 +515,7 @@ class MorrisGameTest {
             // when
             MoveResult result = game.apply(Stone.BLACK, new Move.OfferDraw());
 
-            // then — Applied 로 돌려주면 상대에게 제안이 아니라 판 갱신으로 전달된다
+            // then — Applied 로 돌려주면 상대에게 제안이 아니라 판 갱신으로 전달됨
             assertThat(result).isInstanceOf(MoveResult.DrawOffered.class);
             assertThat(game.drawOfferedBy()).isEqualTo(Stone.BLACK);
         }
@@ -530,7 +530,7 @@ class MorrisGameTest {
             // when
             MoveResult result = game.apply(Stone.BLACK, new Move.OfferDraw());
 
-            // then — 같은 제안을 연타하면 상대 화면에 수락 창이 계속 뜬다
+            // then — 같은 제안을 연타하면 상대 화면에 수락 창이 계속 뜸
             assertThat(result).isEqualTo(new MoveResult.Rejected(RejectReason.DRAW_ALREADY_OFFERED));
         }
 
@@ -547,7 +547,7 @@ class MorrisGameTest {
             // when
             MoveResult result = game.apply(Stone.BLACK, new Move.OfferDraw());
 
-            // then — 상대는 여전히 제안할 수 있다
+            // then — 상대는 여전히 제안할 수 있음
             assertThat(result).isEqualTo(new MoveResult.Rejected(RejectReason.DRAW_OFFER_LIMIT));
             assertThat(game.apply(Stone.WHITE, new Move.OfferDraw())).isInstanceOf(MoveResult.DrawOffered.class);
         }
@@ -644,7 +644,7 @@ class MorrisGameTest {
         @Test
         @DisplayName("같은 국면이 3번 반복되면 무승부다")
         void 삼회_반복이면_무승부다() {
-            // given — 양쪽 3개씩이라 FLYING. 서로 왕복만 한다
+            // given — 양쪽 3개씩이라 FLYING. 서로 왕복만 함
             MorrisGame game = midGame(
                     """
                     B  .  .
@@ -657,7 +657,7 @@ class MorrisGameTest {
                     """,
                     Stone.BLACK);
 
-            // when — 한 번 왕복하면 최초 국면으로 돌아온다
+            // when — 한 번 왕복하면 최초 국면으로 돌아옴
             MoveResult result = null;
             for (int cycle = 0; cycle < 2; cycle++) {
                 game.apply(Stone.BLACK, new Move.Slide(0, 1));

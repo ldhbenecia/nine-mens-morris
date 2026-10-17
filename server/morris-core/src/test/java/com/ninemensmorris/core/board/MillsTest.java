@@ -91,7 +91,7 @@ class MillsTest {
         Mills.containing(0)[0][0] = 99;
         Mills.all()[0][0] = 99;
 
-        // then — 원본이 바뀌면 모든 게임의 밀 판정이 함께 틀어진다
+        // then — 원본이 바뀌면 모든 게임의 밀 판정이 함께 틀어짐
         assertThat(Mills.containing(0)[0][0]).isEqualTo(original);
         assertThat(Mills.all()[0][0]).isEqualTo(original);
     }

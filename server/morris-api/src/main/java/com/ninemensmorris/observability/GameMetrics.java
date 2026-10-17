@@ -9,7 +9,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import org.springframework.stereotype.Component;
 
-// 게임 도메인 메트릭. JVM·HikariCP 는 Actuator 가 알아서 준다
+// 게임 도메인 메트릭. JVM·HikariCP 는 Actuator 가 알아서 줌
 // 개별 착수는 계측하지 않음. 규칙 계산은 짧고 지연은 대부분 Redis 왕복이라 착수별 값으로 얻을 게 없고 수만 늘어남
 @Component
 public class GameMetrics {
@@ -22,7 +22,7 @@ public class GameMetrics {
 
     private static final String GAMES_FINISHED = "morris.games.finished";
 
-    // 오르면 프론트와 서버의 규칙이 어긋났거나 조작 시도다. 알림을 걸 대상
+    // 오르면 프론트와 서버의 규칙이 어긋났거나 조작 시도임. 알림을 걸 대상
     private static final String MOVES_REJECTED = "morris.moves.rejected";
 
     // 방 생성부터 판 시작까지. 이 서비스의 매칭 대기 시간
@@ -35,7 +35,7 @@ public class GameMetrics {
     public GameMetrics(MeterRegistry registry, RoomRegistry rooms, SessionTracker sessions) {
         this.registry = registry;
 
-        // 증감을 직접 추적하면 누락된 감소 하나가 영원히 틀린 값을 만든다. 수집 시점에 읽어 간다
+        // 증감을 직접 추적하면 누락된 감소 하나가 영원히 틀린 값을 만듦. 수집 시점에 읽어 감
         Gauge.builder(ROOMS_ACTIVE, rooms, RoomRegistry::size).register(registry);
         Gauge.builder(SOCKETS_OPEN, sessions, SessionTracker::openSessions).register(registry);
     }

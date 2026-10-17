@@ -17,7 +17,7 @@ public record RoomDetailResponse(
         FirstMoveRule firstMoveRule,
         boolean playing,
         boolean hasGame, // 끝난 판도 true. playing 만 보면 종료된 판 새로고침 때 대기실이 뜸
-        boolean rated) { // 랭크전 여부. 비로그인 사용자가 들어오는 순간 꺼진다
+        boolean rated) { // 랭크전 여부. 비로그인 사용자가 들어오는 순간 꺼짐
 
     public static RoomDetailResponse of(Room room, String hostNickname, String guestNickname, boolean rated) {
         return new RoomDetailResponse(

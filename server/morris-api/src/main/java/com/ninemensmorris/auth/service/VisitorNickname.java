@@ -3,10 +3,10 @@ package com.ninemensmorris.auth.service;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-// 비로그인 사용자의 닉네임을 서버가 정한다
-// 직접 짓게 하면 그 입력창이 다시 진입 장벽이 된다. 로그인을 없애는 의미가 사라짐
+// 비로그인 사용자의 닉네임을 서버가 정함
+// 직접 짓게 하면 그 입력창이 다시 진입 장벽이 됨. 로그인을 없애는 의미가 사라짐
 //
-// nickname 에 유니크 제약이 없으므로 충돌해도 저장은 성공한다
+// nickname 에 유니크 제약이 없으므로 충돌해도 저장은 성공함
 // 뒤에 붙는 네 자리는 같은 이름이 화면에 겹쳐 보이는 것을 줄이려는 것일 뿐 유일성 보장이 아님
 final class VisitorNickname {
 

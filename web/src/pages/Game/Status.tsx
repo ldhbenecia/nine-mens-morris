@@ -8,7 +8,7 @@ import { TIER_LABEL } from '~/lib/tier';
 type StatusProps = {
   isCurrentUser?: boolean;
   turn: boolean;
-  // 시작 전에는 흑백이 정해지지 않아 EMPTY 가 온다
+  // 시작 전에는 흑백이 정해지지 않아 EMPTY 가 옴
   color: StoneType;
   inHand: number;
   onBoard: number;

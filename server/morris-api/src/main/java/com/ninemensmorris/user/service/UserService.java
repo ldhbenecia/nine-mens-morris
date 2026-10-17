@@ -25,7 +25,7 @@ public class UserService {
     // STOMP 스레드에서는 비어 있고 비인증이면 "anonymousUser" 가 나와 500 이 됨
     public MyProfileResponse findMe(long userId) {
         User user = find(userId);
-        // 비로그인 계정은 랭킹에 없으므로 등수도 없다
+        // 비로그인 계정은 랭킹에 없으므로 등수도 없음
         Integer rank = user.isVisitor() ? null : userRepository.findRankByMmr(user.getMmr());
         return MyProfileResponse.of(user, rank);
     }
@@ -34,8 +34,8 @@ public class UserService {
         return UserProfileResponse.of(find(userId));
     }
 
-    // 동점자는 같은 등수를 받고 다음 사람은 인원수만큼 건너뛴다
-    // 목록 인덱스를 그대로 등수로 쓰면 findRankByMmr 이 계산한 내 등수와 어긋난다
+    // 동점자는 같은 등수를 받고 다음 사람은 인원수만큼 건너뜀
+    // 목록 인덱스를 그대로 등수로 쓰면 findRankByMmr 이 계산한 내 등수와 어긋남
     public List<RankingResponse> findRankings(int limit) {
         List<User> top = userRepository.findRanked(PageRequest.of(0, limit));
 

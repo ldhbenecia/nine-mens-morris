@@ -41,7 +41,7 @@ export function RoomListPage() {
   }, [refetch]);
 
   // 목록에 있는지 먼저 보는 것은 빠른 피드백용일 뿐이고
-  // 가득 찼는지 같은 판단은 서버가 한다. 실패하면 서버 문구를 그대로 띄운다
+  // 가득 찼는지 같은 판단은 서버가 함. 실패하면 서버 문구를 그대로 띄움
   const onJoinRoom = async (roomId: number) => {
     const { data: currentRooms } = await refetch();
     if (!currentRooms?.find((room) => room.roomId === roomId)) {

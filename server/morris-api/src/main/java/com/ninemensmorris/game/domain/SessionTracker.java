@@ -42,8 +42,8 @@ public class SessionTracker {
         return Optional.of(new Departure(userId, rooms == null ? Set.of() : Set.copyOf(rooms)));
     }
 
-    // 이 서버에 열려 있는 소켓 수. 사용자 수가 아니라 세션 수다
-    // 한 사람이 로비와 게임을 두 탭에 띄우면 2로 센다
+    // 이 서버에 열려 있는 소켓 수. 사용자 수가 아니라 세션 수임
+    // 한 사람이 로비와 게임을 두 탭에 띄우면 2로 셈
     public int openSessions() {
         return userBySession.size();
     }

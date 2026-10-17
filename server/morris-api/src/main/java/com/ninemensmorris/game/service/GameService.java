@@ -67,7 +67,7 @@ public class GameService {
     }
 
     // 선공 방식 변경. 방장만, 시작 전에만
-    // 방을 다시 만들지 않고 바꿀 수 있어야 해서 생성 시점이 아니라 여기서 정한다
+    // 방을 다시 만들지 않고 바꿀 수 있어야 해서 생성 시점이 아니라 여기서 정함
     public RoomEvent changeFirstMoveRule(RoomCommand.ChangeFirstMoveRule command) {
         return inRoom(command.roomId(), room -> {
             requireHost(room, command.actorId());
@@ -104,7 +104,7 @@ public class GameService {
         });
     }
 
-    // 착수. 방 단위 락 안에서 규칙 엔진에 위임한다
+    // 착수. 방 단위 락 안에서 규칙 엔진에 위임함
     public PlayOutcome play(RoomCommand.PlayMove command) {
         return afterUnlock(inRoom(command.roomId(), room -> applyMove(room, command.actorId(), command.move())));
     }
@@ -149,7 +149,7 @@ public class GameService {
     }
 
     // 상대 차례에 누르거나 이미 찬 자리를 누르는 건 평범한 오터치라 DEBUG
-    // 전부 WARN 으로 남기면 운영자가 봐야 할 것이 묻힌다
+    // 전부 WARN 으로 남기면 운영자가 봐야 할 것이 묻힘
     // 판 밖 좌표는 DTO 검증을 통과할 수 없으므로 클라이언트를 우회한 흔적임
     private void logRejection(long roomId, long actorId, RejectReason reason, Move move) {
         if (reason == RejectReason.OUT_OF_BOARD) {
@@ -174,7 +174,7 @@ public class GameService {
 
     // 게임이 끝나는 경로는 착수·끊김·나가기·유휴정리 네 개이고 전부 이 루틴을 거쳐야 함
     // 경로마다 따로 두면 정산을 빠뜨리기 쉬움
-    // 방에 속하지 않은 사람의 요청이면 아무것도 알리지 않는다
+    // 방에 속하지 않은 사람의 요청이면 아무것도 알리지 않음
     private Optional<RoomBroadcast> exit(long roomId, long userId, ExitCause cause) {
         return rooms.mutate(roomId, room -> {
                     if (!room.contains(userId)) {
@@ -204,7 +204,7 @@ public class GameService {
     }
 
     // 방장이 나가면 방이 사라지고, 참가자가 나가면 방은 대기 상태로 돌아감
-    // 정산 후에도 방을 남겨 두면 로비에 계속 뜨고, 방장이 없는 상대와 새 게임을 시작할 수 있다
+    // 정산 후에도 방을 남겨 두면 로비에 계속 뜨고, 방장이 없는 상대와 새 게임을 시작할 수 있음
     private void removeFromRoom(Room room, long userId) {
         if (room.hostId() == userId) {
             room.close();
@@ -330,7 +330,7 @@ public class GameService {
         return new PlayOutcome.Broadcast(RoomEvent.of(type, stateOf(room, game)));
     }
 
-    // 거절이 나가는 유일한 지점. 여기서 세지 않으면 경로마다 빠뜨린다
+    // 거절이 나가는 유일한 지점. 여기서 세지 않으면 경로마다 빠뜨림
     private PlayOutcome reject(RejectReason reason) {
         metrics.moveRejected(reason);
         return new PlayOutcome.Reject(MoveRejectedResponse.of(reason));

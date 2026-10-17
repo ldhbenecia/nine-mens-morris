@@ -239,7 +239,7 @@ class BoardTest {
         @Test
         @DisplayName("이웃이 전부 막히면 움직일 수 없다")
         void 이웃이_막히면_이동_불가() {
-            // given — 지점 0 의 이웃은 1 과 9 뿐이다
+            // given — 지점 0 에 인접한 지점은 1 과 9 뿐임
             Board board = new Board();
             board.place(0, Stone.BLACK);
             board.place(1, Stone.WHITE);

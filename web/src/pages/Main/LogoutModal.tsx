@@ -17,7 +17,7 @@ export function LogoutModal({
     <Modal visible={visible}>
       <>
         <div className="font-semibold">로그아웃할까요?</div>
-        {/* 게스트는 토큰이 곧 신원이라 버리면 같은 신원으로 돌아올 방법이 없다 */}
+        {/* 게스트는 토큰이 곧 신원이라 버리면 같은 신원으로 돌아올 방법이 없음 */}
         {visitor && (
           <span className="text-center text-xs text-gray-500">
             게스트 신원은 다시 쓸 수 없게 됩니다

@@ -32,8 +32,8 @@ import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
-// 실제 STOMP 연결로 한 판을 돌린다
-// 서버 코드만 봐서는 확인되지 않는 것들(인증이 실제로 붙는지, 토픽이 실제로 전달되는지)을 잡는다
+// 실제 STOMP 연결로 한 판을 돌림
+// 서버 코드만 봐서는 확인되지 않는 것들(인증이 실제로 붙는지, 토픽이 실제로 전달되는지)을 잡음
 class GameE2eTest extends IntegrationTestSupport {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
@@ -56,7 +56,7 @@ class GameE2eTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUp() {
-        // matches 가 users 를 참조하므로 먼저 지운다
+        // matches 가 users 를 참조하므로 먼저 지움
         matchRepository.deleteAll();
         userRepository.deleteAll();
         host = userRepository.save(User.ofKakao("1001", "방장", null));
@@ -71,7 +71,7 @@ class GameE2eTest extends IntegrationTestSupport {
         stompClient.stop();
     }
 
-    // 토큰은 CONNECT 프레임 헤더로 보낸다
+    // 토큰은 CONNECT 프레임 헤더로 보냄
     // 핸드셰이크는 그냥 HTTP 요청이라 브라우저에서 헤더를 붙일 방법이 없음
     private StompSession connect(User user) throws Exception {
         StompHeaders connectHeaders = new StompHeaders();
@@ -115,7 +115,7 @@ class GameE2eTest extends IntegrationTestSupport {
     @Test
     @DisplayName("두 사람이 붙어 게임을 시작하고 기권으로 끝낸다")
     void 한_판을_끝까지_진행한다() throws Exception {
-        // given — 방을 만들고 둘 다 소켓에 붙는다
+        // given — 방을 만들고 둘 다 소켓에 붙음
         long roomId = createRoomAndJoin();
 
         StompSession hostSession = connect(host);
@@ -124,10 +124,10 @@ class GameE2eTest extends IntegrationTestSupport {
         BlockingQueue<RoomEvent> guestInbox = subscribe(guestSession, "/topic/rooms/" + roomId);
         Thread.sleep(300);
 
-        // when — 방장이 시작한다
+        // when — 방장이 시작함
         hostSession.send("/app/rooms/" + roomId + "/start", null);
 
-        // then — 두 사람 모두 시작 이벤트를 받는다
+        // then — 두 사람 모두 시작 이벤트를 받음
         RoomEvent started = next(hostInbox);
         assertThat(started.type()).isEqualTo(RoomEventType.STARTED);
         assertThat(next(guestInbox).type()).isEqualTo(RoomEventType.STARTED);
@@ -135,20 +135,20 @@ class GameE2eTest extends IntegrationTestSupport {
         long firstTurn = started.state().currentTurnId();
         StompSession firstSession = firstTurn == host.getUserId() ? hostSession : guestSession;
 
-        // when — 선공이 돌을 놓는다
+        // when — 선공이 돌을 놓음
         firstSession.send("/app/rooms/" + roomId + "/place", new PlacePayload(0));
 
-        // then — 판에 반영되고 턴이 넘어간다
+        // then — 판에 반영되고 턴이 넘어감
         RoomEvent placed = next(hostInbox);
         assertThat(placed.type()).isEqualTo(RoomEventType.STATE_CHANGED);
         assertThat(placed.state().board()[0]).isIn("BLACK", "WHITE");
         assertThat(placed.state().currentTurnId()).isNotEqualTo(firstTurn);
         next(guestInbox);
 
-        // when — 기권한다
+        // when — 기권함
         firstSession.send("/app/rooms/" + roomId + "/resign", null);
 
-        // then — 종료 이벤트가 양쪽에 도착하고 승자가 상대다
+        // then — 종료 이벤트가 양쪽에 도착하고 승자가 상대임
         RoomEvent finished = next(hostInbox);
         assertThat(finished.type()).isEqualTo(RoomEventType.FINISHED);
         assertThat(finished.state().winnerId()).isNotEqualTo(firstTurn);
@@ -173,7 +173,7 @@ class GameE2eTest extends IntegrationTestSupport {
         long waitingTurn = started.state().currentTurnId() == host.getUserId() ? guest.getUserId() : host.getUserId();
         StompSession waitingSession = waitingTurn == host.getUserId() ? hostSession : guestSession;
 
-        // 거절은 요청자에게만 가므로 개인 큐를 구독한다
+        // 거절은 요청자에게만 가므로 개인 큐를 구독함
         BlockingQueue<MoveRejectedResponse> errors = new LinkedBlockingQueue<>();
         waitingSession.subscribe("/user/queue/errors", new StompFrameHandler() {
             @Override
@@ -188,10 +188,10 @@ class GameE2eTest extends IntegrationTestSupport {
         });
         Thread.sleep(300);
 
-        // when — 차례가 아닌 쪽이 둔다
+        // when — 차례가 아닌 쪽이 둠
         waitingSession.send("/app/rooms/" + roomId + "/place", new PlacePayload(0));
 
-        // then — 거절 메시지가 오고 방에는 아무것도 브로드캐스트되지 않는다
+        // then — 거절 메시지가 오고 방에는 아무것도 브로드캐스트되지 않음
         MoveRejectedResponse error = errors.poll(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
         assertThat(error).as("거절 메시지가 오지 않음").isNotNull();
         assertThat(error.code()).isEqualTo("NOT_YOUR_TURN");
@@ -201,7 +201,7 @@ class GameE2eTest extends IntegrationTestSupport {
     @Test
     @DisplayName("클라이언트는 /topic 으로 직접 발행할 수 없다")
     void 클라이언트는_토픽에_직접_발행할_수_없다() throws Exception {
-        // given — 막지 않으면 브라우저 콘솔 한 줄로 상대 화면에 위조된 상태를 띄울 수 있다
+        // given — 막지 않으면 브라우저 콘솔 한 줄로 상대 화면에 위조된 상태를 띄울 수 있음
         long roomId = createRoomAndJoin();
 
         StompSession attacker = connect(guest);
@@ -209,11 +209,11 @@ class GameE2eTest extends IntegrationTestSupport {
         BlockingQueue<RoomEvent> victimInbox = subscribe(victim, "/topic/rooms/" + roomId);
         Thread.sleep(300);
 
-        // when — 공격자가 토픽으로 직접 위조 이벤트를 보낸다
+        // when — 공격자가 토픽으로 직접 위조 이벤트를 보냄
         attacker.send("/topic/rooms/" + roomId, new ForgedEvent("FINISHED"));
 
-        // then — 위조 이벤트는 도달하지 않는다
-        // 가드가 예외를 던져 공격자 연결이 끊기므로 정상적인 PLAYER_LEFT 는 올 수 있다
+        // then — 위조 이벤트는 도달하지 않음
+        // 가드가 예외를 던져 공격자 연결이 끊기므로 정상적인 PLAYER_LEFT 는 올 수 있음
         for (int attempt = 0; attempt < 3; attempt++) {
             RoomEvent received = victimInbox.poll(1, TimeUnit.SECONDS);
             if (received == null) {
@@ -243,7 +243,7 @@ class GameE2eTest extends IntegrationTestSupport {
     @Test
     @DisplayName("방에 속하지 않은 사람은 그 방의 이벤트를 받지 못한다")
     void 비멤버는_방_이벤트를_받지_못한다() throws Exception {
-        // given — 구독 인가가 없으면 아무나 남의 판을 들여다볼 수 있다
+        // given — 구독 인가가 없으면 아무나 남의 판을 들여다볼 수 있음
         long roomId = createRoomAndJoin();
         User outsider = userRepository.save(User.ofKakao("1003", "외부인", null));
 
@@ -252,7 +252,7 @@ class GameE2eTest extends IntegrationTestSupport {
         BlockingQueue<RoomEvent> outsiderInbox = subscribe(outsiderSession, "/topic/rooms/" + roomId);
         Thread.sleep(300);
 
-        // when — 방 안에서 게임이 시작된다
+        // when — 방 안에서 게임이 시작됨
         hostSession.send("/app/rooms/" + roomId + "/start", null);
 
         // then

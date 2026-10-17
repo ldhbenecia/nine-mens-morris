@@ -7,8 +7,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 // SIGTERM 을 받으면 readiness 가 먼저 내려가고 쿠버네티스가 엔드포인트에서 파드를 뺀 뒤
-// graceful shutdown 이 남은 요청을 마무리한다
-// 이 로그가 없으면 배포 중 끊김이 트래픽 차단 전인지 후인지 구분할 수 없다
+// graceful shutdown 이 남은 요청을 마무리함
+// 이 로그가 없으면 배포 중 끊김이 트래픽 차단 전인지 후인지 구분할 수 없음
 @Component
 @Slf4j
 public class AvailabilityLogger {

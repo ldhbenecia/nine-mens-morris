@@ -38,14 +38,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-// Spring 컨텍스트 없이 도는 테스트. RoomRegistry 는 실제 구현을 쓴다
+// Spring 컨텍스트 없이 도는 테스트. RoomRegistry 는 실제 구현을 씀
 class GameServiceTest {
 
     private static final long HOST = 1L;
     private static final long GUEST = 2L;
     private static final long OUTSIDER = 99L;
 
-    // 30분짜리 실제 값을 쓰면 유휴 정리를 검증할 수 없다
+    // 30분짜리 실제 값을 쓰면 유휴 정리를 검증할 수 없음
     private static final Duration IDLE_TIMEOUT = Duration.ofMinutes(30);
     private static final Duration TURN_LIMIT = Duration.ofSeconds(60);
 
@@ -59,7 +59,7 @@ class GameServiceTest {
     void setUp() {
         rooms = new InMemoryRoomRegistry();
         matchResultService = mock(MatchResultService.class);
-        // 메트릭은 목이 아니라 실물을 쓴다. 등록 이름이 틀리면 여기서 바로 터진다
+        // 메트릭은 목이 아니라 실물을 씀. 등록 이름이 틀리면 여기서 바로 터짐
         metrics = new GameMetrics(new SimpleMeterRegistry(), rooms, new SessionTracker());
         gameService = new GameService(rooms, matchResultService, metrics, IDLE_TIMEOUT, TURN_LIMIT, clock);
     }
@@ -137,7 +137,7 @@ class GameServiceTest {
         @Test
         @DisplayName("GUEST_FIRST 면 참가자가 흑이다")
         void 참가자_선공이면_참가자가_흑이다() {
-            // given — 방장이 항상 흑이라는 전제를 코드에서 걷어냈다
+            // given — 방장이 항상 흑이라는 전제가 코드에 남아 있으면 깨짐
             Room room = 시작된_방(FirstMoveRule.GUEST_FIRST);
 
             // then
@@ -229,7 +229,7 @@ class GameServiceTest {
         @Test
         @DisplayName("방에 속하지 않은 사람의 착수는 거절된다")
         void 외부인의_착수는_거절된다() {
-            // given — STOMP 프레임을 직접 만들어 남의 방에 두는 것을 막는다
+            // given — STOMP 프레임을 직접 만들어 남의 방에 두는 것을 막음
             Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
 
             // when
@@ -293,7 +293,7 @@ class GameServiceTest {
         @Test
         @DisplayName("전적 기록은 방 락을 놓은 뒤에 한다")
         void 전적_기록은_락_밖에서_한다() {
-            // given — 기록 시점에 이 스레드가 방 모니터를 쥐고 있는지 잡아 둔다
+            // given — 기록 시점에 이 스레드가 방 모니터를 쥐고 있는지 잡아 둠
             Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
             AtomicBoolean heldLock = new AtomicBoolean(true);
             doAnswer(invocation -> {
@@ -306,7 +306,7 @@ class GameServiceTest {
             // when
             착수(HOST, room.roomId(), new Move.Resign());
 
-            // then — 락 안에서 DB 를 기다리면 그동안 이 방의 모든 수가 막힌다
+            // then — 락 안에서 DB 를 기다리면 그동안 이 방의 모든 수가 막힘
             verify(matchResultService).record(anyLong(), anyLong(), any(), anyString(), anyInt());
             assertThat(heldLock).isFalse();
         }
@@ -424,7 +424,7 @@ class GameServiceTest {
         @Test
         @DisplayName("방에 속하지 않은 사람이 나가면 알릴 것이 없다")
         void 외부인의_나가기는_무시된다() {
-            // given — 무조건 브로드캐스트하면 아무나 남의 방에 PLAYER_LEFT 를 꽂을 수 있다
+            // given — 무조건 브로드캐스트하면 아무나 남의 방에 PLAYER_LEFT 를 꽂을 수 있음
             Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
 
             // when
@@ -474,7 +474,7 @@ class GameServiceTest {
             // given — 정산 없이 지우면 진행 중이던 판이 기록 없이 사라짐
             Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
 
-            // when — 임계값 0 이면 모든 방이 정리 대상이 된다
+            // when — 임계값 0 이면 모든 방이 정리 대상이 됨
             var broadcasts = 즉시_정리하는_서비스().purgeIdleRooms();
 
             // then
@@ -554,7 +554,7 @@ class GameServiceTest {
         @Test
         @DisplayName("방이 사라졌으면 조용히 넘어가지 않고 알린다")
         void 없는_방이면_알린다() {
-            // when / then — 서버 재시작 뒤 재접속하면 판이 멀쩡해 보인 채로 남았다
+            // when / then — 알리지 않으면 서버 재시작 뒤 재접속했을 때 판이 멀쩡해 보인 채로 남음
             assertThatThrownBy(() -> gameService.snapshot(12345L, HOST))
                     .isInstanceOf(CustomException.class)
                     .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ROOM_NOT_FOUND);

@@ -26,7 +26,7 @@ export function WaitingRoom({
   onStart,
   onLeave,
 }: WaitingRoomProps) {
-  // 방 정보를 아직 못 받았거나 이미 시작된 방이면 누를 수 없어야 한다
+  // 방 정보를 아직 못 받았거나 이미 시작된 방이면 누를 수 없어야 함
   const canStart = !!room?.guestId && !room.playing;
 
   return (
@@ -39,7 +39,7 @@ export function WaitingRoom({
         <span className="text-sm text-gray-500">
           {isHost ? '내가 만든 방' : `${room?.hostNickname ?? ''} 님의 방`}
         </span>
-        {/* 상대가 들어오면서 랭크전이 일반전으로 바뀔 수 있다. 시작 전에 알아야 함 */}
+        {/* 상대가 들어오면서 랭크전이 일반전으로 바뀔 수 있음. 시작 전에 알아야 함 */}
         {room && !room.rated && (
           <span className="text-xs text-gray-500">
             게스트가 있어 MMR 이 변하지 않습니다

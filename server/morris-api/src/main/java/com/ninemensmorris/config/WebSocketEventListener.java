@@ -85,7 +85,7 @@ public class WebSocketEventListener {
             taskScheduler.schedule(
                     () -> settleIfStillGone(userId, roomId), Instant.now().plus(RECONNECT_GRACE));
         } catch (RejectedExecutionException rejected) {
-            // 서버가 내려가는 중. 이때 붙어 있던 사람 수만큼 예외가 터져 로그를 덮는다
+            // 서버가 내려가는 중. 이때 붙어 있던 사람 수만큼 예외가 터져 로그를 덮음
             // 정산을 건너뛰어도 됨. 클라이언트는 다른 서버로 다시 붙고, 안 돌아오면 턴 제한 시간이 판을 끝냄
             log.debug("종료 중이라 재접속 유예를 예약하지 못함 userId={} roomId={}", userId, roomId);
         }

@@ -1,10 +1,10 @@
 # 로컬 관측 스택 (Prometheus + Loki + Grafana + Alloy)
-# Tempo 와 Mimir 는 넣지 않는다 — docs/plans/07 ADR 참조
+# Tempo 와 Mimir 는 넣지 않음. 서비스가 하나라 분산 추적의 값어치가 없고, 장기 보존·수평 확장이 필요한 규모가 아님
 #
 #   docker compose -f docker-compose.yml --profile app up -d
 #   docker compose -f observability/docker-compose.observability.yml up -d
 #
-# 앱은 SPRING_PROFILES_ACTIVE=k8s 로 띄워야 JSON 로그가 나온다
+# 앱은 SPRING_PROFILES_ACTIVE=k8s 로 띄워야 JSON 로그가 나옴
 # Grafana: http://localhost:3000 (익명 접속, 로그인 없음)
 services:
   prometheus:
@@ -17,7 +17,7 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "9090:9090"
-    # 리눅스에는 host.docker.internal 이 없어 직접 만들어 준다 (Docker Desktop 은 기본 제공)
+    # 리눅스에는 host.docker.internal 이 없어 직접 만들어 줌 (Docker Desktop 은 기본 제공)
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks: [observability]
@@ -25,13 +25,13 @@ services:
   loki:
     image: grafana/loki:3.3.2
     container_name: morris-loki
-    # 이미지에 들어 있는 단일 바이너리용 기본 설정을 그대로 쓴다
+    # 이미지에 들어 있는 단일 바이너리용 기본 설정을 그대로 씀
     command: -config.file=/etc/loki/local-config.yaml
     ports:
       - "3100:3100"
     networks: [observability]
 
-  # 컨테이너 stdout 을 읽어 Loki 로 보낸다. 앱은 파일로 로그를 쓰지 않는다
+  # 컨테이너 stdout 을 읽어 Loki 로 보냄. 앱은 파일로 로그를 쓰지 않음
   alloy:
     image: grafana/alloy:v1.6.1
     container_name: morris-alloy
