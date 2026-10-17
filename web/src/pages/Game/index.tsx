@@ -259,7 +259,7 @@ export function GamePage() {
       // 규칙 위반 거절과 권한 오류는 방이 아니라 나에게만 옴
       client.subscribe('/user/queue/errors', (message) => {
         const rejected = JSON.parse(message.body) as MoveRejected;
-        // 판은 서버 메모리에만 있어 재시작·정리 뒤 다시 붙으면 방이 없음. 이어 둘 수 없으니 창으로 알리고 내보냄
+        // 방장 퇴장·유휴 정리로 방이 지워진 뒤 다시 붙은 경우. 이어 둘 수 없으니 창으로 알리고 내보냄
         if (rejected.code === 'ROOM_NOT_FOUND') {
           setRoomLost(true);
           return;

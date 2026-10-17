@@ -10,7 +10,7 @@ import java.time.Duration;
 import org.springframework.stereotype.Component;
 
 // 게임 도메인 메트릭. JVM·HikariCP 는 Actuator 가 알아서 준다
-// 개별 착수는 계측하지 않는다. 인메모리 연산이라 값이 의미 없고 수만 늘어난다
+// 개별 착수는 계측하지 않음. 규칙 계산은 짧고 지연은 대부분 Redis 왕복이라 착수별 값으로 얻을 게 없고 수만 늘어남
 @Component
 public class GameMetrics {
 
