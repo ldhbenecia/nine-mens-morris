@@ -226,8 +226,7 @@ class GameE2eTest extends IntegrationTestSupport {
     @Test
     @DisplayName("토큰 없이는 소켓에 붙을 수 없다")
     void 토큰_없이는_연결되지_않는다() {
-        // given — 예전에는 익명으로 붙어 모든 방 토픽을 구독하면
-        //         진행 중인 게임의 판 전체를 실시간으로 볼 수 있었다
+        // given — 익명으로 붙을 수 있으면 방 토픽을 구독해 진행 중인 판 전체를 실시간으로 볼 수 있음
         StompHeaders empty = new StompHeaders();
 
         // when, then

@@ -25,7 +25,7 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 public class WebSocketEventListener {
 
     // 이 시간 안에 다시 접속하면 나간 것으로 보지 않음
-    // 화면 이동만으로 방이 사라지던 문제를 막기 위함
+    // 없으면 새로고침·화면 이동만으로 나간 것으로 처리돼 방이 사라짐
     private static final Duration RECONNECT_GRACE = Duration.ofSeconds(10);
 
     private final GameService gameService;

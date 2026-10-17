@@ -9,8 +9,7 @@ type UserInfoProps = {
 };
 
 export function UserInfo({ user, onShowLogoutModal }: UserInfoProps) {
-  // 예전엔 프로필 전체가 로그아웃 버튼이라 이름만 눌러도 확인창이 떴음
-  // 이름과 티어는 정보로만 두고 로그아웃은 별도 버튼으로 분리
+  // 이름과 티어는 정보로만 두고 로그아웃은 별도 버튼. 프로필 전체를 버튼으로 두면 이름만 눌러도 확인창이 뜸
   return (
     user && (
       <div className="fixed top-2 right-2 z-10 flex items-center gap-2 rounded-full bg-white py-1 pr-1 pl-4 shadow-xs">

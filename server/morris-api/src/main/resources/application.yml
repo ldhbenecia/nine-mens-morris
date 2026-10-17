@@ -17,7 +17,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # 스키마는 Flyway 가 만들고 Hibernate 는 엔티티와 맞는지 검사만 한다
-  # 예전에는 ddl-auto 가 스키마를 만들어서 운영 DDL 이 어디에도 기록돼 있지 않았다
+  # ddl-auto 로 만들면 운영 DDL 이 어디에도 기록되지 않음
   flyway:
     enabled: true
     locations: classpath:db/migration

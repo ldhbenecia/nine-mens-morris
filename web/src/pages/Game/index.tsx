@@ -153,8 +153,7 @@ export function GamePage() {
     if (roomId) startGame(client, Number(roomId));
   };
 
-  // 착수 효과음. 예전에는 클라이언트가 /topic 으로 직접 발행해 서로에게 알렸는데
-  // 서버가 그 경로를 막았고, 애초에 착수 결과가 브로드캐스트되므로 필요 없다
+  // 착수 효과음. 직전 판과 새 판을 비교해 판단하므로 소리를 위한 별도 메시지가 없음
   const playMoveSound = useCallback((before: string[], after: string[]) => {
     const added = addedPoint(before, after);
     const removed = removedPoint(before, after);

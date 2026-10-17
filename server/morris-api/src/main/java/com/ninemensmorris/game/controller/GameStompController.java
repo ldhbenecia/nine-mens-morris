@@ -62,7 +62,7 @@ public class GameStompController {
         play(roomId, principal, new Move.Place(request.to()));
     }
 
-    // 2·3단계 이동. 기존에는 배치와 같은 목적지를 써서 쓰지 않는 필드가 섞여 있었다
+    // 2·3단계 이동. 배치와 목적지를 나눠 요청마다 쓰는 필드만 받음
     @MessageMapping("/rooms/{roomId}/move")
     public void move(@DestinationVariable long roomId, @Valid @Payload MoveRequest request, Principal principal) {
         play(roomId, principal, new Move.Slide(request.from(), request.to()));
@@ -103,9 +103,8 @@ public class GameStompController {
                         String.valueOf(actor.id()), StompDestinations.SYNC_QUEUE, event));
     }
 
-    // @RestControllerAdvice 는 메시징에 적용되지 않아서 여기서 던진 예외는
-    // 클라이언트에 도달하지 않고 Spring 이 ERROR 스택트레이스만 찍었다
-    // 방장이 아닌 사람이 시작을 눌러도 화면에 아무 반응이 없던 이유
+    // @RestControllerAdvice 는 메시징에 적용되지 않음
+    // 여기서 잡지 않으면 예외가 클라이언트에 닿지 않고 서버 로그에만 남아 화면은 아무 반응이 없음
     @MessageExceptionHandler(CustomException.class)
     public void onCustomException(CustomException exception, Principal principal) {
         sendError(principal, ErrorResponse.of(exception.getErrorCode()));

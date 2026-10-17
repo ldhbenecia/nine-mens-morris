@@ -19,8 +19,7 @@ import org.springframework.stereotype.Component;
 // 클라이언트가 보낸 STOMP 프레임 검사
 //
 // 전송(SEND)뿐 아니라 연결(CONNECT)과 구독(SUBSCRIBE)도 막아야 함
-// 예전에는 SEND 만 봐서, 쿠키 없이 연결한 뒤 /topic/rooms/* 를 구독하면
-// 진행 중인 모든 게임의 판 전체와 양쪽 userId 를 실시간으로 받아볼 수 있었다
+// SEND 만 막으면 인증 없이 붙어 /topic/rooms/* 를 구독해 진행 중인 모든 판과 양쪽 userId 를 받아볼 수 있음
 @Component
 @RequiredArgsConstructor
 @Slf4j

@@ -2,8 +2,7 @@ import { Button, Modal } from '~/components';
 
 type SocketErrorModalProps = { visible: boolean; onLeaveRoom: () => void };
 
-// 내 소켓이 끊겼을 때. 예전에는 상대가 끊긴 경우에만 떠서
-// 정작 내 연결이 죽으면 아무 표시 없이 클릭만 먹통이 됐다
+// 내 소켓이 끊겼을 때. 없으면 아무 표시 없이 클릭만 먹통이 됨
 export function SocketErrorModal({
   visible,
   onLeaveRoom,

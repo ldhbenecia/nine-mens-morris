@@ -21,8 +21,8 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    // 요청자는 파라미터로 받는다. SecurityContextHolder 를 직접 읽으면
-    // STOMP 스레드에서는 비어 있고 비인증이면 "anonymousUser" 가 나와 500 이 됐다
+    // 요청자는 파라미터로 받음. SecurityContextHolder 를 직접 읽으면
+    // STOMP 스레드에서는 비어 있고 비인증이면 "anonymousUser" 가 나와 500 이 됨
     public MyProfileResponse findMe(long userId) {
         User user = find(userId);
         // 비로그인 계정은 랭킹에 없으므로 등수도 없다

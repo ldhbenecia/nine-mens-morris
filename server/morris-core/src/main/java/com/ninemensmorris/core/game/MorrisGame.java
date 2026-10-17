@@ -13,7 +13,7 @@ import java.util.Map;
 // 나인멘스모리스 규칙 엔진
 //
 // 모든 착수는 apply 를 거치며, 규칙에 어긋나면 Rejected 를 반환하고 판을 바꾸지 않음
-// 기존 구현은 클라이언트가 보낸 좌표를 그대로 배열에 써서 규칙 강제가 프론트에만 있었음
+// 규칙 강제는 서버의 이 클래스가 유일한 출처. 클라이언트 검사는 화면 편의일 뿐
 public final class MorrisGame {
 
     public static final int STONES_PER_PLAYER = 9;
@@ -41,7 +41,7 @@ public final class MorrisGame {
     private GameStatus status = GameStatus.PLAYING;
     private Outcome outcome;
 
-    // 밀을 만들어 제거할 권한이 있는 상태. 기존에는 응답에만 담기고 서버가 기억하지 않았음
+    // 밀을 만들어 제거할 권한이 있는 상태. 서버가 들고 있어야 제거 요청을 검증할 수 있음
     private boolean awaitingRemoval;
 
     private Stone drawOfferedBy;
@@ -142,7 +142,7 @@ public final class MorrisGame {
     }
 
     // 1단계. 손에 든 돌을 빈 지점에 놓음
-    // 이미 돌이 있는 자리에 덮어쓰는 것을 막는다. 기존에는 검사 없이 배열에 대입했음
+    // 이미 돌이 있는 자리에는 놓을 수 없음
     private MoveResult place(Stone actor, int to) {
         RejectReason turnProblem = checkTurn(actor);
         if (turnProblem != null) {
@@ -165,7 +165,6 @@ public final class MorrisGame {
 
     // 2·3단계. 판 위의 자기 돌을 빈 지점으로 옮김
     // MOVING 은 인접한 곳으로만, FLYING(돌 3개)은 아무 빈 지점으로나 갈 수 있음
-    // 기존에는 인접 검사도 소유권 검사도 없어 상대 돌을 반대편으로 순간이동시킬 수 있었음
     private MoveResult slide(Stone actor, int from, int to) {
         RejectReason turnProblem = checkTurn(actor);
         if (turnProblem != null) {
@@ -237,8 +236,8 @@ public final class MorrisGame {
         return new MoveResult.DrawOffered();
     }
 
-    // 무승부 응답. 제안이 없거나 자기 제안이면 거절한다
-    // 기존에는 상태가 없어 제안한 적 없어도 수락으로 게임을 끝낼 수 있었음
+    // 무승부 응답. 제안이 없거나 자기 제안이면 거절
+    // 제안 상태를 보지 않으면 제안한 적 없어도 수락만으로 게임을 끝낼 수 있음
     private MoveResult respondDraw(Stone actor, boolean accept) {
         if (drawOfferedBy == null) {
             return reject(RejectReason.NO_DRAW_OFFER);

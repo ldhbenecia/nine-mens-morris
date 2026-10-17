@@ -18,8 +18,7 @@ const RULE_LABEL: Record<FirstMoveRule, string> = {
 
 const RULES: FirstMoveRule[] = ['RANDOM', 'HOST_FIRST', 'GUEST_FIRST'];
 
-// 예전에는 두 번째 사람이 들어오는 순간 자동으로 시작해서 대기실이 없었다
-// 선공을 고를 수 있게 되면서 "모였지만 아직 시작 전" 이라는 단계가 생겼다
+// 두 명이 모였지만 아직 시작 전인 단계. 방장이 선공 방식을 고르고 시작을 누름
 export function WaitingRoom({
   room,
   isHost,

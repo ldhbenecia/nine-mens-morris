@@ -80,7 +80,6 @@ public class GameService {
     }
 
     // 게임 시작. 방장만 호출할 수 있고 두 명이 모여 있어야 함
-    // 기존에는 인증도 소속 확인도 없어 아무나 진행 중인 판을 초기화할 수 있었다
     public RoomEvent start(RoomCommand.StartGame command) {
         return inRoom(command.roomId(), room -> {
             requireHost(room, command.actorId());
@@ -168,13 +167,13 @@ public class GameService {
     }
 
     // 스스로 나가기를 누른 경우. 끊김과 같은 경로를 타야 함
-    // 예전에는 여기만 정산을 건너뛰어서 지고 있을 때 나가는 쪽이 이득이었다
+    // 정산을 건너뛰면 지고 있을 때 나가는 쪽이 이득이 됨
     public Optional<RoomBroadcast> leave(RoomCommand.LeaveRoom command) {
         return exit(command.roomId(), command.actorId(), ExitCause.LEAVE);
     }
 
     // 게임이 끝나는 경로는 착수·끊김·나가기·유휴정리 네 개이고 전부 이 루틴을 거쳐야 함
-    // 경로마다 따로 구현했더니 세 개가 정산을 빠뜨리고 있었다
+    // 경로마다 따로 두면 정산을 빠뜨리기 쉬움
     // 방에 속하지 않은 사람의 요청이면 아무것도 알리지 않는다
     private Optional<RoomBroadcast> exit(long roomId, long userId, ExitCause cause) {
         return rooms.mutate(roomId, room -> {
@@ -255,7 +254,7 @@ public class GameService {
     }
 
     // 방치된 방 정리. 진행 중이던 판은 무승부로 기록하고 알림
-    // 예전에는 RoomRegistry 가 직접 지워서 진행 중인 판이 기록 없이 사라졌다
+    // 저장소가 직접 지우면 진행 중인 판이 기록 없이 사라지므로 여기서 정산한 뒤 지움
     public List<RoomBroadcast> purgeIdleRooms() {
         Instant threshold = Instant.now().minus(idleTimeout);
         List<Long> purged = new ArrayList<>();
@@ -297,14 +296,14 @@ public class GameService {
         return LockedResult.settled(new RoomBroadcast(room.roomId(), event), settlement);
     }
 
-    // 재접속 복구. 기존에는 SYNC_GAME 이 선언만 되어 있고 새로고침하면 판을 잃었다
+    // 재접속 복구
     // 끝난 판도 돌려줌. 결과 화면에서 새로고침해도 승패는 남아 있어야 함
     //
     // 반드시 방 단위 락 안에서 읽어야 함
     // 락 밖에서 읽으면 상대가 돌을 옮기는 중간에 보드가 복제돼 돌이 출발지에도
     // 도착지에도 없는 판이 나가고, 승부가 난 순간에는 status 만 FINISHED 이고
     // outcome 은 아직 안 보여서 결정된 판이 무승부로 그려진다
-    // 방에 속한 사람만. 예전에는 roomId 만 보고 돌려줘서 아무나 남의 판을 끌어올 수 있었다
+    // 방에 속한 사람만. 아니면 roomId 만 알면 남의 판을 끌어올 수 있음
     // 방 자체가 없으면 알림. 재시작·유휴 정리 뒤 다시 붙은 화면이 판이 살아 있는 것처럼 남지 않게
     public Optional<RoomEvent> snapshot(long roomId, long actorId) {
         if (rooms.find(roomId).isEmpty()) {

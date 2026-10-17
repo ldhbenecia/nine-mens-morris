@@ -11,8 +11,7 @@ import {
 import { clearToken, setToken } from '~/lib/auth';
 import { QUERY } from '~/lib/queries';
 
-// 실패를 화면에 보여줄 책임은 호출부에 있다
-// 예전에는 onError 가 아예 없어서 방이 가득 찼거나 사라진 경우가 먹통 클릭이었다
+// 실패를 화면에 보여줄 책임은 호출부에 있음. 안 넘기면 방이 가득 찼거나 사라졌을 때 클릭이 먹통이 됨
 type OnFailure = (message: string) => void;
 
 export const useLogout = () => {
@@ -65,9 +64,7 @@ export const useCreateRoom = (onFailure?: OnFailure) => {
   return { mutate };
 };
 
-// 입장을 REST 로 먼저 끝내고 게임 화면으로 간다
-// 예전에는 소켓이 연결된 뒤 /app/joinGame 으로 입장해서
-// 입장 실패를 화면에서 알 방법이 없었다
+// 입장을 REST 로 먼저 끝내고 게임 화면으로 감. 소켓으로 입장하면 실패를 응답으로 받을 수 없음
 export const useJoinRoom = (onFailure?: OnFailure) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();

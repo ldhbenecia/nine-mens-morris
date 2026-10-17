@@ -11,8 +11,7 @@ import java.time.Instant;
 
 // 판 상태 전체. 클라이언트는 이것만 보고 화면을 그린다
 //
-// 흑/백 기준으로 내려준다. 기존에는 host/guest 와 playerOne/playerTwo 가 뒤섞여 있었고
-// 방장이 항상 흑이라는 전제가 코드에 박혀 있어 선공을 바꿀 수 없었다
+// 방장/참가자가 아니라 흑/백 기준. 방장이 흑이라는 전제를 두면 선공 방식을 바꿀 수 없음
 public record GameStateResponse(
         String[] board,
         long blackId,

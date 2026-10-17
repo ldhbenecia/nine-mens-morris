@@ -20,9 +20,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-// 등급 게임 정산은 지금까지 한 번도 실행된 적이 없었다
-// E2E 도 단위 테스트도 1수 뒤 기권으로 끝나서 MIN_RATED_MOVES 에 걸려
-// isRated 가 false 였고, MMR 을 쓰는 경로 전체가 미검증 상태였다
+// 등급 게임 정산 경로. MIN_RATED_MOVES 이상 둔 판만 MMR 이 바뀜
+// 짧게 끝나는 다른 테스트로는 이 경로가 실행되지 않아 여기서 따로 검증
 class MatchResultServiceTest extends IntegrationTestSupport {
 
     private static final int RATED_MOVES = RatingPolicy.MIN_RATED_MOVES;

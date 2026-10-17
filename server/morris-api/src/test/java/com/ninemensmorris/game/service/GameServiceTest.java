@@ -106,7 +106,7 @@ class GameServiceTest {
         @Test
         @DisplayName("이미 시작된 게임은 다시 시작할 수 없다")
         void 중복_시작을_막는다() {
-            // given — 기존에는 인증도 소속 확인도 없어 아무나 진행 중인 판을 초기화할 수 있었다
+            // given — 다시 시작되면 진행 중인 판이 초기화됨
             Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
 
             // then
@@ -332,8 +332,7 @@ class GameServiceTest {
         @Test
         @DisplayName("게임 중 끊기면 기권 처리된다")
         void 게임_중_끊기면_기권이다() {
-            // given — 기존에는 방만 지우고 승패도 점수도 남기지 않아
-            //         질 것 같으면 창을 닫는 게 이득이었다
+            // given — 승패를 남기지 않으면 질 것 같을 때 창을 닫는 게 이득이 됨
             Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
 
             // when
@@ -394,8 +393,7 @@ class GameServiceTest {
         @Test
         @DisplayName("게임 중 나가면 기권 처리되고 전적이 기록된다")
         void 게임_중_나가면_기권이다() {
-            // given — 끊김 경로만 정산하고 이 경로는 빠뜨려서
-            //         지고 있을 때 나가기를 누르는 쪽이 이득이었다
+            // given — 나가기가 정산을 건너뛰면 지고 있을 때 나가는 쪽이 이득이 됨
             Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
 
             // when
@@ -412,8 +410,7 @@ class GameServiceTest {
         @Test
         @DisplayName("정산이 끝나면 방이 대기 상태로 돌아간다")
         void 정산_후_방이_비워진다() {
-            // given — 정산 후에도 방이 남아 로비에 계속 뜨고
-            //         방장이 없는 상대와 새 게임을 시작할 수 있었다
+            // given — 비우지 않으면 끝난 방이 로비에 남고 나간 사람 자리로 새 게임이 시작될 수 있음
             Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
 
             // when
@@ -474,7 +471,7 @@ class GameServiceTest {
         @Test
         @DisplayName("진행 중이던 방은 무승부로 기록하고 지운다")
         void 진행중인_방은_무승부로_정산한다() {
-            // given — 예전에는 RoomRegistry 가 바로 지워서 기록이 남지 않았다
+            // given — 정산 없이 지우면 진행 중이던 판이 기록 없이 사라짐
             Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
 
             // when — 임계값 0 이면 모든 방이 정리 대상이 된다
@@ -522,7 +519,7 @@ class GameServiceTest {
         @Test
         @DisplayName("진행 중이면 현재 판을 돌려준다")
         void 진행중이면_스냅샷을_준다() {
-            // given — SYNC_GAME 이 선언만 되어 있고 새로고침하면 판을 잃었다
+            // given — 새로고침한 화면이 이어서 그릴 판
             Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
             착수(HOST, room.roomId(), new Move.Place(5));
 
@@ -547,7 +544,7 @@ class GameServiceTest {
         @Test
         @DisplayName("방에 속하지 않은 사람은 판을 볼 수 없다")
         void 외부인에게는_스냅샷을_주지_않는다() {
-            // given — 예전에는 roomId 만 보고 돌려줘서 아무나 남의 판을 끌어올 수 있었다
+            // given — roomId 만 알면 남의 판을 끌어올 수 있으면 안 됨
             Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
 
             // then

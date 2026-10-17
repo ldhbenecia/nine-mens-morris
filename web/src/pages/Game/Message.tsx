@@ -7,10 +7,7 @@ type MessageProps = {
   removing: boolean;
 };
 
-// SKIP 버튼이 사라졌다
-// 예전에는 제거 대상이 전부 3연속이라 고를 수 없을 때 빠져나갈 방법이 SKIP 뿐이었는데,
-// 서버가 "상대 돌이 전부 3연속이면 그마저 제거 가능" 예외를 구현해서
-// 이제 고를 수 없는 상황 자체가 없다
+// 제거를 건너뛰는 버튼은 없음. 상대 돌이 전부 3연속이면 그 돌도 제거할 수 있어 고를 돌이 없는 상황이 없음
 export function Message({ phase, turn, error, removing }: MessageProps) {
   const guide = () => {
     if (removing) return '상대 돌 하나를 골라 제거하세요';

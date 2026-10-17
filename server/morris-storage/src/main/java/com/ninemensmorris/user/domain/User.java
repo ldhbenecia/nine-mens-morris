@@ -17,7 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 // 식별자는 서비스가 발급하고 인증 수단은 속성으로 둔다
-// 카카오 회원번호를 그대로 기본키로 쓰던 때는 회원번호가 없는 비로그인 사용자를 만들 수 없었음
+// 카카오 회원번호를 기본키로 쓰면 회원번호가 없는 비로그인 사용자를 만들 수 없음
 //
 // (provider, provider_id) 유니크는 같은 카카오 계정이 두 행이 되는 것을 막음
 // 비로그인 사용자는 provider_id 가 null 인데 MySQL 은 유니크 인덱스에서 null 을

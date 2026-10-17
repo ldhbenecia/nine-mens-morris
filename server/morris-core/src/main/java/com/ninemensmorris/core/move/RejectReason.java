@@ -1,7 +1,6 @@
 package com.ninemensmorris.core.move;
 
-// 규칙 위반으로 거절된 이유
-// 기존 구현에는 거절이라는 개념 자체가 없어 잘못된 입력이 그대로 판을 오염시켰음
+// 규칙 위반으로 거절된 이유. 거절된 수는 판을 바꾸지 않음
 public enum RejectReason {
     GAME_NOT_IN_PROGRESS, // 이미 끝난 게임
     NOT_YOUR_TURN, // 상대 차례

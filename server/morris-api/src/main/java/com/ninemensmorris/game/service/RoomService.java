@@ -56,7 +56,7 @@ public class RoomService {
     }
 
     // 입장은 방 단위 락 안에서 처리한다
-    // 기존에는 playerTwoId == null 을 확인하고 저장하는 사이에 다른 요청이 끼어들 수 있었다
+    // 빈자리 확인과 저장 사이에 다른 요청이 끼어들면 한 자리에 두 명이 들어옴
     public void join(RoomCommand.JoinRoom command) {
         RejectableResult result = rooms.mutate(command.roomId(), room -> {
                     if (room.contains(command.actorId())) {

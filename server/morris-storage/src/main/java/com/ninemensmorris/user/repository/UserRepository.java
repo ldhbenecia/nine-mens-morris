@@ -21,7 +21,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // 로그인마다 도는 조회. uk_users_provider 를 그대로 탄다
     Optional<User> findByProviderAndProviderId(Provider provider, String providerId);
 
-    // 상위 N명. 기존에는 EntityManager 로 전체를 메모리에 올린 뒤 잘랐다
+    // 상위 N명. 자르기는 DB 에서. 전체를 올린 뒤 자르면 사용자 수만큼 메모리를 씀
     // 동점자 순서를 userId 로 고정하지 않으면 호출할 때마다 순위가 뒤바뀐다
     //
     // 비로그인 계정은 순위에서 뺀다. 무한히 만들 수 있어 등재를 허용하면 랭킹이 의미를 잃는다
@@ -53,7 +53,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("select u from User u where u.userId in :userIds order by u.userId")
     List<User> findAllByIdForUpdate(@Param("userIds") Collection<Long> userIds);
 
-    // 내 등수. 기존에는 전체 목록을 받아 프론트가 세는 수밖에 없었다
+    // 내 등수. 나보다 MMR 이 높은 로그인 사용자 수 + 1
     @Query("select count(u) + 1 from User u where u.mmr > :mmr"
             + " and u.provider <> com.ninemensmorris.user.domain.Provider.VISITOR")
     int findRankByMmr(@Param("mmr") int mmr);

@@ -20,9 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 // 경기 결과를 MMR 과 전적에 반영
 //
-// 승자 갱신 / 패자 갱신 / 전적 저장이 한 트랜잭션이어야 한다
-// 기존에는 increaseScore 와 decreaseScore 가 각자 별개 트랜잭션이라
-// 한쪽만 커밋되어 점수 총합이 어긋날 수 있었다
+// 승자 갱신 / 패자 갱신 / 전적 저장이 한 트랜잭션이어야 함. 따로 커밋되면 한쪽만 반영돼 점수 총합이 어긋남
 @Service
 @RequiredArgsConstructor
 @Slf4j

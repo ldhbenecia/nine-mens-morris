@@ -43,7 +43,7 @@ class ClusterPresenceTest extends IntegrationTestSupport {
         // when
         serverA.leave(USER, ROOM, "s1");
 
-        // then — 예전에는 A 가 자기 세션 표만 보고 나간 것으로 판단해 기권 처리했음
+        // then — A 가 자기 세션만 보면 나간 것으로 판단해 기권 처리함
         assertThat(serverA.isWatching(USER, ROOM)).isTrue();
     }
 

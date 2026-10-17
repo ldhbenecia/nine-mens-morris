@@ -7,7 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 // 인증 성공 후 식별자만 들고 다니는 최소 구현
-// 기존에는 getAttributes / getAuthorities 가 null 을 반환해 OAuth2User 계약을 어겼음
+// getAttributes / getAuthorities 는 null 을 돌려주면 OAuth2User 계약 위반이라 빈 값을 돌려줌
 public record CustomOAuth2User(long userId) implements OAuth2User {
 
     @Override

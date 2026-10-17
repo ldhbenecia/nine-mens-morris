@@ -7,8 +7,7 @@ import com.ninemensmorris.game.domain.FirstMoveRule;
 //
 // actorId 는 항상 첫 인자이며 컨트롤러가 Principal 에서 꺼내 채운다
 // 클라이언트가 보낸 페이로드에는 사용자 식별자가 없으므로 남의 id 로 조작할 수 없다
-// 기존에는 WithdrawRequestDto.userId 를 그대로 믿어 상대 id 를 넣으면
-// 상대가 기권한 것으로 처리되고 자기 점수가 올랐다
+// 페이로드의 id 를 믿으면 상대 id 로 기권을 보내 자기 점수를 올릴 수 있음
 public sealed interface RoomCommand {
 
     long actorId();

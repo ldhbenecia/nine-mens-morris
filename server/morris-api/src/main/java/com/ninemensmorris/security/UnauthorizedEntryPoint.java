@@ -12,7 +12,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
-// 인증되지 않은 요청. 기존에는 403 을 반환해 프론트의 재로그인 분기가 꼬였음
+// 인증되지 않은 요청
 // 403 은 "인증은 됐지만 권한이 없음" 이고 여기는 "인증이 안 됨" 이라 401 이 맞음
 //
 // 본문을 손으로 조립하면 다른 실패 응답과 모양이 달라지므로 ErrorResponse 를 그대로 직렬화함

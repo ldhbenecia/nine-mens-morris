@@ -12,7 +12,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 // 여기서 잡지 않은 예외는 /error 로 넘어가고, /error 는 보안 설정의 기본 거부에 걸려
-// 401 "로그인이 필요합니다" 로 바뀐다. 빈 제목으로 방을 만들면 로그아웃당하던 이유가 이것
+// 401 "로그인이 필요합니다" 로 바뀜. 입력 오류 하나로 클라이언트가 로그아웃 처리됨
 @RestControllerAdvice
 @Slf4j
 public class CustomExceptionHandler {
