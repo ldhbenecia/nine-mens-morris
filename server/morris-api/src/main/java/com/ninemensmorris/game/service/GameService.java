@@ -299,22 +299,15 @@ public class GameService {
     // 재접속 복구
     // 끝난 판도 돌려줌. 결과 화면에서 새로고침해도 승패는 남아 있어야 함
     //
-    // 반드시 방 단위 락 안에서 읽어야 함
-    // 락 밖에서 읽으면 상대가 돌을 옮기는 중간에 보드가 복제돼 돌이 출발지에도
-    // 도착지에도 없는 판이 나가고, 승부가 난 순간에는 status 만 FINISHED 이고
-    // outcome 은 아직 안 보여서 결정된 판이 무승부로 그려진다
+    // 락 없이 한 번 읽음. 저장소는 변경 하나를 통째로 쓰므로 이동 중간의 판이 보이지 않음
     // 방에 속한 사람만. 아니면 roomId 만 알면 남의 판을 끌어올 수 있음
     // 방 자체가 없으면 알림. 재시작·유휴 정리 뒤 다시 붙은 화면이 판이 살아 있는 것처럼 남지 않게
     public Optional<RoomEvent> snapshot(long roomId, long actorId) {
-        if (rooms.find(roomId).isEmpty()) {
-            throw new CustomException(ErrorCode.ROOM_NOT_FOUND);
+        Room room = rooms.find(roomId).orElseThrow(() -> new CustomException(ErrorCode.ROOM_NOT_FOUND));
+        if (!room.contains(actorId) || !room.hasGame()) {
+            return Optional.empty();
         }
-        return rooms.mutate(roomId, room -> {
-            if (!room.contains(actorId) || !room.hasGame()) {
-                return null;
-            }
-            return RoomEvent.of(RoomEventType.SNAPSHOT, stateOf(room, room.game()));
-        });
+        return Optional.of(RoomEvent.of(RoomEventType.SNAPSHOT, stateOf(room, room.game())));
     }
 
     // 반드시 방 락 밖에서 호출. 안에서 DB 를 기다리면 그동안 그 방의 모든 프레임이 막힘

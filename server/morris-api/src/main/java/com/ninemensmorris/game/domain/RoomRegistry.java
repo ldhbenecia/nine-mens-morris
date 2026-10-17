@@ -9,6 +9,7 @@ import java.util.function.Function;
 //
 // 방 하나에 대한 변경은 mutate 하나로만 일어나고 방 단위로 직렬화됨. 방끼리는 병렬
 // 여러 서버가 같은 저장소를 쓰므로 find / findAll 이 주는 Room 은 그 순간의 사본임
+// 변경은 통째로 저장되므로 사본에 변경 중간 상태가 섞이지 않음
 public interface RoomRegistry {
 
     Room create(String title, long hostId);
