@@ -1,6 +1,4 @@
 import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Client } from '@stomp/stompjs';
 import { PointType, StoneType } from '~/lib/types';
 import { MILLS, STONE_POSITION } from '~/lib/constants';
 import { Point } from './Point';
@@ -11,7 +9,6 @@ export type StoneMotion =
   | { kind: 'REMOVE'; point: number; stone: StoneType };
 
 type BoardProps = {
-  client: Client;
   board: StoneType[];
   playerStoneColor: StoneType;
   selectable: boolean;
@@ -20,14 +17,13 @@ type BoardProps = {
   lastPoint: number | null;
   motion: StoneMotion | null;
   millFormed: boolean;
-  addStone: (client: Client, roomId: number, index: number) => void;
-  moveStone: (client: Client, roomId: number, from: number, to: number) => void;
-  removeStone: (client: Client, roomId: number, index: number) => void;
+  onPlace: (point: number) => void;
+  onMove: (from: number, to: number) => void;
+  onRemove: (point: number) => void;
   onReject: (message: string) => void;
 };
 
 export function Board({
-  client,
   board,
   playerStoneColor,
   selectable,
@@ -36,12 +32,11 @@ export function Board({
   lastPoint,
   motion,
   millFormed,
-  addStone,
-  moveStone,
-  removeStone,
+  onPlace,
+  onMove,
+  onRemove,
   onReject,
 }: BoardProps) {
-  const { roomId } = useParams();
   const [selectedStone, setSelectedStone] = useState<number | null>(null);
 
   // board 에서 계산되는 값이라 state 로 복사하지 않음
@@ -83,26 +78,24 @@ export function Board({
   };
 
   const onClickPoint = (idx: number) => {
-    if (!roomId) return;
-
     switch (points[idx].stone) {
       case 'EMPTY':
         if (selectedStone !== null) {
-          moveStone(client, Number(roomId), selectedStone, idx);
+          onMove(selectedStone, idx);
           setSelectedStone(null);
           break;
         }
-        addStone(client, Number(roomId), idx);
+        onPlace(idx);
         break;
       default:
         // 제거 차례면 어느 돌이든 서버로. 보호 여부·자기 돌 여부는 서버가 답함
         if (removableStone !== 'EMPTY') {
-          removeStone(client, Number(roomId), idx);
+          onRemove(idx);
         } else if (points[idx].stone === playerStoneColor && selectable) {
           setSelectedStone(selectedStone === idx ? null : idx);
         } else if (placeable) {
           // 서버가 "이미 돌이 놓인 지점" 으로 답함
-          addStone(client, Number(roomId), idx);
+          onPlace(idx);
         } else if (selectable) {
           onReject('자기 돌만 옮길 수 있습니다.');
         } else {

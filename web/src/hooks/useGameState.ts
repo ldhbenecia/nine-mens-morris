@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { QUERY } from '~/lib/queries';
 import { Client } from '@stomp/stompjs';
-import { GameState, StoneType } from '~/lib/types';
+import { FirstMoveRule, GameState, StoneType } from '~/lib/types';
 import { clickSound } from '~/lib/sounds';
 import { DESTINATION, RoomAction } from '~/lib/socket';
 
@@ -31,48 +31,34 @@ let errorTimerId = 0;
 // 규칙 판단은 하지 않음. 서버가 판정하고 거절 사유를 개인 큐로 보내줌
 // 여기서 턴·빈 칸·단계를 미리 막으면 서버에 가지 않아 거절 문구도 효과음도 없이 무반응이 됨
 // 끝난 판처럼 보낼 이유가 아예 없는 것만 막음
-export function useGameState() {
+export function useGameState(client: Client, roomId: number) {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [error, setError] = useState('');
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
 
-  const myStone = (): StoneType => {
-    if (!currentUser) return 'EMPTY';
-    if (gameState.blackId === currentUser.userId) return 'BLACK';
-    if (gameState.whiteId === currentUser.userId) return 'WHITE';
-    return 'EMPTY';
-  };
-
-  const enemyStone = (): StoneType => {
-    const mine = myStone();
-    if (mine === 'BLACK') return 'WHITE';
-    if (mine === 'WHITE') return 'BLACK';
-    return 'EMPTY';
-  };
-
-  const isBlack = () => myStone() === 'BLACK';
-
-  const isGameOver = () => gameState.status === 'FINISHED';
-
-  const isPlayerTurn = () =>
+  const myStone: StoneType =
+    currentUser?.userId === gameState.blackId
+      ? 'BLACK'
+      : currentUser?.userId === gameState.whiteId
+        ? 'WHITE'
+        : 'EMPTY';
+  const enemyStone: StoneType =
+    myStone === 'BLACK' ? 'WHITE' : myStone === 'WHITE' ? 'BLACK' : 'EMPTY';
+  const black = myStone === 'BLACK';
+  const gameOver = gameState.status === 'FINISHED';
+  const playerTurn =
     !!currentUser && gameState.currentTurnId === currentUser.userId;
 
-  const getPlayerInHand = () =>
-    isBlack() ? gameState.blackInHand : gameState.whiteInHand;
-
-  const getEnemyInHand = () =>
-    isBlack() ? gameState.whiteInHand : gameState.blackInHand;
-
-  const getPlayerOnBoard = () =>
-    isBlack() ? gameState.blackOnBoard : gameState.whiteOnBoard;
-
-  const getEnemyOnBoard = () =>
-    isBlack() ? gameState.whiteOnBoard : gameState.blackOnBoard;
-
-  const getPlayerPhase = () =>
-    isBlack() ? gameState.blackPhase : gameState.whitePhase;
-
-  const enemyId = () => (isBlack() ? gameState.whiteId : gameState.blackId);
+  const player = {
+    inHand: black ? gameState.blackInHand : gameState.whiteInHand,
+    onBoard: black ? gameState.blackOnBoard : gameState.whiteOnBoard,
+    phase: black ? gameState.blackPhase : gameState.whitePhase,
+  };
+  const enemy = {
+    id: black ? gameState.whiteId : gameState.blackId,
+    inHand: black ? gameState.whiteInHand : gameState.blackInHand,
+    onBoard: black ? gameState.whiteOnBoard : gameState.blackOnBoard,
+  };
 
   const showError = (message: string) => {
     if (errorTimerId) {
@@ -83,57 +69,16 @@ export function useGameState() {
     errorTimerId = window.setTimeout(() => setError(''), 3000);
   };
 
-  const send = (
-    client: Client,
-    roomId: number,
-    action: RoomAction,
-    body?: object
-  ) => {
+  const send = (action: RoomAction, body?: object) => {
     client.publish({
       destination: DESTINATION.roomAction(roomId, action),
       body: body ? JSON.stringify(body) : undefined,
     });
   };
 
-  const addStone = (client: Client, roomId: number, index: number) => {
-    if (!isGameOver()) send(client, roomId, 'place', { to: index });
-  };
-
-  const moveStone = (
-    client: Client,
-    roomId: number,
-    from: number,
-    to: number
-  ) => {
-    if (!isGameOver()) send(client, roomId, 'move', { from, to });
-  };
-
-  // 3연속 보호 여부도 서버가 판단함. 상대 돌이 전부 3연속이면 그마저 제거 가능한 예외가 있음
-  const removeStone = (client: Client, roomId: number, index: number) => {
-    if (isGameOver()) return;
-    send(client, roomId, 'remove', { at: index });
-    setError('');
-  };
-
-  const resign = (client: Client, roomId: number) => {
-    if (!isGameOver()) send(client, roomId, 'resign');
-  };
-
-  const offerDraw = (client: Client, roomId: number) => {
-    if (!isGameOver()) send(client, roomId, 'draw-offer');
-  };
-
-  const acceptDraw = (client: Client, roomId: number) => {
-    if (!isGameOver()) send(client, roomId, 'draw-accept');
-  };
-
-  const declineDraw = (client: Client, roomId: number) => {
-    if (!isGameOver()) send(client, roomId, 'draw-decline');
-  };
-
-  const startGame = (client: Client, roomId: number) => {
-    clickSound.play();
-    send(client, roomId, 'start');
+  // 끝난 판에 보내는 수는 서버가 거절할 뿐이라 보내지 않음
+  const play = (action: RoomAction, body?: object) => {
+    if (!gameOver) send(action, body);
   };
 
   return {
@@ -141,22 +86,27 @@ export function useGameState() {
     error,
     setGameState,
     showError,
-    isPlayerTurn,
+    playerTurn,
     myStone,
     enemyStone,
-    enemyId,
-    getPlayerInHand,
-    getEnemyInHand,
-    getPlayerOnBoard,
-    getEnemyOnBoard,
-    getPlayerPhase,
-    addStone,
-    moveStone,
-    removeStone,
-    resign,
-    offerDraw,
-    acceptDraw,
-    declineDraw,
-    startGame,
+    player,
+    enemy,
+    place: (point: number) => play('place', { to: point }),
+    move: (from: number, to: number) => play('move', { from, to }),
+    // 3연속 보호 여부도 서버가 판단함. 상대 돌이 전부 3연속이면 그마저 제거 가능한 예외가 있음
+    remove: (point: number) => {
+      play('remove', { at: point });
+      setError('');
+    },
+    resign: () => play('resign'),
+    offerDraw: () => play('draw-offer'),
+    acceptDraw: () => play('draw-accept'),
+    declineDraw: () => play('draw-decline'),
+    start: () => {
+      clickSound.play();
+      send('start');
+    },
+    changeFirstMoveRule: (rule: FirstMoveRule) =>
+      send('settings', { firstMoveRule: rule }),
   };
 }

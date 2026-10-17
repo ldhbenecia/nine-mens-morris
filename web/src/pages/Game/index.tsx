@@ -6,7 +6,7 @@ import { resultOf } from '~/lib/gameResult';
 import { QUERY } from '~/lib/queries';
 import { createSocketClient, DESTINATION } from '~/lib/socket';
 import { useCountdown, useGameState, useLeaveRoom } from '~/hooks';
-import { FirstMoveRule, MoveRejected, RoomEvent } from '~/lib/types';
+import { MoveRejected, RoomEvent } from '~/lib/types';
 import { Board, StoneMotion } from './Board';
 import { WaitingRoom } from './WaitingRoom';
 import { Status } from './Status';
@@ -59,24 +59,21 @@ export function GamePage() {
     error,
     setGameState,
     showError,
-    isPlayerTurn,
+    playerTurn,
     myStone,
     enemyStone,
-    enemyId,
-    getPlayerInHand,
-    getEnemyInHand,
-    getPlayerOnBoard,
-    getEnemyOnBoard,
-    getPlayerPhase,
-    addStone,
-    moveStone,
-    removeStone,
+    player,
+    enemy: enemyStatus,
+    place,
+    move,
+    remove,
     resign,
     offerDraw,
     acceptDraw,
     declineDraw,
-    startGame,
-  } = useGameState();
+    start,
+    changeFirstMoveRule,
+  } = useGameState(client, Number(roomId));
 
   // 게임 시작 전에는 GameState 가 비어 있어 방장이 누구인지 알 수 없음
   const {
@@ -95,39 +92,31 @@ export function GamePage() {
   const inGame = gameState.status !== 'WAITING' || room?.hasGame === true;
 
   const { data: enemy } = useQuery({
-    ...QUERY.USER_PROFILE(enemyId()),
-    enabled: gameState.status !== 'WAITING' && enemyId() > 0,
+    ...QUERY.USER_PROFILE(enemyStatus.id),
+    enabled: gameState.status !== 'WAITING' && enemyStatus.id > 0,
   });
 
   const onLeaveRoom = () => {
     if (roomId) leaveRoom(Number(roomId));
   };
 
-  const onChangeFirstMoveRule = (rule: FirstMoveRule) => {
-    if (!roomId) return;
-    client.publish({
-      destination: DESTINATION.roomAction(Number(roomId), 'settings'),
-      body: JSON.stringify({ firstMoveRule: rule }),
-    });
-  };
-
   const onResign = () => {
-    if (roomId) resign(client, Number(roomId));
+    resign();
     setShowResignModal(false);
   };
 
   const onOfferDraw = () => {
-    if (roomId) offerDraw(client, Number(roomId));
+    offerDraw();
     setShowRequestDrawModal(false);
   };
 
   const onAcceptDraw = () => {
-    if (roomId) acceptDraw(client, Number(roomId));
+    acceptDraw();
     setShowResponseDrawModal(false);
   };
 
   const onDeclineDraw = () => {
-    if (roomId) declineDraw(client, Number(roomId));
+    declineDraw();
     setShowResponseDrawModal(false);
   };
 
@@ -135,10 +124,6 @@ export function GamePage() {
   const onReject = (message: string) => {
     showError(message);
     errorSound.play();
-  };
-
-  const onStart = () => {
-    if (roomId) startGame(client, Number(roomId));
   };
 
   // 착수 효과음. 직전 판과 새 판을 비교해 판단하므로 소리를 위한 별도 메시지가 없음
@@ -283,12 +268,11 @@ export function GamePage() {
     };
   }, [roomId]);
 
-  const myTurn = isPlayerTurn();
   useEffect(() => {
-    if (gameState.awaitingRemoval && myTurn) {
+    if (gameState.awaitingRemoval && playerTurn) {
       explosionSound.play();
     }
-  }, [gameState.awaitingRemoval, myTurn]);
+  }, [gameState.awaitingRemoval, playerTurn]);
 
   // 결과 화면은 상태에서 바로 계산. FINISHED 이벤트를 놓치고 SNAPSHOT 으로 복구해도 뜸
   const { status, winnerId, loserId } = gameState;
@@ -377,21 +361,21 @@ export function GamePage() {
         <WaitingRoom
           room={room}
           isHost={isHost}
-          onChangeFirstMoveRule={onChangeFirstMoveRule}
-          onStart={onStart}
+          onChangeFirstMoveRule={changeFirstMoveRule}
+          onStart={start}
           onLeave={onLeaveRoom}
         />
       ) : (
         <>
           <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
             {/* key 가 바뀌면 다시 마운트돼 단계가 넘어갈 때마다 깜빡임이 재생됨 */}
-            <PhaseBanner key={getPlayerPhase()} phase={getPlayerPhase()} />
+            <PhaseBanner key={player.phase} phase={player.phase} />
             <Status
-              turn={gameState.status === 'PLAYING' && !isPlayerTurn()}
+              turn={gameState.status === 'PLAYING' && !playerTurn}
               secondsLeft={secondsLeft}
-              color={enemyStone()}
-              inHand={getEnemyInHand()}
-              onBoard={getEnemyOnBoard()}
+              color={enemyStone}
+              inHand={enemyStatus.inHand}
+              onBoard={enemyStatus.onBoard}
               player={enemy}
             />
           </div>
@@ -399,39 +383,36 @@ export function GamePage() {
               넓은 화면은 정보가 모서리에 있어 가운데 겹쳐도 부딪히지 않고, 흐름에 넣으면 세로가 모자람 */}
           <div className="flex grow items-center justify-center md:absolute md:inset-0">
             <Board
-              client={client}
               board={gameState.board}
-              selectable={getPlayerPhase() !== 'PLACING' && isPlayerTurn()}
-              placeable={getPlayerPhase() === 'PLACING' && isPlayerTurn()}
+              selectable={player.phase !== 'PLACING' && playerTurn}
+              placeable={player.phase === 'PLACING' && playerTurn}
               removableStone={
-                gameState.awaitingRemoval && isPlayerTurn()
-                  ? enemyStone()
-                  : 'EMPTY'
+                gameState.awaitingRemoval && playerTurn ? enemyStone : 'EMPTY'
               }
               lastPoint={lastPoint}
               motion={motion}
               millFormed={gameState.awaitingRemoval}
-              playerStoneColor={myStone()}
-              addStone={addStone}
-              moveStone={moveStone}
-              removeStone={removeStone}
+              playerStoneColor={myStone}
+              onPlace={place}
+              onMove={move}
+              onRemove={remove}
               onReject={onReject}
             />
           </div>
           <div className="flex w-full flex-col items-center justify-between md:flex-row-reverse md:items-end">
             <Message
-              phase={getPlayerPhase()}
+              phase={player.phase}
               removing={gameState.awaitingRemoval}
               error={error}
-              turn={gameState.status === 'PLAYING' && isPlayerTurn()}
+              turn={gameState.status === 'PLAYING' && playerTurn}
             />
             <Status
               isCurrentUser
-              turn={gameState.status === 'PLAYING' && isPlayerTurn()}
+              turn={gameState.status === 'PLAYING' && playerTurn}
               secondsLeft={secondsLeft}
-              color={myStone()}
-              inHand={getPlayerInHand()}
-              onBoard={getPlayerOnBoard()}
+              color={myStone}
+              inHand={player.inHand}
+              onBoard={player.onBoard}
               player={currentUser}
               onShowResignModal={() => setShowResignModal(true)}
               onShowRequestDrawModal={() => setShowRequestDrawModal(true)}
