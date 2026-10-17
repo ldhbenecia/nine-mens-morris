@@ -52,6 +52,10 @@ public class RedisRoomRegistry implements RoomRegistry {
             if (room.isClosed()) {
                 return RoomStore.Change.delete(result);
             }
+            // 거절된 수·동기화 읽기·남의 방 나가기처럼 바뀐 게 없으면 다시 쓰지 않음. 활동 시각·revision 도 그대로
+            if (room.snapshot().equals(snapshot)) {
+                return RoomStore.Change.keep(result);
+            }
             room.touch();
             room.nextRevision();
             return RoomStore.Change.save(room.snapshot(), result);

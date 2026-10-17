@@ -116,6 +116,64 @@ interface RoomRegistryContract {
     }
 
     @Test
+    @DisplayName("고친 방은 revision 과 활동 시각이 오른다")
+    default void 고치면_revision_이_오른다() throws InterruptedException {
+        // given — 메모리 구현은 같은 객체를 돌려주므로 값을 먼저 떠 둠
+        Room created = registry().create("방", HOST);
+        long revision = created.revision();
+        Instant activity = created.lastActivityAt();
+        Thread.sleep(5); // 활동 시각 비교라 같은 ms 를 피함
+
+        // when
+        registry().mutate(created.roomId(), room -> {
+            room.join(GUEST);
+            return null;
+        });
+
+        // then
+        Room room = otherServer().find(created.roomId()).orElseThrow();
+        assertThat(room.revision()).isEqualTo(revision + 1);
+        assertThat(room.lastActivityAt()).isAfter(activity);
+    }
+
+    @Test
+    @DisplayName("아무것도 바꾸지 않은 변경은 revision 도 활동 시각도 그대로다")
+    default void 바뀐_게_없으면_그대로다() throws InterruptedException {
+        // given — 거절된 수. 판은 그대로
+        long roomId = 시작된_방();
+        Room before = otherServer().find(roomId).orElseThrow();
+        long revision = before.revision();
+        Instant activity = before.lastActivityAt();
+        Thread.sleep(5);
+
+        // when
+        MoveResult result = registry()
+                .mutate(roomId, room -> room.game().apply(Stone.WHITE, new Move.Place(0)))
+                .orElseThrow();
+
+        // then — 다른 서버가 보낸 이벤트의 순서 판단과 유휴 정리가 헛된 요청에 흔들리지 않음
+        assertThat(result).isInstanceOf(MoveResult.Rejected.class);
+        Room after = otherServer().find(roomId).orElseThrow();
+        assertThat(after.revision()).isEqualTo(revision);
+        assertThat(after.lastActivityAt()).isEqualTo(activity);
+    }
+
+    @Test
+    @DisplayName("쓰지 않고 끝난 변경도 락을 풀어 다음 변경이 기다리지 않는다")
+    default void 바뀐_게_없어도_락을_푼다() {
+        // given
+        long roomId = registry().create("방", HOST).roomId();
+        registry().mutate(roomId, room -> null);
+
+        // when, then — 락이 남으면 다른 서버의 변경이 대기 시간을 다 채우고 실패함
+        assertThat(otherServer().mutate(roomId, room -> {
+                    room.join(GUEST);
+                    return "입장";
+                }))
+                .contains("입장");
+    }
+
+    @Test
     @DisplayName("없는 방은 고치지 않고 비어 있다고 알린다")
     default void 없는_방은_비어_있다() {
         assertThat(registry().mutate(987654L, room -> "고침")).isEmpty();

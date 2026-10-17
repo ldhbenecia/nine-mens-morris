@@ -48,10 +48,11 @@ public class InMemoryRoomRegistry implements RoomRegistry {
             return Optional.empty();
         }
         synchronized (room) {
+            RoomSnapshot before = room.snapshot();
             R result = action.apply(room);
             if (room.isClosed()) {
                 rooms.remove(roomId);
-            } else {
+            } else if (!room.snapshot().equals(before)) {
                 room.touch();
                 room.nextRevision();
             }
