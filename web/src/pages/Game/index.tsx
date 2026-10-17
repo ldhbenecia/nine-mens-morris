@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Client } from '@stomp/stompjs';
 import { AlertModal } from '~/components';
-import { authHeaders } from '~/lib/auth';
 import { resultOf } from '~/lib/gameResult';
 import { QUERY } from '~/lib/queries';
+import { createSocketClient, DESTINATION } from '~/lib/socket';
 import { useCountdown, useGameState, useLeaveRoom } from '~/hooks';
 import { FirstMoveRule, MoveRejected, RoomEvent } from '~/lib/types';
 import { Board, StoneMotion } from './Board';
@@ -33,18 +32,7 @@ import {
 import { DrawRejectedModal } from './DrawRejectedModal';
 import { SocketErrorModal } from './SocketErrorModal';
 
-// 토큰은 CONNECT 프레임 헤더로 보냄
-// 핸드셰이크는 브라우저가 보내는 HTTP 요청이라 헤더를 붙일 수 없고, 쿠키는 cross-site 라 못 씀
-// beforeConnect 에서 채워야 재연결 때도 최신 토큰이 실림
-const client = new Client({
-  brokerURL: import.meta.env.VITE_SOCKET_URL,
-  reconnectDelay: 5000,
-  heartbeatIncoming: 4000,
-  heartbeatOutgoing: 4000,
-  beforeConnect: () => {
-    client.connectHeaders = authHeaders();
-  },
-});
+const client = createSocketClient();
 
 export function GamePage() {
   const { roomId } = useParams();
@@ -118,7 +106,7 @@ export function GamePage() {
   const onChangeFirstMoveRule = (rule: FirstMoveRule) => {
     if (!roomId) return;
     client.publish({
-      destination: `/app/rooms/${roomId}/settings`,
+      destination: DESTINATION.roomAction(Number(roomId), 'settings'),
       body: JSON.stringify({ firstMoveRule: rule }),
     });
   };
@@ -252,12 +240,12 @@ export function GamePage() {
     client.onConnect = () => {
       setDisconnected(false);
 
-      client.subscribe(`/topic/rooms/${roomId}`, (message) => {
+      client.subscribe(DESTINATION.room(Number(roomId)), (message) => {
         onRoomEvent(JSON.parse(message.body) as RoomEvent);
       });
 
       // 규칙 위반 거절과 권한 오류는 방이 아니라 나에게만 옴
-      client.subscribe('/user/queue/errors', (message) => {
+      client.subscribe(DESTINATION.ERRORS, (message) => {
         const rejected = JSON.parse(message.body) as MoveRejected;
         // 방장 퇴장·유휴 정리로 방이 지워진 뒤 다시 붙은 경우. 이어 둘 수 없으니 창으로 알리고 내보냄
         if (rejected.code === 'ROOM_NOT_FOUND') {
@@ -270,12 +258,14 @@ export function GamePage() {
       });
 
       // 새로고침 후 판 복구
-      client.subscribe('/user/queue/sync', (message) => {
+      client.subscribe(DESTINATION.SYNC, (message) => {
         onRoomEvent(JSON.parse(message.body) as RoomEvent);
       });
 
       // 구독 직후 진행 중인 판이 있는지 물어봄. 새로고침해도 판을 잃지 않음
-      client.publish({ destination: `/app/rooms/${roomId}/sync` });
+      client.publish({
+        destination: DESTINATION.roomAction(Number(roomId), 'sync'),
+      });
       joinSound.play();
     };
 

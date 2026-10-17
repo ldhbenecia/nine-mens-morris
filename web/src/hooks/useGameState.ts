@@ -4,6 +4,7 @@ import { QUERY } from '~/lib/queries';
 import { Client } from '@stomp/stompjs';
 import { GameState, StoneType } from '~/lib/types';
 import { clickSound } from '~/lib/sounds';
+import { DESTINATION, RoomAction } from '~/lib/socket';
 
 const initialGameState: GameState = {
   board: [...Array(24)].map(() => 'EMPTY'),
@@ -85,11 +86,11 @@ export function useGameState() {
   const send = (
     client: Client,
     roomId: number,
-    action: string,
+    action: RoomAction,
     body?: object
   ) => {
     client.publish({
-      destination: `/app/rooms/${roomId}/${action}`,
+      destination: DESTINATION.roomAction(roomId, action),
       body: body ? JSON.stringify(body) : undefined,
     });
   };

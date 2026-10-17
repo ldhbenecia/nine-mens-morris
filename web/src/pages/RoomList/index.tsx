@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Client } from '@stomp/stompjs';
 import { AlertModal, Button } from '~/components';
-import { authHeaders } from '~/lib/auth';
 import { QUERY } from '~/lib/queries';
+import { createSocketClient, DESTINATION } from '~/lib/socket';
 import Undo from '~/assets/icons/undo.svg?react';
 import Refresh from '~/assets/icons/refresh.svg?react';
 import { CreateRoomModal } from './CreateRoomModal';
@@ -23,16 +22,10 @@ export function RoomListPage() {
   // 목록 자체는 REST 로 다시 받음. 소켓으로 목록 전체를 흘리면
   // 접속자 수만큼 같은 데이터가 반복 전송됨
   useEffect(() => {
-    const client = new Client({
-      brokerURL: import.meta.env.VITE_SOCKET_URL,
-      reconnectDelay: 5000,
-      beforeConnect: () => {
-        client.connectHeaders = authHeaders();
-      },
-      onConnect: () => {
-        client.subscribe('/topic/lobby', () => refetch());
-      },
-    });
+    const client = createSocketClient();
+    client.onConnect = () => {
+      client.subscribe(DESTINATION.LOBBY, () => refetch());
+    };
     client.activate();
 
     return () => {
