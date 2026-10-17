@@ -1,8 +1,8 @@
 package com.ninemensmorris.observability;
 
 import com.ninemensmorris.common.logging.LogContext;
+import com.ninemensmorris.messaging.StompDestinations;
 import com.ninemensmorris.security.AuthenticatedUser;
-import java.util.Optional;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -18,8 +18,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class StompLogContextInterceptor implements ExecutorChannelInterceptor {
 
-    private static final String APP_ROOM_PREFIX = "/app/rooms/";
-
     @Override
     public Message<?> beforeHandle(Message<?> message, MessageChannel channel, MessageHandler handler) {
         LogContext.startTrace();
@@ -33,7 +31,7 @@ public class StompLogContextInterceptor implements ExecutorChannelInterceptor {
         if (actor != null) {
             LogContext.putUserId(actor.id());
         }
-        roomIdOf(accessor.getDestination()).ifPresent(LogContext::putRoomId);
+        StompDestinations.roomIdFromAppDestination(accessor.getDestination()).ifPresent(LogContext::putRoomId);
         return message;
     }
 
@@ -41,19 +39,5 @@ public class StompLogContextInterceptor implements ExecutorChannelInterceptor {
     public void afterMessageHandled(
             Message<?> message, MessageChannel channel, MessageHandler handler, Exception exception) {
         LogContext.clear();
-    }
-
-    // /app/rooms/{roomId}/place -> roomId
-    private Optional<Long> roomIdOf(String destination) {
-        if (destination == null || !destination.startsWith(APP_ROOM_PREFIX)) {
-            return Optional.empty();
-        }
-        String rest = destination.substring(APP_ROOM_PREFIX.length());
-        int slash = rest.indexOf('/');
-        try {
-            return Optional.of(Long.parseLong(slash < 0 ? rest : rest.substring(0, slash)));
-        } catch (NumberFormatException notARoom) {
-            return Optional.empty();
-        }
     }
 }

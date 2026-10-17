@@ -1,6 +1,7 @@
 package com.ninemensmorris.config;
 
 import com.ninemensmorris.game.domain.RoomRegistry;
+import com.ninemensmorris.messaging.StompDestinations;
 import com.ninemensmorris.security.AuthenticatedUser;
 import com.ninemensmorris.security.TokenAuthenticator;
 import lombok.RequiredArgsConstructor;
@@ -24,11 +25,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class ClientFrameGuard implements ChannelInterceptor {
-
-    private static final String APP_PREFIX = "/app/";
-    private static final String ROOM_TOPIC_PREFIX = "/topic/rooms/";
-    private static final String LOBBY_TOPIC = "/topic/lobby";
-    private static final String USER_PREFIX = "/user/";
 
     private final RoomRegistry rooms;
     private final TokenAuthenticator tokenAuthenticator;
@@ -84,13 +80,14 @@ public class ClientFrameGuard implements ChannelInterceptor {
             return null;
         }
         // 사용자 목적지는 Spring 이 principal 별로 갈라주므로 남의 큐를 받을 수 없음
-        if (destination.startsWith(USER_PREFIX) || destination.equals(LOBBY_TOPIC)) {
+        if (destination.startsWith(StompDestinations.USER_PREFIX)
+                || destination.equals(StompDestinations.LOBBY_TOPIC)) {
             return message;
         }
-        if (destination.startsWith(ROOM_TOPIC_PREFIX)) {
-            return isMember(destination, actor.id()) ? message : denied(actor.id(), destination);
-        }
-        return denied(actor.id(), destination);
+        boolean member = StompDestinations.roomIdFromTopic(destination)
+                .filter(roomId -> isMember(roomId, actor.id()))
+                .isPresent();
+        return member ? message : denied(actor.id(), destination);
     }
 
     private Message<?> denied(long userId, String destination) {
@@ -98,13 +95,8 @@ public class ClientFrameGuard implements ChannelInterceptor {
         return null;
     }
 
-    private boolean isMember(String destination, long userId) {
-        try {
-            long roomId = Long.parseLong(destination.substring(ROOM_TOPIC_PREFIX.length()));
-            return rooms.find(roomId).filter(room -> room.contains(userId)).isPresent();
-        } catch (NumberFormatException ignored) {
-            return false;
-        }
+    private boolean isMember(long roomId, long userId) {
+        return rooms.find(roomId).filter(room -> room.contains(userId)).isPresent();
     }
 
     // SimpleBroker 는 클라이언트가 /topic 으로 보낸 SEND 프레임도 구독자에게 그대로 중계한다
@@ -113,7 +105,7 @@ public class ClientFrameGuard implements ChannelInterceptor {
     // 막지 않으면 브라우저 콘솔 한 줄로 상대 화면에 위조된 게임 상태를 띄울 수 있다
     private Message<?> requireAppDestination(Message<?> message, StompHeaderAccessor accessor) {
         String destination = accessor.getDestination();
-        if (destination == null || !destination.startsWith(APP_PREFIX)) {
+        if (destination == null || !destination.startsWith(StompDestinations.APP_PREFIX)) {
             throw new IllegalArgumentException("클라이언트는 /app 으로만 전송할 수 있음: " + destination);
         }
         return message;

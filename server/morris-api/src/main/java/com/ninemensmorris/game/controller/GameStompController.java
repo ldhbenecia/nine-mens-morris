@@ -13,6 +13,7 @@ import com.ninemensmorris.game.dto.response.RoomEvent;
 import com.ninemensmorris.game.service.GameService;
 import com.ninemensmorris.game.service.PlayOutcome;
 import com.ninemensmorris.messaging.ClusterBroadcaster;
+import com.ninemensmorris.messaging.StompDestinations;
 import com.ninemensmorris.security.AuthenticatedUser;
 import jakarta.validation.Valid;
 import java.security.Principal;
@@ -35,9 +36,6 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 @Slf4j
 public class GameStompController {
-
-    private static final String ROOM_TOPIC = "/topic/rooms/";
-    private static final String ERROR_QUEUE = "/queue/errors";
 
     private final GameService gameService;
     private final SimpMessagingTemplate messaging; // 개인 큐. 요청한 세션이 이 서버에 있음
@@ -101,7 +99,8 @@ public class GameStompController {
         AuthenticatedUser actor = require(principal);
         gameService
                 .snapshot(roomId, actor.id())
-                .ifPresent(event -> messaging.convertAndSendToUser(String.valueOf(actor.id()), "/queue/sync", event));
+                .ifPresent(event -> messaging.convertAndSendToUser(
+                        String.valueOf(actor.id()), StompDestinations.SYNC_QUEUE, event));
     }
 
     // @RestControllerAdvice 는 메시징에 적용되지 않아서 여기서 던진 예외는
@@ -125,7 +124,7 @@ public class GameStompController {
         if (actor == null) {
             return;
         }
-        messaging.convertAndSendToUser(String.valueOf(actor.id()), ERROR_QUEUE, response);
+        messaging.convertAndSendToUser(String.valueOf(actor.id()), StompDestinations.ERROR_QUEUE, response);
     }
 
     private void play(long roomId, Principal principal, Move move) {
@@ -136,12 +135,13 @@ public class GameStompController {
             case PlayOutcome.Broadcast broadcast -> broadcast(roomId, broadcast.event());
             // 거절은 요청자에게만. 방에 뿌리면 상대에게 내 실수가 보인다
             case PlayOutcome.Reject reject ->
-                messaging.convertAndSendToUser(String.valueOf(actor.id()), ERROR_QUEUE, reject.response());
+                messaging.convertAndSendToUser(
+                        String.valueOf(actor.id()), StompDestinations.ERROR_QUEUE, reject.response());
         }
     }
 
     private void broadcast(long roomId, RoomEvent event) {
-        broadcaster.send(ROOM_TOPIC + roomId, event);
+        broadcaster.sendToRoom(roomId, event);
     }
 
     private AuthenticatedUser require(Principal principal) {

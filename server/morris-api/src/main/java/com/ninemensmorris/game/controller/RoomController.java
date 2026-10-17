@@ -29,10 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RoomController {
 
-    // 로비 목록이 바뀌었음을 알리는 토픽. 목록 자체는 REST 로 다시 받아감
-    private static final String LOBBY_TOPIC = "/topic/lobby";
-    private static final String ROOM_TOPIC = "/topic/rooms/";
-
     private final RoomService roomService;
     private final GameService gameService;
     private final ClusterBroadcaster broadcaster;
@@ -60,7 +56,7 @@ public class RoomController {
     public ResponseEntity<Void> join(AuthenticatedUser actor, @PathVariable long roomId) {
         roomService.join(new RoomCommand.JoinRoom(actor.id(), roomId));
         // 방장이 새로고침하지 않아도 상대가 들어온 걸 알 수 있어야 함
-        broadcaster.send(ROOM_TOPIC + roomId, RoomEvent.by(RoomEventType.PLAYER_JOINED, actor.id()));
+        broadcaster.sendToRoom(roomId, RoomEvent.by(RoomEventType.PLAYER_JOINED, actor.id()));
         notifyLobby();
         return ResponseEntity.status(201).build();
     }
@@ -68,13 +64,14 @@ public class RoomController {
     @DeleteMapping("/{roomId}/players/me")
     public ResponseEntity<Void> leave(AuthenticatedUser actor, @PathVariable long roomId) {
         gameService.leave(new RoomCommand.LeaveRoom(actor.id(), roomId)).ifPresent(broadcast -> {
-            broadcaster.send(ROOM_TOPIC + broadcast.roomId(), broadcast.event());
+            broadcaster.sendToRoom(broadcast.roomId(), broadcast.event());
             notifyLobby();
         });
         return ResponseEntity.noContent().build();
     }
 
+    // 목록이 바뀌었다는 신호만 보냄. 목록 자체는 REST 로 다시 받아감
     private void notifyLobby() {
-        broadcaster.send(LOBBY_TOPIC, RoomEvent.signal(RoomEventType.LOBBY_CHANGED));
+        broadcaster.sendToLobby(RoomEvent.signal(RoomEventType.LOBBY_CHANGED));
     }
 }

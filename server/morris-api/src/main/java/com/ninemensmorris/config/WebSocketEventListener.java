@@ -4,10 +4,10 @@ import com.ninemensmorris.game.domain.SessionTracker;
 import com.ninemensmorris.game.service.GameService;
 import com.ninemensmorris.messaging.ClusterBroadcaster;
 import com.ninemensmorris.messaging.ClusterPresence;
+import com.ninemensmorris.messaging.StompDestinations;
 import com.ninemensmorris.security.AuthenticatedUser;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.concurrent.RejectedExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +23,6 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 @Slf4j
 @RequiredArgsConstructor
 public class WebSocketEventListener {
-
-    private static final String ROOM_TOPIC_PREFIX = "/topic/rooms/";
 
     // 이 시간 안에 다시 접속하면 나간 것으로 보지 않음
     // 화면 이동만으로 방이 사라지던 문제를 막기 위함
@@ -55,7 +53,7 @@ public class WebSocketEventListener {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         AuthenticatedUser actor = AuthenticatedUser.from(accessor.getUser());
         String sessionId = accessor.getSessionId();
-        roomIdOf(accessor.getDestination()).ifPresent(roomId -> {
+        StompDestinations.roomIdFromTopic(accessor.getDestination()).ifPresent(roomId -> {
             // 같은 세션이 같은 방을 다시 구독해도 한 번만 셈
             if (actor == null || !sessions.enterRoom(sessionId, roomId)) {
                 return;
@@ -101,17 +99,6 @@ public class WebSocketEventListener {
 
         gameService
                 .handleDisconnect(userId, roomId)
-                .ifPresent(broadcast -> broadcaster.send(ROOM_TOPIC_PREFIX + broadcast.roomId(), broadcast.event()));
-    }
-
-    private Optional<Long> roomIdOf(String destination) {
-        if (destination == null || !destination.startsWith(ROOM_TOPIC_PREFIX)) {
-            return Optional.empty();
-        }
-        try {
-            return Optional.of(Long.parseLong(destination.substring(ROOM_TOPIC_PREFIX.length())));
-        } catch (NumberFormatException ignored) {
-            return Optional.empty();
-        }
+                .ifPresent(broadcast -> broadcaster.sendToRoom(broadcast.roomId(), broadcast.event()));
     }
 }

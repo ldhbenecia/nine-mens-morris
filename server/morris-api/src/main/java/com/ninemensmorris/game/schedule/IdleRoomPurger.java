@@ -15,8 +15,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class IdleRoomPurger {
 
-    private static final String ROOM_TOPIC = "/topic/rooms/";
-
     private final GameService gameService;
     private final ClusterBroadcaster broadcaster;
 
@@ -24,6 +22,6 @@ public class IdleRoomPurger {
     public void purge() {
         gameService
                 .purgeIdleRooms()
-                .forEach(broadcast -> broadcaster.send(ROOM_TOPIC + broadcast.roomId(), broadcast.event()));
+                .forEach(broadcast -> broadcaster.sendToRoom(broadcast.roomId(), broadcast.event()));
     }
 }

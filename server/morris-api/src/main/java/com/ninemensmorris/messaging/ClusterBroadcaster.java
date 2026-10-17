@@ -1,11 +1,10 @@
 package com.ninemensmorris.messaging;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +14,11 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MimeTypeUtils;
 
 // 방·로비 토픽을 그 토픽을 구독한 세션이 있는 서버로만 보냄
 //
@@ -35,9 +37,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ClusterBroadcaster implements MessageListener {
 
-    private static final String ROOM_TOPIC_PREFIX = "/topic/rooms/";
-    private static final String LOBBY_TOPIC = "/topic/lobby";
     private static final String LOBBY_CHANNEL = "morris:lobby";
+    private static final String ROOM_CHANNEL_PREFIX = "morris:room:";
 
     private final StringRedisTemplate redis;
     private final SimpMessagingTemplate messaging;
@@ -71,12 +72,21 @@ public class ClusterBroadcaster implements MessageListener {
         container.destroy();
     }
 
-    public void send(String destination, Object payload) {
+    // 그 방 구독자가 있는 서버로만 감
+    public void sendToRoom(long roomId, Object payload) {
+        publish(roomChannel(roomId), payload);
+    }
+
+    // 로비는 모든 서버가 늘 구독함
+    public void sendToLobby(Object payload) {
+        publish(LOBBY_CHANNEL, payload);
+    }
+
+    private void publish(String channel, Object payload) {
         try {
-            String envelope = objectMapper.writeValueAsString(new Envelope(destination, payload));
-            redis.convertAndSend(channelOf(destination), envelope);
+            redis.convertAndSend(channel, objectMapper.writeValueAsString(payload));
         } catch (JsonProcessingException exception) {
-            throw new IllegalStateException("토픽 메시지 직렬화 실패 destination=" + destination, exception);
+            throw new IllegalStateException("토픽 메시지 직렬화 실패 channel=" + channel, exception);
         }
     }
 
@@ -102,30 +112,26 @@ public class ClusterBroadcaster implements MessageListener {
         });
     }
 
-    // 본문을 다시 객체로 만들지 않고 JSON 트리째 넘김. 형식을 몰라도 그대로 나감
+    // 목적지는 채널 이름으로 정하고 본문은 바이트째 넘김
+    // JSON 을 객체로 읽었다 다시 쓰면 방 이벤트마다 받는 서버 수만큼 헛일이 생김
     @Override
     public void onMessage(Message message, byte[] pattern) {
-        try {
-            JsonNode envelope = objectMapper.readTree(message.getBody());
-            messaging.convertAndSend(envelope.get("destination").asText(), envelope.get("payload"));
-        } catch (IOException exception) {
-            log.warn("토픽 메시지를 읽지 못함: {}", exception.getMessage());
-        }
+        SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create();
+        headers.setContentType(MimeTypeUtils.APPLICATION_JSON);
+        headers.setLeaveMutable(true);
+        String channel = new String(message.getChannel(), StandardCharsets.UTF_8);
+        messaging.send(
+                destinationOf(channel), MessageBuilder.createMessage(message.getBody(), headers.getMessageHeaders()));
     }
 
-    private static String channelOf(String destination) {
-        if (destination.equals(LOBBY_TOPIC)) {
-            return LOBBY_CHANNEL;
+    private static String destinationOf(String channel) {
+        if (channel.equals(LOBBY_CHANNEL)) {
+            return StompDestinations.LOBBY_TOPIC;
         }
-        if (destination.startsWith(ROOM_TOPIC_PREFIX)) {
-            return roomChannel(Long.parseLong(destination.substring(ROOM_TOPIC_PREFIX.length())));
-        }
-        throw new IllegalArgumentException("서버 간 전파 대상이 아닌 목적지: " + destination);
+        return StompDestinations.roomTopic(Long.parseLong(channel.substring(ROOM_CHANNEL_PREFIX.length())));
     }
 
     private static String roomChannel(long roomId) {
-        return "morris:room:" + roomId;
+        return ROOM_CHANNEL_PREFIX + roomId;
     }
-
-    private record Envelope(String destination, Object payload) {}
 }

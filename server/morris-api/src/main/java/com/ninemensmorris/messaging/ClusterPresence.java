@@ -71,10 +71,6 @@ public class ClusterPresence {
         }
     }
 
-    public String instanceId() {
-        return instanceId;
-    }
-
     private String member(String sessionId) {
         return instanceId + ":" + sessionId;
     }

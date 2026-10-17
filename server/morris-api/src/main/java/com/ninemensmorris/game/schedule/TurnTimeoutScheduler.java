@@ -15,15 +15,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TurnTimeoutScheduler {
 
-    private static final String ROOM_TOPIC = "/topic/rooms/";
-
     private final GameService gameService;
     private final ClusterBroadcaster broadcaster;
 
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.SECONDS)
     public void expire() {
-        gameService
-                .expireTurns()
-                .forEach(broadcast -> broadcaster.send(ROOM_TOPIC + broadcast.roomId(), broadcast.event()));
+        gameService.expireTurns().forEach(broadcast -> broadcaster.sendToRoom(broadcast.roomId(), broadcast.event()));
     }
 }
