@@ -5,7 +5,7 @@ import { AlertModal } from '~/components';
 import { resultOf } from '~/lib/gameResult';
 import { QUERY, USER_PROFILE_KEY } from '~/lib/queries';
 import { createSocketClient, DESTINATION } from '~/lib/socket';
-import { useCountdown, useGameState, useLeaveRoom } from '~/hooks';
+import { useGameState, useLeaveRoom } from '~/hooks';
 import { MoveRejected, RoomEvent } from '~/lib/types';
 import { Board, StoneMotion } from './Board';
 import { WaitingRoom } from './WaitingRoom';
@@ -46,7 +46,6 @@ export function GamePage() {
   const [motion, setMotion] = useState<StoneMotion | null>(null);
   const [roomLost, setRoomLost] = useState(false);
   const [turnDeadline, setTurnDeadline] = useState<number | null>(null);
-  const secondsLeft = useCountdown(turnDeadline);
   const { data: currentUser, isFetching: fetchingUser } = useQuery(
     QUERY.CURRENT_USER
   );
@@ -371,7 +370,7 @@ export function GamePage() {
             <PhaseBanner key={player.phase} phase={player.phase} />
             <Status
               turn={gameState.status === 'PLAYING' && !playerTurn}
-              secondsLeft={secondsLeft}
+              turnDeadline={turnDeadline}
               color={enemyStone}
               inHand={enemyStatus.inHand}
               onBoard={enemyStatus.onBoard}
@@ -408,7 +407,7 @@ export function GamePage() {
             <Status
               isCurrentUser
               turn={gameState.status === 'PLAYING' && playerTurn}
-              secondsLeft={secondsLeft}
+              turnDeadline={turnDeadline}
               color={myStone}
               inHand={player.inHand}
               onBoard={player.onBoard}

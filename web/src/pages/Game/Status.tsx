@@ -4,6 +4,7 @@ import { Avatar, Button } from '~/components';
 import { HelpButton } from './HelpButton';
 import { StoneType, UserProfile } from '~/lib/types';
 import { TIER_LABEL } from '~/lib/tier';
+import { useCountdown } from '~/hooks';
 
 type StatusProps = {
   isCurrentUser?: boolean;
@@ -12,7 +13,7 @@ type StatusProps = {
   color: StoneType;
   inHand: number;
   onBoard: number;
-  secondsLeft?: number | null; // 차례인 쪽의 남은 초. 차례가 아니면 보이지 않음
+  turnDeadline?: number | null; // 차례가 끝나는 시각(내 시계 기준 ms). 차례가 아니면 보이지 않음
   player?: Pick<
     UserProfile,
     'nickname' | 'imageUrl' | 'mmr' | 'tier' | 'visitor'
@@ -28,7 +29,7 @@ export function Status({
   color,
   inHand,
   onBoard,
-  secondsLeft = null,
+  turnDeadline = null,
   player,
   onShowResignModal,
   onShowRequestDrawModal,
@@ -92,12 +93,8 @@ export function Status({
             ))}
           </div>
           <span className="flex items-center gap-2 text-xs font-semibold text-nowrap text-gray-600">
-            {turn && secondsLeft !== null && (
-              <span
-                className={`tabular-nums ${secondsLeft <= 10 ? 'animate-pulse text-red-600' : 'text-gray-800'}`}
-              >
-                {secondsLeft}초
-              </span>
+            {turn && turnDeadline !== null && (
+              <TurnClock deadline={turnDeadline} />
             )}
             손 {inHand} / 판 {onBoard}
           </span>
@@ -127,5 +124,17 @@ export function Status({
         </div>
       )}
     </div>
+  );
+}
+
+// 1초보다 촘촘히 깨어나므로 이 글자만 다시 그림. 판 전체가 같이 다시 그려지지 않게 따로 둠
+function TurnClock({ deadline }: { deadline: number }) {
+  const secondsLeft = useCountdown(deadline) ?? 0;
+  return (
+    <span
+      className={`tabular-nums ${secondsLeft <= 10 ? 'animate-pulse text-red-600' : 'text-gray-800'}`}
+    >
+      {secondsLeft}초
+    </span>
   );
 }
