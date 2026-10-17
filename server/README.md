@@ -51,7 +51,6 @@ cp .env.example .env
 | --- | --- |
 | `MYSQL_*` | docker-compose 가 띄우는 MySQL 계정·DB명·포트 |
 | `SPRING_DATASOURCE_*` | 앱을 **호스트에서 직접** 실행할 때 쓰는 접속 정보 (compose 로 띄우면 자동 주입) |
-| `JPA_DDL_AUTO` | 로컬은 `update`, 운영은 `validate` |
 | `JWT_SECRET_KEY` | HS256 서명 키. Base64 32바이트 이상 — `openssl rand -base64 32` |
 | `ACCESS_TOKEN_EXPIRATION` | 밀리초 단위 (1시간 = `3600000`) |
 | `KAKAO_CLIENT_ID` / `KAKAO_CLIENT_SECRET` | [카카오 개발자센터](https://developers.kakao.com) 앱 키. Redirect URI 에 `{서버주소}/api/oauth2/kakao` 등록 필요 |

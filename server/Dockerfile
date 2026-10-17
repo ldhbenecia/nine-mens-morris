@@ -17,7 +17,7 @@ COPY morris-support/src morris-support/src
 COPY morris-api/src     morris-api/src
 
 # 테스트는 Testcontainers 로 Docker 를 요구하므로 이미지 빌드 안에서 못 돌림
-# CI(.github/workflows/build.yml) 에서 이미 수행함
+# CI(.github/workflows/server.yml) 에서 이미 수행함
 RUN ./gradlew :morris-api:bootJar --no-daemon -x test
 
 # ── run ─────────────────────────────────────────────────────────────
