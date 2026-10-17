@@ -228,4 +228,11 @@ public final class Room {
     public boolean isTurnExpired(Instant now) {
         return isPlaying() && turnDeadline != null && !now.isBefore(turnDeadline);
     }
+
+    // 로비 목록에 보이는 값. 이게 바뀔 때만 로비에 다시 받으라고 알림
+    public LobbyView lobbyView() {
+        return new LobbyView(playerCount(), isPlaying(), firstMoveRule);
+    }
+
+    public record LobbyView(int playerCount, boolean playing, FirstMoveRule firstMoveRule) {}
 }

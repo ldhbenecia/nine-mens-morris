@@ -47,7 +47,6 @@ public class RoomController {
     public ResponseEntity<CreateRoomResponse> create(
             AuthenticatedUser actor, @Valid @RequestBody CreateRoomRequest request) {
         CreateRoomResponse response = roomService.create(new RoomCommand.CreateRoom(actor.id(), request.title()));
-        notifyLobby();
         return ResponseEntity.created(URI.create("/api/v1/rooms/" + response.roomId()))
                 .body(response);
     }
@@ -57,21 +56,14 @@ public class RoomController {
         roomService.join(new RoomCommand.JoinRoom(actor.id(), roomId));
         // 방장이 새로고침하지 않아도 상대가 들어온 걸 알 수 있어야 함
         broadcaster.sendToRoom(roomId, RoomEvent.by(RoomEventType.PLAYER_JOINED, actor.id()));
-        notifyLobby();
         return ResponseEntity.status(201).build();
     }
 
     @DeleteMapping("/{roomId}/players/me")
     public ResponseEntity<Void> leave(AuthenticatedUser actor, @PathVariable long roomId) {
-        gameService.leave(new RoomCommand.LeaveRoom(actor.id(), roomId)).ifPresent(broadcast -> {
-            broadcaster.sendToRoom(broadcast.roomId(), broadcast.event());
-            notifyLobby();
-        });
+        gameService
+                .leave(new RoomCommand.LeaveRoom(actor.id(), roomId))
+                .ifPresent(broadcast -> broadcaster.sendToRoom(broadcast.roomId(), broadcast.event()));
         return ResponseEntity.noContent().build();
-    }
-
-    // 목록이 바뀌었다는 신호만 보냄. 목록 자체는 REST 로 다시 받아감
-    private void notifyLobby() {
-        broadcaster.sendToLobby(RoomEvent.signal(RoomEventType.LOBBY_CHANGED));
     }
 }
