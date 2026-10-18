@@ -91,5 +91,4 @@ cd web && pnpm exec tsc --noEmit && pnpm lint --fix && pnpm build
 | `forward-headers-strategy: framework` | 앱 포트에 직접 닿으면 `X-Forwarded-For` 위조로 visitor 발급 한도 우회. 프록시만 앱에 닿는다는 전제 |
 | 정산 실패 자동 재시도 없음 | DB 장애 중 끝난 판은 ERROR 로그를 보고 수동 복구 |
 | 반복 대전·10수 조건은 화면의 "랭크전" 표시에 반영되지 않음 | 끝나 봐야 랭크전이 아니었음을 앎 |
-| `.platform/nginx.conf` | Elastic Beanstalk 시절 설정. 현재 쿠버네티스 배포에서는 쓰지 않음 |
 | `application-local.yml` 은 git 이 추적하지 않음 | 로컬 프로파일 설정은 각자 기기에만 있음 |
