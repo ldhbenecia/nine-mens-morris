@@ -53,6 +53,7 @@ class GameServiceTest {
     private final MutableClock clock = new MutableClock(Instant.parse("2026-10-11T00:00:00Z"));
     private RoomRegistry rooms;
     private MatchResultService matchResultService;
+    private SimpleMeterRegistry meterRegistry;
     private GameMetrics metrics;
     private GameService gameService;
 
@@ -61,7 +62,8 @@ class GameServiceTest {
         rooms = new InMemoryRoomRegistry();
         matchResultService = mock(MatchResultService.class);
         // 메트릭은 목이 아니라 실물을 씀. 등록 이름이 틀리면 여기서 바로 터짐
-        metrics = new GameMetrics(new SimpleMeterRegistry(), rooms, new SessionTracker());
+        meterRegistry = new SimpleMeterRegistry();
+        metrics = new GameMetrics(meterRegistry, rooms, new SessionTracker());
         gameService = new GameService(rooms, matchResultService, metrics, IDLE_TIMEOUT, TURN_LIMIT, clock);
     }
 
@@ -113,6 +115,20 @@ class GameServiceTest {
             // then
             assertThatThrownBy(() -> gameService.start(new RoomCommand.StartGame(HOST, room.roomId())))
                     .isInstanceOf(CustomException.class);
+        }
+
+        @Test
+        @DisplayName("같은 상대와 이어 두는 판은 매칭 대기 시간을 재지 않는다")
+        void 이어_두는_판은_대기를_재지_않는다() {
+            // given — 첫 판을 끝냄
+            Room room = 시작된_방(FirstMoveRule.HOST_FIRST);
+            착수(HOST, room.roomId(), new Move.Resign());
+
+            // when — 같은 상대와 한 판 더
+            gameService.start(new RoomCommand.StartGame(HOST, room.roomId()));
+
+            // then — 방 생성부터 재면 앞 판을 둔 시간까지 대기로 잡힘
+            assertThat(meterRegistry.get("morris.room.wait").timer().count()).isEqualTo(1);
         }
 
         @Test

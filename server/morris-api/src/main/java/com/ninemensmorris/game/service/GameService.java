@@ -90,10 +90,14 @@ public class GameService {
                 throw new CustomException(ErrorCode.GAME_ALREADY_STARTED);
             }
 
+            // 방을 만들고 상대를 기다린 시간. 이 서비스에서 "매칭 대기" 에 해당하는 유일한 구간
+            // 같은 상대와 이어 두는 판은 재지 않음. 방 생성부터 재면 앞 판들을 둔 시간까지 대기로 잡힘
+            // 새 참가자가 들어오면 지난 판이 지워지므로 판이 없을 때가 상대를 만나 처음 두는 판
+            if (!room.hasGame()) {
+                metrics.recordRoomWait(Duration.between(room.createdAt(), Instant.now()));
+            }
             MorrisGame game = room.start();
             restartTurnClock(room);
-            // 방을 만들고 상대를 기다린 시간. 이 서비스에서 "매칭 대기" 에 해당하는 유일한 구간
-            metrics.recordRoomWait(Duration.between(room.createdAt(), Instant.now()));
             log.info(
                     "게임 시작 roomId={} black={} white={} 선공규칙={}",
                     room.roomId(),
