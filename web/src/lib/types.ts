@@ -138,6 +138,11 @@ export type RoomEvent = {
   actorId: number | null;
 };
 
+// 판이 아니라 연결에 관한 알림. 지금 붙은 서버가 그 서버의 세션에게만 보냄
+export type ServerNotice = {
+  type: 'RECONNECT'; // 곧 내려감. 다른 서버에 새 연결을 먼저 붙이고 이 연결을 닫음
+};
+
 // 규칙 위반 거절. 방이 아니라 요청자에게만 옴
 export type MoveRejected = {
   code: string;
