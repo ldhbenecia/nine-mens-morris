@@ -34,6 +34,12 @@ subprojects {
         }
     }
 
+    // Boot 3.5.16 이 고르는 Flyway(11.7.2)는 MySQL 8.1 까지만 검증됨. 8.4 지원은 11.13.3 부터
+    // 기동 때 "Flyway upgrade recommended: MySQL 8.4 is newer…" WARN 이 났음
+    // 11.x 안에서만 올림 — 메이저를 넘으면 Boot 의 Flyway 자동설정과 어긋날 수 있음
+    // Boot 를 올려서 이 버전 이상이 기본값이 되면 이 줄은 지움
+    ext['flyway.version'] = '11.13.3'
+
     dependencyManagement {
         imports {
             mavenBom SpringBootPlugin.BOM_COORDINATES
