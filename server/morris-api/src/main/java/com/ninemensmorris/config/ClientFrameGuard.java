@@ -79,8 +79,10 @@ public class ClientFrameGuard implements ChannelInterceptor {
             return null;
         }
         // 사용자 목적지는 Spring 이 principal 별로 갈라주므로 남의 큐를 받을 수 없음
+        // 시스템 토픽은 연결 관리 신호만 흐르고 판 정보가 없어 로그인한 누구나 받음
         if (destination.startsWith(StompDestinations.USER_PREFIX)
-                || destination.equals(StompDestinations.LOBBY_TOPIC)) {
+                || destination.equals(StompDestinations.LOBBY_TOPIC)
+                || destination.equals(StompDestinations.SYSTEM_TOPIC)) {
             return message;
         }
         boolean member = StompDestinations.roomIdFromTopic(destination)

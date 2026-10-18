@@ -4,7 +4,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertModal } from '~/components';
 import { resultOf } from '~/lib/gameResult';
 import { QUERY, USER_PROFILE_KEY } from '~/lib/queries';
-import { createSocketClient, DESTINATION } from '~/lib/socket';
+import { Client } from '@stomp/stompjs';
+import { DESTINATION, ManagedSocket } from '~/lib/socket';
 import { useGameState, useLeaveRoom } from '~/hooks';
 import { MoveRejected, RoomEvent } from '~/lib/types';
 import { Board, StoneMotion } from './Board';
@@ -31,7 +32,7 @@ import {
 } from '~/lib/sounds';
 import { SocketErrorModal } from './SocketErrorModal';
 
-const client = createSocketClient();
+const socket = new ManagedSocket();
 
 export function GamePage() {
   const { roomId } = useParams();
@@ -71,7 +72,7 @@ export function GamePage() {
     declineDraw,
     start,
     changeFirstMoveRule,
-  } = useGameState(client, Number(roomId));
+  } = useGameState(socket, Number(roomId));
 
   // 게임 시작 전에는 GameState 가 비어 있어 방장이 누구인지 알 수 없음
   const {
@@ -220,9 +221,16 @@ export function GamePage() {
   useEffect(() => {
     if (!roomId) return;
 
-    client.onConnect = () => {
-      setDisconnected(false);
+    // 서버를 옮겨 다시 붙을 때도 불림. 입장 효과음은 처음 한 번만
+    let entered = false;
+    socket.start({
+      onConnect: (client) => subscribeRoom(client),
+      onLost: () => setDisconnected(true),
+      onRestored: () => setDisconnected(false),
+      onError: (message) => onError(message),
+    });
 
+    function subscribeRoom(client: Client) {
       client.subscribe(DESTINATION.room(Number(roomId)), (message) => {
         onRoomEvent(JSON.parse(message.body) as RoomEvent);
       });
@@ -245,25 +253,15 @@ export function GamePage() {
         onRoomEvent(JSON.parse(message.body) as RoomEvent);
       });
 
-      // 구독 직후 진행 중인 판이 있는지 물어봄. 새로고침해도 판을 잃지 않음
+      // 구독 직후 진행 중인 판이 있는지 물어봄. 새로고침·재접속·서버 이동 뒤에도 판을 잃지 않음
       client.publish({
         destination: DESTINATION.roomAction(Number(roomId), 'sync'),
       });
-      joinSound.play();
-    };
+      if (!entered) joinSound.play();
+      entered = true;
+    }
 
-    // 끊긴 상태에서 publish 하면 stompjs 가 throw 하므로 화면에 알려야 함
-    client.onWebSocketClose = () => setDisconnected(true);
-    client.onStompError = (frame) =>
-      onError(frame.headers.message ?? '서버와 통신에 실패했습니다.');
-
-    client.activate();
-
-    return () => {
-      // 의도적으로 끊는 것이므로 끊김 알림이 뜨지 않게 먼저 떼어냄
-      client.onWebSocketClose = () => {};
-      client.deactivate();
-    };
+    return () => socket.stop();
   }, [roomId]);
 
   useEffect(() => {

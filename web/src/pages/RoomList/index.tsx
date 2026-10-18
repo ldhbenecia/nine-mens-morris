@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { AlertModal, Button } from '~/components';
 import { QUERY } from '~/lib/queries';
-import { createSocketClient, DESTINATION } from '~/lib/socket';
+import { DESTINATION, ManagedSocket } from '~/lib/socket';
 import Undo from '~/assets/icons/undo.svg?react';
 import Refresh from '~/assets/icons/refresh.svg?react';
 import { CreateRoomModal } from './CreateRoomModal';
@@ -22,16 +22,19 @@ export function RoomListPage() {
   // 방이 생기거나 사라지면 서버가 로비 토픽으로 알려줌
   // 목록 자체는 REST 로 다시 받음. 소켓으로 목록 전체를 흘리면
   // 접속자 수만큼 같은 데이터가 반복 전송됨
+  // 끊겼다 다시 붙거나 서버를 옮긴 사이 놓친 신호가 있을 수 있어 두 번째 연결부터는 목록도 다시 받음
   useEffect(() => {
-    const client = createSocketClient();
-    client.onConnect = () => {
-      client.subscribe(DESTINATION.LOBBY, () => refetch());
-    };
-    client.activate();
+    const socket = new ManagedSocket();
+    let connectedBefore = false;
+    socket.start({
+      onConnect: (client) => {
+        client.subscribe(DESTINATION.LOBBY, () => refetch());
+        if (connectedBefore) refetch();
+        connectedBefore = true;
+      },
+    });
 
-    return () => {
-      client.deactivate();
-    };
+    return () => socket.stop();
   }, [refetch]);
 
   const onClickCreateRoom = () => setShowCreateRoomModal(true);

@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { QUERY } from '~/lib/queries';
-import { Client } from '@stomp/stompjs';
 import { FirstMoveRule, GameState, StoneType } from '~/lib/types';
 import { clickSound } from '~/lib/sounds';
-import { DESTINATION, RoomAction } from '~/lib/socket';
+import { DESTINATION, Publisher, RoomAction } from '~/lib/socket';
 
 const initialGameState: GameState = {
   board: [...Array(24)].map(() => 'EMPTY'),
@@ -31,7 +30,7 @@ let errorTimerId = 0;
 // 규칙 판단은 하지 않음. 서버가 판정하고 거절 사유를 개인 큐로 보내줌
 // 여기서 턴·빈 칸·단계를 미리 막으면 서버에 가지 않아 거절 문구도 효과음도 없이 무반응이 됨
 // 끝난 판처럼 보낼 이유가 아예 없는 것만 막음
-export function useGameState(client: Client, roomId: number) {
+export function useGameState(socket: Publisher, roomId: number) {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [error, setError] = useState('');
   const { data: currentUser } = useQuery(QUERY.CURRENT_USER);
@@ -69,11 +68,14 @@ export function useGameState(client: Client, roomId: number) {
     errorTimerId = window.setTimeout(() => setError(''), 3000);
   };
 
+  // 연결을 다시 잇는 동안 보낸 수는 서버에 가지 않음. 무반응이 되지 않게 알림
   const send = (action: RoomAction, body?: object) => {
-    client.publish({
+    const sent = socket.publish({
       destination: DESTINATION.roomAction(roomId, action),
       body: body ? JSON.stringify(body) : undefined,
     });
+    if (!sent)
+      showError('연결을 다시 잇는 중입니다. 잠시 후 다시 시도해 주세요.');
   };
 
   // 끝난 판에 보내는 수는 서버가 거절할 뿐이라 보내지 않음
