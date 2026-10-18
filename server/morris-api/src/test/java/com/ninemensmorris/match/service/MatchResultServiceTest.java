@@ -165,6 +165,25 @@ class MatchResultServiceTest extends IntegrationTestSupport {
             int thirdDelta = matches.get(2).getBlackMmrDelta();
             assertThat(thirdDelta).isPositive().isLessThan(firstDelta);
         }
+
+        @Test
+        @DisplayName("감쇠가 0 이 될 만큼 반복한 판은 원장에만 남고 랭크전·승패 수에 들어가지 않는다")
+        void 감쇠가_0_이면_랭크전이_아니다() {
+            // given — 같은 두 사람이 24시간 안에 6판을 둠. 다음 판부터 감쇠 계수 0
+            for (int i = 0; i < 6; i++) {
+                matchResultService.record(blackId, whiteId, blackId, "RESIGN", RATED_MOVES);
+            }
+            int winsBefore = reload(blackId).getWins();
+
+            // when — 7번째 판
+            matchResultService.record(blackId, whiteId, blackId, "RESIGN", RATED_MOVES);
+
+            // then — 승수가 오르면 짜고 치는 반복 대전으로 배치 판수를 채울 수 있음
+            Match seventh = matchRepository.findAll().get(6);
+            assertThat(seventh.isRated()).isFalse();
+            assertThat(seventh.getBlackMmrDelta()).isZero();
+            assertThat(reload(blackId).getWins()).isEqualTo(winsBefore);
+        }
     }
 
     @Nested
@@ -290,12 +309,16 @@ class MatchResultServiceTest extends IntegrationTestSupport {
             pool.shutdown();
 
             // then — 원장에서 흑의 변동을 더한 값과 users 의 값이 같아야 함
+            // 같은 상대와 반복하다 감쇠 계수가 0 이 된 판은 원장에만 남고 승수에 들어가지 않음
             User black = reload(blackId);
-            int ledgerDelta = matchRepository.findAll().stream()
+            List<Match> blackMatches = matchRepository.findAll().stream()
                     .filter(match -> match.getBlack().getUserId() == blackId)
-                    .mapToInt(Match::getBlackMmrDelta)
-                    .sum();
-            assertThat(black.getWins()).isEqualTo(rounds * 2);
+                    .toList();
+            int ledgerDelta =
+                    blackMatches.stream().mapToInt(Match::getBlackMmrDelta).sum();
+            long ratedWins = blackMatches.stream().filter(Match::isRated).count();
+            assertThat(blackMatches).hasSize(rounds * 2);
+            assertThat(black.getWins()).isEqualTo(ratedWins);
             assertThat(black.getMmr()).isEqualTo(Rating.INITIAL + ledgerDelta);
         }
     }

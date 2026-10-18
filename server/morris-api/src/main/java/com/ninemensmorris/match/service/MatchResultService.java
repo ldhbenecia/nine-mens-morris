@@ -54,12 +54,12 @@ public class MatchResultService {
 
         int blackDelta = 0;
 
-        // 조기 종료면 원장만 남기고 승패 수도 올리지 않음
-        // 승패 수가 오르면 즉시 기권 반복으로 배치 판수를 채울 수 있음
-        if (RatingPolicy.isRated(moveCount)) {
+        // 조기 종료거나 같은 상대와 너무 자주 둔 판(감쇠 계수 0)이면 원장만 남기고 승패 수도 올리지 않음
+        // 승패 수가 오르면 즉시 기권 반복이나 짜고 치는 반복 대전으로 배치 판수를 채울 수 있음
+        double factor = RatingPolicy.isRated(moveCount) ? repeatFactor(blackId, whiteId) : 0.0;
+        if (factor > 0.0) {
             Rating.Player blackPlayer = new Rating.Player(black.getMmr(), black.gamesPlayed());
             Rating.Player whitePlayer = new Rating.Player(white.getMmr(), white.gamesPlayed());
-            double factor = repeatFactor(blackId, whiteId);
             int raw = Rating.delta(blackPlayer, whitePlayer, blackScore(black, winner));
             blackDelta = Rating.limitByFloor(RatingPolicy.applyFactor(raw, factor), blackPlayer, whitePlayer);
             match.recordRating(blackDelta, -blackDelta);
