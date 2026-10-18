@@ -65,13 +65,10 @@ export function RoomListPage() {
         </div>
         <ul className="flex w-full flex-col gap-4">
           <CreateRoomButton onClick={onClickCreateRoom} />
-          {rooms &&
-            rooms
-              .slice()
-              .reverse()
-              .map((room) => (
-                <RoomItem key={room.roomId} room={room} onJoinRoom={joinRoom} />
-              ))}
+          {/* 서버가 최근에 만든 방부터 줌. 새 대기방이 위에 와야 입장할 방을 바로 찾음 */}
+          {rooms?.map((room) => (
+            <RoomItem key={room.roomId} room={room} onJoinRoom={joinRoom} />
+          ))}
         </ul>
       </div>
     </main>
