@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -582,6 +583,29 @@ class GameServiceTest {
                 assertThat(broadcast.event().state().endReason()).isEqualTo("TIMEOUT");
             });
             verify(matchResultService).record(eq(HOST), eq(GUEST), eq(GUEST), eq("TIMEOUT"), anyInt());
+        }
+
+        @Test
+        @DisplayName("정산이 실패해도 종료 알림은 나가고 같은 틱의 다른 방도 끝난다")
+        void 정산이_실패해도_알림은_나간다() {
+            // given — 두 방이 함께 시간 초과. DB 가 끊겨 정산이 전부 실패함
+            시작된_방(FirstMoveRule.HOST_FIRST);
+            Room other = rooms.create("다른 방", 3L);
+            other.join(4L);
+            other.changeFirstMoveRule(FirstMoveRule.HOST_FIRST);
+            gameService.start(new RoomCommand.StartGame(3L, other.roomId()));
+            doThrow(new IllegalStateException("DB 끊김"))
+                    .when(matchResultService)
+                    .record(anyLong(), anyLong(), any(), anyString(), anyInt());
+
+            // when
+            clock.move(TURN_LIMIT.plusSeconds(1));
+            List<RoomBroadcast> expired = gameService.expireTurns();
+
+            // then — 알림이 막히면 양쪽 화면에 끝난 판이 진행 중으로 남음
+            assertThat(expired).hasSize(2).allSatisfy(broadcast -> assertThat(
+                            broadcast.event().type())
+                    .isEqualTo(RoomEventType.FINISHED));
         }
 
         @Test

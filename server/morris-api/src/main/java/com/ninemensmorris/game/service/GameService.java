@@ -220,9 +220,14 @@ public class GameService {
         Instant now = clock.instant();
         List<RoomBroadcast> broadcasts = new ArrayList<>();
         for (long roomId : rooms.findTurnExpired(now)) {
-            rooms.mutate(roomId, room -> expireIfDue(room, now))
-                    .map(this::afterUnlock)
-                    .ifPresent(broadcasts::add);
+            // 방 하나가 실패해도 같은 틱의 다른 방은 끝내고 알림. 실패한 방은 후보에 남아 다음 틱에 다시 잡힘
+            try {
+                rooms.mutate(roomId, room -> expireIfDue(room, now))
+                        .map(this::afterUnlock)
+                        .ifPresent(broadcasts::add);
+            } catch (RuntimeException exception) {
+                log.error("시간 초과 처리 실패 roomId={}", roomId, exception);
+            }
         }
         return broadcasts;
     }
@@ -260,13 +265,17 @@ public class GameService {
         List<Long> purged = new ArrayList<>();
         List<RoomBroadcast> broadcasts = new ArrayList<>();
         for (long roomId : rooms.findIdle(threshold)) {
-            rooms.mutate(roomId, room -> purgeIfIdle(room, threshold)).ifPresent(locked -> {
-                purged.add(roomId);
-                RoomBroadcast broadcast = afterUnlock(locked);
-                if (broadcast != null) {
-                    broadcasts.add(broadcast);
-                }
-            });
+            try {
+                rooms.mutate(roomId, room -> purgeIfIdle(room, threshold)).ifPresent(locked -> {
+                    purged.add(roomId);
+                    RoomBroadcast broadcast = afterUnlock(locked);
+                    if (broadcast != null) {
+                        broadcasts.add(broadcast);
+                    }
+                });
+            } catch (RuntimeException exception) {
+                log.error("유휴 방 정리 실패 roomId={}", roomId, exception);
+            }
         }
 
         if (!purged.isEmpty()) {
@@ -312,15 +321,22 @@ public class GameService {
 
     // 반드시 방 락 밖에서 호출. 안에서 DB 를 기다리면 그동안 그 방의 모든 프레임이 막힘
     // 끝나는 경로(착수·이탈·끊김·유휴 정리)가 전부 여기를 지남
+    //
+    // 정산이 실패해도 종료 알림은 나가야 함. 판은 이미 FINISHED 로 저장돼 다시 정산할 경로가 없고,
+    // 알림까지 막으면 양쪽 화면에 끝난 판이 계속 진행 중으로 남음. 수동 복구용으로 결과를 로그에 다 남김
     private <R> R afterUnlock(LockedResult<R> locked) {
         Settlement settlement = locked.settlement();
         if (settlement != null) {
-            matchResultService.record(
-                    settlement.blackId(),
-                    settlement.whiteId(),
-                    settlement.winnerId(),
-                    settlement.outcome().reason().name(),
-                    settlement.moves());
+            try {
+                matchResultService.record(
+                        settlement.blackId(),
+                        settlement.whiteId(),
+                        settlement.winnerId(),
+                        settlement.outcome().reason().name(),
+                        settlement.moves());
+            } catch (RuntimeException exception) {
+                log.error("정산 실패. 전적·MMR 미반영 {}", settlement, exception);
+            }
             metrics.gameFinished(settlement.outcome().reason());
         }
         return locked.value();
