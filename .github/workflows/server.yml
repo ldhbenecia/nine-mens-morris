@@ -108,5 +108,11 @@ jobs:
           if git diff --staged --quiet; then echo "변경 없음"; exit 0; fi
           git commit -m "ci(morris): game-server image → $TAG"
           # 다른 레포의 CI 가 먼저 push 했으면 그 위에 다시 얹음
-          git pull --rebase
-          git push
+          # pull 과 push 사이에 다른 레포 CI 가 끼어들면 거부됨(msa 4개 동시 push 때 실제로 발생)
+          # → 다시 받아서 다시 얹고 재시도
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && exit 0
+            echo "push 거부 (${i}회) — 다른 CI 가 먼저 push 함. 재시도"
+            sleep $((i * 3))
+          done
+          exit 1
