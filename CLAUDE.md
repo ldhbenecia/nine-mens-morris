@@ -119,6 +119,7 @@ docker compose up            # 앱 + MySQL
 
 | 문서 | 언제 보나 |
 | --- | --- |
+| [docs/domain/](server/docs/domain/README.md) | **지금 어떻게 돌아가는가.** 규칙·방 생애·프로토콜·레이팅·구조·바꿀 때 볼 곳 |
 | [docs/plans/13-roadmap.md](server/docs/plans/13-roadmap.md) | **작업 시작 지점.** Phase 0~9 |
 | [docs/plans/01-code-audit.md](server/docs/plans/01-code-audit.md) | 알려진 결함 (P0 13 / P1 17 / P2 18) |
 | [docs/plans/02-game-rules-audit.md](server/docs/plans/02-game-rules-audit.md) | 게임 규칙 22개 대조표 |
