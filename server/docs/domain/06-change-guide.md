@@ -72,6 +72,7 @@
 | 저장소 계약 | `RoomRegistryContract` (`RedisRoomRegistryTest`, `InMemoryRoomRegistryTest` 둘 다 통과해야 함) | Testcontainers Redis |
 | 정산·랭킹 쿼리 | `MatchResultServiceTest`, `UserRepositoryTest`, `UserServiceTest` | Testcontainers MySQL |
 | 다중 서버 | `MultiServerGameTest`, `ClusterBroadcasterTest`, `ClusterPresenceTest` | 같은 Redis 를 보는 서버 둘 |
+| 종료 전 세션 이동 | `SocketDrainerTest` | 실제 STOMP 클라이언트 |
 | 소켓 전체 흐름·인가 | `GameE2eTest` | 실제 STOMP 클라이언트 |
 | 인증 | `VisitorAuthTest`, `RedisOAuth2AuthorizationRequestRepositoryTest` | |
 

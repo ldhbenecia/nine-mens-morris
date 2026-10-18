@@ -64,6 +64,7 @@ roomId 는 항상 **경로**에서 받는다. 페이로드에 식별자를 넣�
 | --- | --- | --- |
 | `/topic/rooms/{roomId}` | **그 방 사람만** 구독 가능 | `RoomEvent` |
 | `/topic/lobby` | 로그인한 누구나 | `{ type: LOBBY_CHANGED }` 신호만 |
+| `/topic/system` | 로그인한 누구나. **지금 붙은 서버의 세션에게만** 감 | `{ type: RECONNECT }` — 이 서버가 곧 내려감. 새 연결을 먼저 붙이고 이 연결을 닫음 |
 | `/user/queue/errors` | 나만 | 거절 사유 `{ code, message }` 또는 `ErrorResponse` |
 | `/user/queue/sync` | 나만 | `SNAPSHOT` 이벤트 |
 
@@ -72,7 +73,7 @@ roomId 는 항상 **경로**에서 받는다. 페이로드에 식별자를 넣�
 | 프레임 | 규칙 | 어기면 |
 | --- | --- | --- |
 | CONNECT | 유효한 토큰 필수 | 연결 거부 |
-| SUBSCRIBE | `/user/**`, `/topic/lobby`, 그리고 **자기가 속한 방의 `/topic/rooms/{번호}`** 만 | 프레임을 조용히 버림(예외를 던지면 끊김 → 재접속 → 재거부 루프) |
+| SUBSCRIBE | `/user/**`, `/topic/lobby`, `/topic/system`, 그리고 **자기가 속한 방의 `/topic/rooms/{번호}`** 만 | 프레임을 조용히 버림(예외를 던지면 끊김 → 재접속 → 재거부 루프) |
 | SEND | `/app/**` 만 | 예외. SimpleBroker 는 `/topic` 으로 보낸 SEND 도 중계하므로 막지 않으면 상대 화면에 가짜 판을 띄울 수 있음 |
 
 방 토픽은 번호로 **끝나야** 한다. `/topic/rooms/7/x` 같은 변형은 거부한다.
