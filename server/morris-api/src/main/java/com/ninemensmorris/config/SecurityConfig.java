@@ -3,6 +3,7 @@ package com.ninemensmorris.config;
 import com.ninemensmorris.auth.service.CustomOAuth2UserService;
 import com.ninemensmorris.security.JwtAuthenticationFilter;
 import com.ninemensmorris.security.OAuth2SuccessHandler;
+import com.ninemensmorris.security.RedisOAuth2AuthorizationRequestRepository;
 import com.ninemensmorris.security.UnauthorizedEntryPoint;
 import jakarta.servlet.DispatcherType;
 import java.util.List;
@@ -29,6 +30,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomOAuth2UserService oAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final RedisOAuth2AuthorizationRequestRepository authorizationRequestRepository;
     private final UnauthorizedEntryPoint unauthorizedEntryPoint;
 
     @Value("${cors.allowed-origins}")
@@ -40,7 +42,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .oauth2Login(oauth2 -> oauth2.redirectionEndpoint(endpoint -> endpoint.baseUri("/api/oauth2/kakao"))
+                .oauth2Login(oauth2 -> oauth2.authorizationEndpoint(
+                                endpoint -> endpoint.authorizationRequestRepository(authorizationRequestRepository))
+                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/api/oauth2/kakao"))
                         .userInfoEndpoint(endpoint -> endpoint.userService(oAuth2UserService))
                         .successHandler(oAuth2SuccessHandler))
                 // 토큰이 클라이언트에 있으므로 서버가 지울 것이 없음
