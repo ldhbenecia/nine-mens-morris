@@ -7,6 +7,7 @@ import java.util.Optional;
 public final class StompDestinations {
 
     public static final String LOBBY_TOPIC = "/topic/lobby"; // 서버 → 로비 화면 전원. 방 목록이 바뀌었다는 신호
+    public static final String SYSTEM_TOPIC = "/topic/system"; // 서버 → 이 서버에 붙은 세션 전원. 서버를 옮기라는 신호
     public static final String ERROR_QUEUE = "/queue/errors"; // 서버 → 요청 보낸 사용자 한 명. 거절 사유
     public static final String SYNC_QUEUE = "/queue/sync"; // 서버 → 요청 보낸 사용자 한 명. 판 전체 상태
     public static final String USER_PREFIX = "/user/"; // 위 두 큐를 구독할 때 붙는 접두사. 사용자 한 명 전용
