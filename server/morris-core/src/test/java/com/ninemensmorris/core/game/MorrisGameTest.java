@@ -583,6 +583,21 @@ class MorrisGameTest {
         }
 
         @Test
+        @DisplayName("상대 제안이 남아 있을 때 나도 제안하면 합의로 무승부다")
+        void 서로_제안하면_무승부다() {
+            // given — 백의 제안에 흑이 수락 대신 무승부 버튼을 누름
+            MorrisGame game = new MorrisGame(Stone.BLACK);
+            game.apply(Stone.WHITE, new Move.OfferDraw());
+
+            // when
+            MoveResult result = game.apply(Stone.BLACK, new Move.OfferDraw());
+
+            // then
+            assertThat(result).isInstanceOf(MoveResult.Finished.class);
+            assertThat(game.outcome().reason()).isEqualTo(EndReason.DRAW_AGREED);
+        }
+
+        @Test
         @DisplayName("제안이 없으면 수락할 수 없다")
         void 제안_없이_수락할_수_없다() {
             // given

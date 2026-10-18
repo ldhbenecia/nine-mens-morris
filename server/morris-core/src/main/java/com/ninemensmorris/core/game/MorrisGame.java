@@ -213,6 +213,11 @@ public final class MorrisGame {
     // 무승부 제안. 다음 수가 진행되면 소멸함
     // 상대 화면에 수락 창을 띄우므로 횟수 제한이 없으면 괴롭힘 수단이 됨
     private MoveResult offerDraw(Stone actor) {
+        // 상대 제안이 남아 있는데 나도 제안하면 양쪽이 합의한 것
+        // 내 제안으로 덮어쓰면 상대 제안은 사라지고 내 제안 횟수만 줄며, 남은 수락 창은 "자기 제안" 으로 거절됨
+        if (drawOfferedBy == actor.opponent()) {
+            return finish(Outcome.draw(EndReason.DRAW_AGREED));
+        }
         if (drawOfferedBy == actor) {
             return reject(RejectReason.DRAW_ALREADY_OFFERED);
         }
