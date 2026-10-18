@@ -24,6 +24,10 @@ public class ClusterPresence {
 
     private static final Duration ALIVE_TTL = Duration.ofSeconds(15);
 
+    // 죽은 서버가 남긴 세션은 해제가 오지 않아 집합에 남음. 만료가 없으면 장애·배포마다 키가 쌓임
+    // 들어올 때마다 다시 걺. 방은 30분 방치되면 정리되므로 한 방을 이보다 오래 볼 일이 없음
+    private static final Duration PRESENCE_TTL = Duration.ofHours(12);
+
     private final StringRedisTemplate redis;
     private final String instanceId;
 
@@ -36,7 +40,9 @@ public class ClusterPresence {
     }
 
     public void enter(long userId, long roomId, String sessionId) {
-        redis.opsForSet().add(key(roomId, userId), member(sessionId));
+        String key = key(roomId, userId);
+        redis.opsForSet().add(key, member(sessionId));
+        redis.expire(key, PRESENCE_TTL);
     }
 
     public void leave(long userId, long roomId, String sessionId) {

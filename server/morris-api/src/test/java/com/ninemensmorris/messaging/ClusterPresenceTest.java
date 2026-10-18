@@ -76,6 +76,17 @@ class ClusterPresenceTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("접속 기록에는 만료가 걸려 죽은 서버가 남긴 키가 영원히 쌓이지 않는다")
+    void 접속_기록에_만료가_걸린다() {
+        // when
+        serverA.enter(USER, ROOM, "s1");
+
+        // then
+        Long ttl = redis.getExpire("presence:" + ROOM + ":" + USER);
+        assertThat(ttl).isPositive();
+    }
+
+    @Test
     @DisplayName("살아 있는 서버의 세션이 하나라도 있으면 보고 있다")
     void 살아_있는_세션이_있으면_보고_있다() {
         // given
