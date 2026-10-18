@@ -53,17 +53,18 @@ public class RedisRoomRegistry implements RoomRegistry {
     public <R> Optional<R> mutate(long roomId, Function<Room, R> action) {
         Optional<Mutated<R>> mutated = store.update(roomId, snapshot -> {
             Room room = Room.restore(snapshot);
+            room.nextRevision();
+            RoomSnapshot unchanged = room.snapshot();
             Room.LobbyView listed = room.lobbyView();
             R result = action.apply(room);
             if (room.isClosed()) {
                 return RoomStore.Change.delete(new Mutated<>(result, true));
             }
-            // 거절된 수·남의 방 나가기처럼 바뀐 게 없으면 다시 쓰지 않음. 활동 시각·revision 도 그대로
-            if (room.snapshot().equals(snapshot)) {
+            // 거절된 수·남의 방 나가기처럼 바뀐 게 없으면 다시 쓰지 않음. 올린 revision 도 저장되지 않아 그대로
+            if (room.snapshot().equals(unchanged)) {
                 return RoomStore.Change.keep(new Mutated<>(result, false));
             }
             room.touch();
-            room.nextRevision();
             return RoomStore.Change.save(
                     room.snapshot(), new Mutated<>(result, !room.lobbyView().equals(listed)));
         });

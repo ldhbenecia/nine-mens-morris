@@ -137,6 +137,24 @@ interface RoomRegistryContract {
     }
 
     @Test
+    @DisplayName("변경 안에서 본 revision 이 저장되는 revision 이다")
+    default void 변경_안의_revision_이_저장된다() {
+        // given
+        long roomId = registry().create("방", HOST).roomId();
+
+        // when — 이벤트의 판 상태는 변경 안에서 만들어짐
+        long seenInside = registry()
+                .mutate(roomId, room -> {
+                    room.join(GUEST);
+                    return room.revision();
+                })
+                .orElseThrow();
+
+        // then — 다르면 다음 sync 와 다음 수의 이벤트가 같은 번호를 달아 화면이 한 수 전으로 되돌아갈 수 있음
+        assertThat(otherServer().find(roomId).orElseThrow().revision()).isEqualTo(seenInside);
+    }
+
+    @Test
     @DisplayName("아무것도 바꾸지 않은 변경은 revision 도 활동 시각도 그대로다")
     default void 바뀐_게_없으면_그대로다() throws InterruptedException {
         // given — 거절된 수. 판은 그대로

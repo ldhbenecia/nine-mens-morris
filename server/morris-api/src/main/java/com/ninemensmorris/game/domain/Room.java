@@ -86,9 +86,16 @@ public final class Room {
                 game == null ? null : game.snapshot());
     }
 
-    // 저장소가 변경을 저장하기 직전에 부름. 변경 하나에 한 번
+    // 저장소가 변경을 적용하기 직전에 부름. 변경 하나에 한 번
+    // 변경 안에서 만든 판 상태(이벤트)가 저장될 revision 을 실어야 함
+    // 저장 뒤에 올리면 이벤트는 옛 번호를 달고 나가, 다음 sync 와 다음 수가 같은 번호를 나눠 가짐
     public void nextRevision() {
         this.revision++;
+    }
+
+    // 메모리 저장소가 바뀐 게 없는 변경을 되돌릴 때만. Redis 저장소는 저장하지 않는 것으로 되돌림
+    void undoRevision() {
+        this.revision--;
     }
 
     public long revision() {
